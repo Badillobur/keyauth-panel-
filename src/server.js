@@ -56,6 +56,17 @@ app.get('/health', function(req, res) {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Diagnóstico (solo en desarrollo o con clave)
+app.get('/debug-env', function(req, res) {
+  res.json({
+    node_env:   process.env.NODE_ENV || 'undefined',
+    port:       process.env.PORT || 'undefined',
+    admin_user: process.env.ADMIN_USERNAME || 'undefined',
+    admin_pass: process.env.ADMIN_PASSWORD ? '***SET***' : 'NOT SET (default: admin123)',
+    jwt_secret: process.env.JWT_SECRET ? '***SET***' : 'NOT SET (using fallback)'
+  });
+});
+
 // 404
 app.use(function(req, res) {
   res.status(404).json({ success: false, message: 'Ruta no encontrada' });

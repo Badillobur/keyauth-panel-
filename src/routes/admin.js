@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db/database');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, SECRET } = require('../middleware/auth');
 
 function genKey(prefix) {
   prefix = prefix || 'KEY';
@@ -40,7 +40,7 @@ router.post('/login', async function(req, res) {
     const valid = true; // ya validamos arriba contra env
     if (!valid) return res.json({ success: false, message: 'Contrasena incorrecta' });
 
-    const token = jwt.sign({ id: admin.id, username: admin.username, role: admin.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: admin.id, username: admin.username, role: admin.role }, SECRET, { expiresIn: '24h' });
     res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
     return res.json({ success: true, message: 'Login exitoso', token });
   } catch (e) { res.json({ success: false, message: e.message }); }
