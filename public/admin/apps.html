@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplicaciones — KeyAuth Panel</title>
+  <link rel="stylesheet" href="/admin/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔐</div>
+      <div><div class="logo-text">KeyAuth</div><div class="logo-version">Panel v1.0</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">General</div>
+      <a href="/admin/index.html" class="nav-item" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="/admin/apps.html" class="nav-item active" data-page="apps"><span class="nav-icon">📦</span> Aplicaciones</a>
+      <div class="nav-section-title">Gestión</div>
+      <a href="/admin/keys.html" class="nav-item" data-page="keys"><span class="nav-icon">🔑</span> Licencias / Keys</a>
+      <a href="/admin/users.html" class="nav-item" data-page="users"><span class="nav-icon">👥</span> Usuarios</a>
+      <a href="/admin/logs.html" class="nav-item" data-page="logs"><span class="nav-icon">📋</span> Logs</a>
+      <div class="nav-section-title">Config</div>
+      <a href="/admin/vars.html" class="nav-item" data-page="vars"><span class="nav-icon">⚙️</span> Variables</a>
+      <a href="/admin/api-docs.html" class="nav-item" data-page="docs"><span class="nav-icon">📖</span> API Docs</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="admin-avatar">A</div>
+        <div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Aplicaciones</div>
+        <div class="topbar-sub">Gestiona tus aplicaciones y sus credenciales</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal('modal-create')">+ Nueva App</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📦 Todas las Aplicaciones</div>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search-apps" placeholder="Buscar app..." />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="apps-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Version</th>
+                <th>Owner ID</th>
+                <th>Usuarios</th>
+                <th>Keys</th>
+                <th>Estado</th>
+                <th>Creada</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="apps-tbody">
+              <tr><td colspan="8"><div class="empty-state"><div class="loader"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Crear App -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nueva Aplicación</div>
+      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre de la App *</label>
+      <input type="text" id="new-app-name" class="form-control" placeholder="Mi Cheat v2" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Versión</label>
+      <input type="text" id="new-app-version" class="form-control" placeholder="1.0" value="1.0" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createApp()">Crear App</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar App -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Editar Aplicación</div>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <input type="hidden" id="edit-app-id" />
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input type="text" id="edit-app-name" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Versión</label>
+      <input type="text" id="edit-app-version" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select id="edit-app-status" class="form-control">
+        <option value="1">Activa</option>
+        <option value="0">Desactivada</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Credenciales -->
+<div class="modal-overlay" id="modal-creds">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <div class="modal-title">🔐 Credenciales de la App</div>
+      <button class="modal-close" onclick="closeModal('modal-creds')">✕</button>
+    </div>
+    <p style="color:var(--text3);font-size:13px;margin-bottom:16px;">Usa estos datos en tu código C++ para conectarte a la API.</p>
+
+    <div class="form-group">
+      <label class="form-label">Nombre (name)</label>
+      <div class="code-block" id="cred-name" style="padding-right:80px;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Owner ID (ownerid)</label>
+      <div class="code-block" id="cred-ownerid" style="padding-right:80px;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Secret</label>
+      <div class="code-block" id="cred-secret" style="padding-right:80px;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL de la API</label>
+      <div class="code-block" id="cred-url" style="padding-right:80px;"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Código C++ listo para usar</label>
+      <div class="code-block" style="font-size:11px;line-height:1.6;padding-right:80px;" id="cred-cpp"></div>
+      <button class="copy-btn" onclick="copyText(document.getElementById('cred-cpp').dataset.raw, this)">Copiar</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-creds')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/admin/js/app.js"></script>
+<script>
+(async function() {
+  await requireAuth();
+  loadApps();
+  filterTable('search-apps', 'apps-table');
+  // Si viene con ?id=, abrir creds automaticamente
+  const id = getParam('id');
+  if (id) {
+    setTimeout(async function() {
+      const res = await apiFetch(API + '/apps');
+      if (res && res.success) {
+        const app = res.apps.find(function(a) { return a.id === id; });
+        if (app) showCreds(app);
+      }
+    }, 500);
+  }
+})();
+
+var appsData = [];
+
+async function loadApps() {
+  const res = await apiFetch(API + '/apps');
+  const tbody = document.getElementById('apps-tbody');
+  if (!res || !res.success) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Error cargando apps</p></div></td></tr>';
+    return;
+  }
+  appsData = res.apps;
+  if (res.apps.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📦</div><p>No hay apps. Crea una!</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = res.apps.map(function(a) {
+    return '<tr>' +
+      '<td class="td-main">' + esc(a.name) + '</td>' +
+      '<td><span class="badge badge-blue">v' + esc(a.version) + '</span></td>' +
+      '<td><span class="font-mono text-sm text-muted truncate">' + esc(a.owner_id) + '</span></td>' +
+      '<td>' + a.userCount + '</td>' +
+      '<td>' + a.keyCount + '</td>' +
+      '<td>' + (a.status ? '<span class="badge badge-green">Activa</span>' : '<span class="badge badge-red">Desactivada</span>') + '</td>' +
+      '<td class="text-muted text-sm">' + fmtDateShort(a.created_at) + '</td>' +
+      '<td><div style="display:flex;gap:6px;">' +
+        '<button class="btn btn-secondary btn-sm" onclick="showCreds(' + JSON.stringify(a).replace(/"/g,'&quot;') + ')">🔐 Creds</button>' +
+        '<a href="/admin/keys.html?app=' + a.id + '" class="btn btn-secondary btn-sm">🔑 Keys</a>' +
+        '<a href="/admin/users.html?app=' + a.id + '" class="btn btn-secondary btn-sm">👥 Users</a>' +
+        '<button class="btn btn-secondary btn-sm" onclick="editApp(' + JSON.stringify(a).replace(/"/g,'&quot;') + ')">✏️</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteApp(\'' + a.id + '\', \'' + esc(a.name) + '\')">🗑️</button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function createApp() {
+  const name = document.getElementById('new-app-name').value.trim();
+  const version = document.getElementById('new-app-version').value.trim() || '1.0';
+  if (!name) { toast('Nombre requerido', 'error'); return; }
+
+  const res = await apiFetch(API + '/apps', { method: 'POST', body: { name, version } });
+  if (!res) return;
+  if (res.success) {
+    toast('App "' + name + '" creada!', 'success');
+    closeModal('modal-create');
+    document.getElementById('new-app-name').value = '';
+    loadApps();
+    showCreds(res.app);
+  } else {
+    toast(res.message, 'error');
+  }
+}
+
+function editApp(app) {
+  document.getElementById('edit-app-id').value = app.id;
+  document.getElementById('edit-app-name').value = app.name;
+  document.getElementById('edit-app-version').value = app.version;
+  document.getElementById('edit-app-status').value = app.status;
+  openModal('modal-edit');
+}
+
+async function saveEdit() {
+  const id = document.getElementById('edit-app-id').value;
+  const name = document.getElementById('edit-app-name').value.trim();
+  const version = document.getElementById('edit-app-version').value.trim();
+  const status = parseInt(document.getElementById('edit-app-status').value);
+
+  const res = await apiFetch(API + '/apps/' + id, { method: 'PUT', body: { name, version, status } });
+  if (res && res.success) {
+    toast('App actualizada', 'success');
+    closeModal('modal-edit');
+    loadApps();
+  } else if (res) {
+    toast(res.message, 'error');
+  }
+}
+
+async function deleteApp(id, name) {
+  confirmAction('¿Eliminar la app "' + name + '"? Esto borrara TODOS sus usuarios, keys y logs.', async function() {
+    const res = await apiFetch(API + '/apps/' + id, { method: 'DELETE' });
+    if (res && res.success) {
+      toast('App eliminada', 'success');
+      loadApps();
+    }
+  });
+}
+
+function showCreds(app) {
+  const apiUrl = window.location.origin + '/api/1.2/';
+  document.getElementById('cred-name').textContent = app.name;
+  document.getElementById('cred-ownerid').textContent = app.owner_id;
+  document.getElementById('cred-secret').textContent = app.secret;
+  document.getElementById('cred-url').textContent = apiUrl;
+
+  const cpp = 'KeyAuth::api KeyAuthApp(\n' +
+    '    "' + app.name + '",      // name\n' +
+    '    "' + app.owner_id + '",  // ownerid\n' +
+    '    "' + app.secret + '",    // secret\n' +
+    '    "' + app.version + '",   // version\n' +
+    '    "' + apiUrl + '"         // url\n' +
+    ');';
+
+  const cppEl = document.getElementById('cred-cpp');
+  cppEl.textContent = cpp;
+  cppEl.dataset.raw = cpp;
+  openModal('modal-creds');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

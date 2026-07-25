@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logs — KeyAuth Panel</title>
+  <link rel="stylesheet" href="/admin/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔐</div>
+      <div><div class="logo-text">KeyAuth</div><div class="logo-version">Panel v1.0</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">General</div>
+      <a href="/admin/index.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="/admin/apps.html" class="nav-item"><span class="nav-icon">📦</span> Aplicaciones</a>
+      <div class="nav-section-title">Gestión</div>
+      <a href="/admin/keys.html" class="nav-item"><span class="nav-icon">🔑</span> Licencias / Keys</a>
+      <a href="/admin/users.html" class="nav-item"><span class="nav-icon">👥</span> Usuarios</a>
+      <a href="/admin/logs.html" class="nav-item active"><span class="nav-icon">📋</span> Logs</a>
+      <div class="nav-section-title">Config</div>
+      <a href="/admin/vars.html" class="nav-item"><span class="nav-icon">⚙️</span> Variables</a>
+      <a href="/admin/api-docs.html" class="nav-item"><span class="nav-icon">📖</span> API Docs</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="admin-avatar">A</div>
+        <div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Logs de Actividad</div>
+        <div class="topbar-sub" id="topbar-sub">Monitorea la actividad de tus aplicaciones</div>
+      </div>
+      <div class="topbar-actions">
+        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()">
+          <option value="">Seleccionar App...</option>
+        </select>
+        <select id="limit-selector" class="form-control" style="width:120px;" onchange="reloadLogs()">
+          <option value="50">50 logs</option>
+          <option value="100" selected>100 logs</option>
+          <option value="250">250 logs</option>
+          <option value="500">500 logs</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="reloadLogs()" id="btn-refresh" disabled>🔄</button>
+        <button class="btn btn-danger btn-sm" onclick="clearLogs()" id="btn-clear" disabled>🗑️ Limpiar</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Registros</div>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search-logs" placeholder="Buscar en logs..." />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="logs-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Accion</th>
+                <th>Usuario</th>
+                <th>IP</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="logs-tbody">
+              <tr><td colspan="5"><div class="empty-state"><p>Selecciona una aplicacion para ver sus logs</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="/admin/js/app.js"></script>
+<script>
+var currentAppId = null;
+var logCounter = 0;
+
+(async function() {
+  await requireAuth();
+  await loadAppSelector();
+  filterTable('search-logs', 'logs-table');
+
+  const appId = getParam('app');
+  if (appId) {
+    document.getElementById('app-selector').value = appId;
+    onAppChange();
+  }
+})();
+
+async function loadAppSelector() {
+  const res = await apiFetch(API + '/apps');
+  if (!res || !res.success) return;
+  const sel = document.getElementById('app-selector');
+  res.apps.forEach(function(a) {
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = a.name;
+    sel.appendChild(opt);
+  });
+}
+
+function onAppChange() {
+  const sel = document.getElementById('app-selector');
+  currentAppId = sel.value || null;
+  const hasSel = !!currentAppId;
+  document.getElementById('btn-refresh').disabled = !hasSel;
+  document.getElementById('btn-clear').disabled = !hasSel;
+  if (currentAppId) {
+    document.getElementById('topbar-sub').textContent = 'App: ' + sel.options[sel.selectedIndex].text;
+    reloadLogs();
+  }
+}
+
+function reloadLogs() {
+  if (currentAppId) loadLogs(currentAppId);
+}
+
+async function loadLogs(appId) {
+  const limit = document.getElementById('limit-selector').value;
+  const res = await apiFetch(API + '/apps/' + appId + '/logs?limit=' + limit);
+  const tbody = document.getElementById('logs-tbody');
+
+  if (!res || !res.success) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>Error cargando logs</p></div></td></tr>';
+    return;
+  }
+
+  if (res.logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin logs registrados</p></div></td></tr>';
+    return;
+  }
+
+  logCounter = res.logs.length;
+  tbody.innerHTML = res.logs.map(function(l, i) {
+    // Color por tipo de accion
+    var action = (l.action || '').toLowerCase();
+    var color = 'var(--text2)';
+    var dot = 'var(--accent)';
+    if (action.includes('login')) { color = 'var(--green)'; dot = 'var(--green)'; }
+    else if (action.includes('ban') || action.includes('bloquead')) { color = 'var(--red)'; dot = 'var(--red)'; }
+    else if (action.includes('registro')) { color = '#a29dff'; dot = '#a29dff'; }
+    else if (action.includes('licencia') || action.includes('key')) { color = 'var(--yellow)'; dot = 'var(--yellow)'; }
+
+    return '<tr>' +
+      '<td class="text-muted text-sm">' + (logCounter - i) + '</td>' +
+      '<td style="color:' + color + ';font-size:13px;max-width:320px;">' +
+        '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + dot + ';margin-right:8px;vertical-align:middle;"></span>' +
+        esc(l.action) +
+      '</td>' +
+      '<td class="text-muted text-sm font-mono">' + esc(l.username || 'system') + '</td>' +
+      '<td class="text-muted text-sm font-mono">' + esc(l.ip || '—') + '</td>' +
+      '<td class="text-muted text-sm" title="' + fmtDate(l.created_at) + '">' + relTime(l.created_at) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function clearLogs() {
+  if (!currentAppId) return;
+  confirmAction('¿Eliminar TODOS los logs de esta app? Esto no se puede deshacer.', async function() {
+    const res = await apiFetch(API + '/apps/' + currentAppId + '/logs', { method: 'DELETE' });
+    if (res && res.success) {
+      toast('Logs eliminados', 'success');
+      loadLogs(currentAppId);
+    }
+  });
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
