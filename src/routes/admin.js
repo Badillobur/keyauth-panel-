@@ -23,24 +23,21 @@ router.post('/login', async function(req, res) {
     const envUser = process.env.ADMIN_USERNAME || 'admin';
     const envPass = process.env.ADMIN_PASSWORD || 'admin123';
 
-    let admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
+    // Validar directo contra variables de entorno (sin depender de la DB)
+    if (username !== envUser || password !== envPass) {
+      return res.json({ success: false, message: 'Contrasena incorrecta' });
+    }
 
-    if (!admin && username === envUser) {
-      // Crear admin por primera vez
+    // Asegurar que el admin existe en DB (para foreign keys, etc.)
+    let admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
+    if (!admin) {
       const hashed = await bcrypt.hash(envPass, 10);
       const id = uuidv4();
       await db.run('INSERT INTO admins (id,username,password,role) VALUES (?,?,?,?)', [id, username, hashed, 'superadmin']);
-      admin = await db.get('SELECT * FROM admins WHERE id=?', [id]);
-    } else if (admin && username === envUser) {
-      // Sincronizar contraseña con la variable de entorno siempre
-      const hashed = await bcrypt.hash(envPass, 10);
-      await db.run('UPDATE admins SET password=? WHERE username=?', [hashed, envUser]);
       admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
     }
 
-    if (!admin) return res.json({ success: false, message: 'Credenciales invalidas' });
-
-    const valid = await bcrypt.compare(password, admin.password);
+    const valid = true; // ya validamos arriba contra env
     if (!valid) return res.json({ success: false, message: 'Contrasena incorrecta' });
 
     const token = jwt.sign({ id: admin.id, username: admin.username, role: admin.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
