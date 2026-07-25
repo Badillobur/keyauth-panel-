@@ -20,13 +20,22 @@ router.post('/login', async function(req, res) {
     const { username, password } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
 
+    const envUser = process.env.ADMIN_USERNAME || 'admin';
+    const envPass = process.env.ADMIN_PASSWORD || 'admin123';
+
     let admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
 
-    if (!admin && username === (process.env.ADMIN_USERNAME || 'admin')) {
-      const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10);
+    if (!admin && username === envUser) {
+      // Crear admin por primera vez
+      const hashed = await bcrypt.hash(envPass, 10);
       const id = uuidv4();
       await db.run('INSERT INTO admins (id,username,password,role) VALUES (?,?,?,?)', [id, username, hashed, 'superadmin']);
       admin = await db.get('SELECT * FROM admins WHERE id=?', [id]);
+    } else if (admin && username === envUser) {
+      // Sincronizar contraseña con la variable de entorno siempre
+      const hashed = await bcrypt.hash(envPass, 10);
+      await db.run('UPDATE admins SET password=? WHERE username=?', [hashed, envUser]);
+      admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
     }
 
     if (!admin) return res.json({ success: false, message: 'Credenciales invalidas' });
