@@ -69,6 +69,12 @@ app.get('/sdk/LMAx27Enc.h', function(req, res) {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.sendFile(p);
 });
+app.get('/sdk/LMAx27Auth.lib', function(req, res) {
+  var p = require('path').join(__dirname, '../public/sdk/LMAx27Auth.lib');
+  res.setHeader('Content-Disposition', 'attachment; filename="LMAx27Auth.lib"');
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.sendFile(p);
+});
 // También accesible desde el panel admin
 app.get('/api/admin/sdk/download', function(req, res) {
   var p = require('path').join(__dirname, '../public/sdk/LMAx27Auth.h');
