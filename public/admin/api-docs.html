@@ -165,6 +165,21 @@
               <pre id="cpp-ex" style="font-size:10px;"></pre>
               <button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="copyText(document.getElementById('cpp-ex').textContent,this)">Copiar</button>
             </div>
+
+            <div style="margin-top:14px;padding:12px;background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.2);border-radius:var(--radius);">
+              <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;">Descargar SDK LMAx27</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="/sdk/LMAx27Auth.lib" download class="btn btn-secondary btn-sm" style="font-size:10px;text-decoration:none;">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2.5 6l3 3 3-3M1 10h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.lib
+                </a>
+                <a href="/sdk/LMAx27Auth.h" download class="btn btn-secondary btn-sm" style="font-size:10px;text-decoration:none;">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2.5 6l3 3 3-3M1 10h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.h
+                </a>
+                <a href="/sdk/LMAx27Enc.h" download class="btn btn-secondary btn-sm" style="font-size:10px;text-decoration:none;">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2.5 6l3 3 3-3M1 10h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Enc.h
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -264,22 +279,22 @@ function onAppChange() {
     document.getElementById('c-ownerid').textContent = app.owner_id;
     document.getElementById('c-secret').textContent  = app.secret;
     document.getElementById('c-url').textContent     = apiUrl;
-    // C++ snippet
+    // C++ snippet - genérico para todos
     document.getElementById('cpp-ex').textContent =
-      '// ─── Kaflow.hpp ───────────────────────────────\n' +
-      'std::string name    = LMAx27("'+app.name+'").c_str();\n' +
-      'std::string ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
-      'std::string secret  = LMAx27("'+app.secret+'").c_str();\n' +
-      'std::string version = LMAx27("'+app.version+'").c_str();\n' +
-      'std::string url     = LMAx27("'+apiUrl+'").c_str();\n\n' +
-      'api KeyAuthApp(name, ownerid, secret, version, url);\n\n' +
-      '// ─── WinMain.hpp (antes del init) ─────────────\n' +
-      'name    = LMAx27("'+app.name+'").c_str();\n' +
-      'ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
-      'secret  = LMAx27("'+app.secret+'").c_str();\n' +
-      'version = LMAx27("'+app.version+'").c_str();\n' +
-      'url     = LMAx27("'+apiUrl+'").c_str();\n' +
-      'KeyAuthApp.init();';
+      '#include "LMAx27Auth.hpp"\n' +
+      '#include "LMAx27Enc.hpp"\n\n' +
+      'lmax::Auth app(\n' +
+      '  LMAx27("'+app.name+'"),\n' +
+      '  LMAx27("'+app.owner_id+'"),\n' +
+      '  LMAx27("'+app.secret+'"),\n' +
+      '  LMAx27("'+app.version+'"),\n' +
+      '  LMAx27("'+apiUrl+'")\n' +
+      ');\n\n' +
+      'app.init();\n' +
+      'app.login(username, password);\n' +
+      'if (!app.response.success) {\n' +
+      '  // Handle error\n' +
+      '}';
   }
 }
 
