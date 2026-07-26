@@ -46,12 +46,12 @@
     .app-meta-label { font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
     .app-meta-value { font-size:13px; font-weight:700; color:var(--text2); }
     .app-card-actions { display:flex; gap:5px; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--border); }
-    .app-btn { display:inline-flex; align-items:center; gap:4px; padding:5px 12px; border-radius:var(--radius); font-size:11px; font-weight:700; cursor:pointer; border:1px solid var(--border); background:var(--bg3); color:var(--text2); transition:all .15s; text-decoration:none; white-space:nowrap; }
-    .app-btn:hover { border-color:rgba(245,197,24,.35); color:var(--text); background:var(--bg4); }
-    .app-btn.danger { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.25); color:#ef4444; }
-    .app-btn.danger:hover { background:rgba(239,68,68,.18); }
-    .app-btn.primary { background:var(--accent-dim); border-color:rgba(245,197,24,.3); color:var(--accent); }
-    .app-btn.primary:hover { background:rgba(245,197,24,.2); }
+    .app-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:var(--radius); font-size:12px; font-weight:700; cursor:pointer; border:1.5px solid var(--border); background:var(--bg3); color:var(--text2); transition:all .15s; text-decoration:none; white-space:nowrap; }
+    .app-btn:hover { border-color:rgba(245,197,24,.4); color:var(--text); background:var(--bg4); }
+    .app-btn.danger { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.3); color:#ef4444; }
+    .app-btn.danger:hover { background:rgba(239,68,68,.2); border-color:rgba(239,68,68,.4); }
+    .app-btn.primary { background:var(--accent); border-color:var(--accent); color:#000; font-weight:800; }
+    .app-btn.primary:hover { background:rgba(245,197,24,.85); border-color:var(--accent); }
   </style>
 </head>
 <body>
@@ -226,21 +226,7 @@ function selectApp(app) {
   // ── Credenciales ──────────────────────────────────────────────────────────
   var apiUrl = window.location.origin + '/api/1.2/';
 
-  var cppKaflow =
-    'std::string name    = LMAx27("'+app.name+'").c_str();\n' +
-    'std::string ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
-    'std::string secret  = LMAx27("'+app.secret+'").c_str();\n' +
-    'std::string version = LMAx27("'+app.version+'").c_str();\n' +
-    'std::string url     = LMAx27("'+apiUrl+'").c_str();\n\n' +
-    'api KeyAuthApp(name, ownerid, secret, version, url);';
-
-  var cppWinMain =
-    'name    = LMAx27("'+app.name+'").c_str();\n' +
-    'ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
-    'secret  = LMAx27("'+app.secret+'").c_str();\n' +
-    'version = LMAx27("'+app.version+'").c_str();\n' +
-    'url     = LMAx27("'+apiUrl+'").c_str();\n' +
-    'KeyAuthApp.init();';
+  var cppCode = null;
 
   function credRow(label, val, raw) {
     var safeVal = (raw || val || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -256,33 +242,31 @@ function selectApp(app) {
   }
   var masked = function(s) { return s ? s.substring(0,3) + '••••••••••' + s.slice(-3) : '—'; };
 
-  var safeCppKaflow  = cppKaflow.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  var safeCppWinMain = cppWinMain.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  var safeCppDecl = cppDecl.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  var safeCppInit = cppInit.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
   document.getElementById('creds-content').innerHTML =
-    '<div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px;">' +
-      '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 5.5l3 3 5.5-5.5" stroke="#f5c518" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+    '<div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;">' +
+      '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5l3 3 6-6" stroke="#f5c518" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       esc(app.name) +
     '</div>' +
     credRow('APPLICATION NAME', app.name) +
     credRow('ACCOUNT OWNER ID', masked(app.owner_id), app.owner_id) +
     credRow('APPLICATION SECRET', masked(app.secret), app.secret) +
     credRow('APPLICATION VERSION', app.version) +
-
-    '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">' +
-        '<span style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;">Kaflow.hpp</span>' +
-        '<button class="cred-copy-btn" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;" onclick="copyText(\'' + safeCppKaflow + '\',this)">Copiar</button>' +
+    '<div style="margin-top:16px;padding:14px;background:rgba(245,197,24,.08);border:1.5px solid rgba(245,197,24,.25);border-radius:var(--radius);">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;">Descargar SDK LMAx27</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+        '<a href="/sdk/LMAx27Auth.lib" download class="btn btn-secondary btn-sm" style="font-size:11px;text-decoration:none;padding:7px 12px;display:inline-flex;align-items:center;gap:5px;">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.lib' +
+        '</a>' +
+        '<a href="/sdk/LMAx27Auth.h" download class="btn btn-secondary btn-sm" style="font-size:11px;text-decoration:none;padding:7px 12px;display:inline-flex;align-items:center;gap:5px;">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.h' +
+        '</a>' +
+        '<a href="/sdk/LMAx27Enc.h" download class="btn btn-secondary btn-sm" style="font-size:11px;text-decoration:none;padding:7px 12px;display:inline-flex;align-items:center;gap:5px;">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Enc.h' +
+        '</a>' +
       '</div>' +
-      '<pre style="margin:0;font-size:10px;line-height:1.65;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;">' + esc(cppKaflow) + '</pre>' +
-    '</div>' +
-
-    '<div style="margin-top:8px;">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">' +
-        '<span style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;">WinMain.hpp</span>' +
-        '<button class="cred-copy-btn" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;" onclick="copyText(\'' + safeCppWinMain + '\',this)">Copiar</button>' +
-      '</div>' +
-      '<pre style="margin:0;font-size:10px;line-height:1.65;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;">' + esc(cppWinMain) + '</pre>' +
     '</div>';
 }
 
@@ -297,7 +281,7 @@ function showFullCreds(app) {
   document.getElementById('cred-ownerid').textContent = app.owner_id;
   document.getElementById('cred-secret').textContent  = app.secret;
   document.getElementById('cred-url').textContent     = apiUrl;
-  var cpp = '// ─── Kaflow.hpp ───────────────────────────────\nstd::string name    = LMAx27("'+app.name+'").c_str();\nstd::string ownerid = LMAx27("'+app.owner_id+'").c_str();\nstd::string secret  = LMAx27("'+app.secret+'").c_str();\nstd::string version = LMAx27("'+app.version+'").c_str();\nstd::string url     = LMAx27("'+apiUrl+'").c_str();\n\napi KeyAuthApp(name, ownerid, secret, version, url);\n\n// ─── WinMain.hpp (antes del init) ─────────────\nname    = LMAx27("'+app.name+'").c_str();\nownerid = LMAx27("'+app.owner_id+'").c_str();\nsecret  = LMAx27("'+app.secret+'").c_str();\nversion = LMAx27("'+app.version+'").c_str();\nurl     = LMAx27("'+apiUrl+'").c_str();\nKeyAuthApp.init();';
+  var cpp = '#include "LMAx27Auth.h"\n#include "LMAx27Enc.h"\n\nstd::string name    = LMAx27("'+app.name+'").c_str();\nstd::string ownerid = LMAx27("'+app.owner_id+'").c_str();\nstd::string secret  = LMAx27("'+app.secret+'").c_str();\nstd::string version = LMAx27("'+app.version+'").c_str();\nstd::string url     = LMAx27("'+apiUrl+'").c_str();\n\nlmax::Auth LMAx27App(name, ownerid, secret, version, url);\n\n// --- Antes del menu ---\nLMAx27App.init();\nLMAx27App.login(username, password);\nif (!LMAx27App.response.success) { /* error */ }';
   var el = document.getElementById('cred-cpp');
   el.textContent = cpp; el.dataset.raw = cpp;
   openModal('modal-creds');
