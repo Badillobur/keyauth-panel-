@@ -18,30 +18,47 @@
         <div class="topbar-sub">Resumen general del sistema</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="loadAll()">🔄 Actualizar</button>
-        <a href="/apps" class="btn btn-primary btn-sm">+ Nueva App</a>
+        <button class="btn btn-secondary btn-sm" onclick="loadAll()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5a5.5 5.5 0 105.5-5.5A5.5 5.5 0 002.5 3L1 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M1 1.5v3h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Actualizar
+        </button>
+        <a href="/apps" class="btn btn-primary btn-sm">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+          Nueva App
+        </a>
       </div>
     </div>
     <div class="content">
+
       <div class="stats-grid">
         <div class="stat-card" style="animation-delay:.05s">
-          <div class="stat-icon">📦</div>
+          <div class="stat-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#f5c518" stroke-width="1.5"/><rect x="12" y="2" width="8" height="8" rx="1.5" stroke="#f5c518" stroke-width="1.5"/><rect x="2" y="12" width="8" height="8" rx="1.5" stroke="#f5c518" stroke-width="1.5"/><rect x="12" y="12" width="8" height="8" rx="1.5" stroke="#f5c518" stroke-width="1.5"/></svg>
+          </div>
           <div><div class="stat-value" id="s-apps">0</div><div class="stat-label">Aplicaciones</div></div>
         </div>
         <div class="stat-card" style="animation-delay:.1s">
-          <div class="stat-icon">👥</div>
+          <div class="stat-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="7" r="4" stroke="#f5c518" stroke-width="1.5"/><path d="M3 20c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="#f5c518" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
           <div><div class="stat-value" id="s-users">0</div><div class="stat-label">Usuarios</div></div>
         </div>
         <div class="stat-card" style="animation-delay:.15s">
-          <div class="stat-icon">🟢</div>
+          <div class="stat-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#22c55e" stroke-width="1.5"/><circle cx="11" cy="11" r="4" fill="#22c55e"/></svg>
+          </div>
           <div><div class="stat-value" id="s-online">0</div><div class="stat-label">Online Ahora</div></div>
         </div>
         <div class="stat-card" style="animation-delay:.2s">
-          <div class="stat-icon">🔑</div>
+          <div class="stat-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="11" r="5" stroke="#f5c518" stroke-width="1.5"/><path d="M12.5 11H20M17 8.5V11M19.5 8.5V11" stroke="#f5c518" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
           <div><div class="stat-value" id="s-keys">0</div><div class="stat-label">Keys Totales</div></div>
         </div>
         <div class="stat-card" style="animation-delay:.25s">
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#f5c518" stroke-width="1.5"/><path d="M7 11l3 3 5-5" stroke="#f5c518" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
           <div><div class="stat-value" id="s-used">0</div><div class="stat-label">Keys Usadas</div></div>
         </div>
       </div>
@@ -49,15 +66,21 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
         <div class="card">
           <div class="card-header">
-            <div class="card-title">📦 Aplicaciones</div>
-            <a href="/apps" class="btn btn-secondary btn-sm">Ver todas →</a>
+            <div class="card-title">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke="#f5c518" stroke-width="1.3"/><path d="M1.5 6h13M6 6v9" stroke="#f5c518" stroke-width="1.3"/></svg>
+              Aplicaciones
+            </div>
+            <a href="/apps" class="btn btn-secondary btn-sm">Ver todas</a>
           </div>
           <div id="apps-list"><div class="empty-state"><div class="loader"></div></div></div>
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-title">⚡ Actividad Reciente</div>
-            <a href="/logs" class="btn btn-secondary btn-sm">Ver todos →</a>
+            <div class="card-title">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke="#f5c518" stroke-width="1.3"/><path d="M4.5 5h7M4.5 8h7M4.5 11h4" stroke="#f5c518" stroke-width="1.3" stroke-linecap="round"/></svg>
+              Actividad Reciente
+            </div>
+            <a href="/logs" class="btn btn-secondary btn-sm">Ver todos</a>
           </div>
           <div id="logs-list"><div class="empty-state"><div class="loader"></div></div></div>
         </div>
@@ -86,7 +109,6 @@ async function loadAll() {
   animateCount(document.getElementById('s-keys'),   s.totalKeys, 800);
   animateCount(document.getElementById('s-used'),   s.usedKeys, 800);
 
-  // Logs
   const logsEl = document.getElementById('logs-list');
   if (!s.recentLogs || !s.recentLogs.length) {
     logsEl.innerHTML = '<div class="empty-state"><p>Sin actividad reciente</p></div>';
@@ -95,29 +117,28 @@ async function loadAll() {
       const action = (l.action || '').toLowerCase();
       let color = 'var(--text3)';
       if (action.includes('login')) color = 'var(--green)';
-      else if (action.includes('ban') || action.includes('bloquead')) color = 'var(--red)';
+      else if (action.includes('ban')) color = 'var(--red)';
       else if (action.includes('registro')) color = 'var(--accent)';
       else if (action.includes('key') || action.includes('licencia')) color = '#f59e0b';
-      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">' +
-        '<div style="width:6px;height:6px;border-radius:50%;background:'+color+';margin-top:5px;flex-shrink:0;box-shadow:0 0 6px '+color+'40;"></div>' +
-        '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(l.action) + '</div>' +
-        '<div style="font-size:10px;color:var(--text3);">' + esc(l.username) + ' · ' + relTime(l.created_at) + '</div></div></div>';
+      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">' +
+        '<div style="width:7px;height:7px;border-radius:50%;background:'+color+';margin-top:5px;flex-shrink:0;box-shadow:0 0 6px '+color+'60;"></div>' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(l.action) + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);">' + esc(l.username) + ' · ' + relTime(l.created_at) + '</div></div></div>';
     }).join('');
   }
 
-  // Apps
   const appsEl = document.getElementById('apps-list');
   const ar = await apiFetch(API + '/apps');
   if (!ar || !ar.success || !ar.apps.length) {
-    appsEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>No hay apps creadas aun</p></div>';
+    appsEl.innerHTML = '<div class="empty-state"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="margin:0 auto 10px;display:block;"><rect x="3" y="3" width="30" height="30" rx="4" stroke="#333" stroke-width="2"/><path d="M3 14h30M14 14v18" stroke="#333" stroke-width="2"/></svg><p>No hay apps creadas aun</p></div>';
   } else {
     appsEl.innerHTML = ar.apps.slice(0, 5).map(function(a) {
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">' +
-        '<div><div style="font-size:13px;font-weight:700;color:var(--text);">' + esc(a.name) + '</div>' +
-        '<div style="font-size:10px;color:var(--text3);">v'+esc(a.version)+' · '+a.userCount+' users · '+a.keyCount+' keys</div></div>' +
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">' +
+        '<div><div style="font-size:14px;font-weight:700;color:var(--text);">' + esc(a.name) + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);">v' + esc(a.version) + ' &nbsp;·&nbsp; ' + a.userCount + ' usuarios &nbsp;·&nbsp; ' + a.keyCount + ' keys</div></div>' +
         '<div style="display:flex;gap:6px;align-items:center;">' +
-        (a.status ? '<span class="badge badge-green">Activa</span>' : '<span class="badge badge-red">Off</span>') +
-        '<a href="/admin/apps.html?id='+a.id+'" class="btn btn-secondary btn-sm">Gestionar</a></div></div>';
+        (a.status ? '<span class="badge badge-green">Activa</span>' : '<span class="badge badge-red">Inactiva</span>') +
+        '<a href="/apps?id=' + a.id + '" class="btn btn-secondary btn-sm">Gestionar</a></div></div>';
     }).join('');
   }
 }
