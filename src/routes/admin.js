@@ -20,22 +20,26 @@ router.post('/login', async function(req, res) {
     const { username, password } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
 
-    const envUser = process.env.ADMIN_USERNAME || 'daniel';
-    const envPass = process.env.ADMIN_PASSWORD || 'daniel';
+    // Admin principal — siempre daniel/daniel a menos que Render tenga otra cosa configurada
+    const adminUser = process.env.ADMIN_USERNAME || 'daniel';
+    const adminPass = process.env.ADMIN_PASSWORD || 'daniel';
 
-    // ── Admin principal (directo contra env vars) ──────────────────────────
-    if (username === envUser && password === envPass) {
+    // ── Admin principal ────────────────────────────────────────────────────
+    if (username === adminUser && password === adminPass) {
       let admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
       if (!admin) {
-        const id = uuidv4();
-        const hashed = await bcrypt.hash(envPass, 10);
-        await db.run('INSERT INTO admins (id,username,password,role) VALUES (?,?,?,?)', [id, username, hashed, 'superadmin']);
-        admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
+        // crear con username viejo si existe
+        admin = await db.get('SELECT * FROM admins LIMIT 1');
+        if (!admin) {
+          const id = uuidv4();
+          const hashed = await bcrypt.hash(adminPass, 10);
+          await db.run('INSERT INTO admins (id,username,password,role) VALUES (?,?,?,?)', [id, adminUser, hashed, 'superadmin']);
+          admin = await db.get('SELECT * FROM admins WHERE id=?', [id]);
+        }
       }
-      // Actualizar username/pass en DB si cambió en env
-      await db.run('UPDATE admins SET username=?,password=? WHERE id=?', [envUser, await bcrypt.hash(envPass, 10), admin.id]);
-      admin.username = envUser;
-      const token = jwt.sign({ id: admin.id, username: envUser, role: 'superadmin' }, SECRET, { expiresIn: '24h' });
+      // Sincronizar siempre la DB con las credenciales actuales
+      await db.run('UPDATE admins SET username=?,password=? WHERE id=?', [adminUser, await bcrypt.hash(adminPass, 10), admin.id]);
+      const token = jwt.sign({ id: admin.id, username: adminUser, role: 'superadmin' }, SECRET, { expiresIn: '24h' });
       res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
       return res.json({ success: true, message: 'Login exitoso', token, role: 'superadmin' });
     }
