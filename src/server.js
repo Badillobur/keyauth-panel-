@@ -66,6 +66,21 @@ app.get('/health', function(req, res) {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Auto-ping para mantener el servidor activo en Render plan gratuito
+if (process.env.NODE_ENV === 'production') {
+  const https = require('https');
+  const http = require('http');
+  setInterval(function() {
+    const url = process.env.RENDER_EXTERNAL_URL || ('http://localhost:' + PORT);
+    const lib = url.startsWith('https') ? https : http;
+    lib.get(url + '/health', function(res) {
+      console.log('[Keep-alive] Ping OK -', res.statusCode);
+    }).on('error', function(e) {
+      console.log('[Keep-alive] Ping error:', e.message);
+    });
+  }, 10 * 60 * 1000); // cada 10 minutos
+}
+
 // Diagnóstico (solo en desarrollo o con clave)
 app.get('/debug-env', function(req, res) {
   res.json({
