@@ -225,8 +225,7 @@ function selectApp(app) {
 
   // ── Credenciales ──────────────────────────────────────────────────────────
   var apiUrl = window.location.origin + '/api/1.2/';
-
-  var cppCode = null;
+  var masked = function(s) { return s ? s.substring(0,3) + '••••••••••' + s.slice(-3) : '—'; };
 
   function credRow(label, val, raw) {
     var safeVal = (raw || val || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -240,10 +239,25 @@ function selectApp(app) {
       '</div>' +
     '</div>';
   }
-  var masked = function(s) { return s ? s.substring(0,3) + '••••••••••' + s.slice(-3) : '—'; };
 
-  var safeCppDecl = cppDecl.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  var safeCppInit = cppInit.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  // Código C++ genérico para todos los proyectos
+  var cppCode = 
+    '#include "LMAx27Auth.hpp"\n' +
+    '#include "LMAx27Enc.hpp"\n\n' +
+    'lmax::Auth app(\n' +
+    '  LMAx27("' + app.name + '"),\n' +
+    '  LMAx27("' + app.owner_id + '"),\n' +
+    '  LMAx27("' + app.secret + '"),\n' +
+    '  LMAx27("' + app.version + '"),\n' +
+    '  LMAx27("' + apiUrl + '")\n' +
+    ');\n\n' +
+    'app.init();\n' +
+    'app.login(username, password);\n' +
+    'if (!app.response.success) {\n' +
+    '  // Handle error\n' +
+    '}';
+
+  var safeCpp = cppCode.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
   document.getElementById('creds-content').innerHTML =
     '<div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;">' +
@@ -254,19 +268,12 @@ function selectApp(app) {
     credRow('ACCOUNT OWNER ID', masked(app.owner_id), app.owner_id) +
     credRow('APPLICATION SECRET', masked(app.secret), app.secret) +
     credRow('APPLICATION VERSION', app.version) +
-    '<div style="margin-top:16px;padding:14px;background:rgba(245,197,24,.08);border:1.5px solid rgba(245,197,24,.25);border-radius:var(--radius);">' +
-      '<div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;">Descargar SDK LMAx27</div>' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
-        '<a href="/sdk/LMAx27Auth.lib" download class="btn btn-secondary btn-sm" style="font-size:11px;text-decoration:none;padding:7px 12px;display:inline-flex;align-items:center;gap:5px;">' +
-          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.lib' +
-        '</a>' +
-        '<a href="/sdk/LMAx27Auth.h" download class="btn btn-secondary btn-sm" style="font-size:11px;text-decoration:none;padding:7px 12px;display:inline-flex;align-items:center;gap:5px;">' +
-          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.h' +
-        '</a>' +
-        '<a href="/sdk/LMAx27Enc.h" download class="btn btn-secondary btn-sm" style="font-size:11px;text-decoration:none;padding:7px 12px;display:inline-flex;align-items:center;gap:5px;">' +
-          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Enc.h' +
-        '</a>' +
+    '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+        '<span style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Codigo C++ - LMAx27</span>' +
+        '<button class="cred-copy-btn" style="font-size:10px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;" onclick="copyText(\'' + safeCpp + '\',this)">Copiar</button>' +
       '</div>' +
+      '<pre style="margin:0;font-size:9px;line-height:1.5;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;max-height:200px;overflow-y:auto;">' + esc(cppCode) + '</pre>' +
     '</div>';
 }
 
