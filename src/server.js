@@ -14,7 +14,16 @@ const isProd = process.env.NODE_ENV === 'production';
 // Confiar en el proxy de Render/Railway (necesario para rate limiting e IPs reales)
 app.set('trust proxy', 1);
 
-// Seguridad
+// Archivos estaticos PRIMERO - antes de helmet y cualquier middleware
+app.use('/admin', express.static(path.join(__dirname, '../public/admin'), {
+  setHeaders: function(res, filePath) {
+    if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+    if (filePath.endsWith('.js'))  res.setHeader('Content-Type', 'application/javascript');
+    if (filePath.endsWith('.html')) res.setHeader('Content-Type', 'text/html');
+  }
+}));
+
+// Seguridad (despues de estaticos)
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan(isProd ? 'combined' : 'dev'));
@@ -36,9 +45,6 @@ const adminLimiter = rateLimit({
   max: 200
 });
 app.use('/api/admin', adminLimiter);
-
-// Archivos estaticos del panel
-app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
 
 // Rutas API publica (compatible KeyAuth)
 app.use('/api', require('./routes/api'));
