@@ -12,26 +12,26 @@
   <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div><div class="topbar-title">🔑 Licencias / Keys</div><div class="topbar-sub" id="topbar-sub">Gestiona las licencias de tus apps</div></div>
+      <div><div class="topbar-title">Licencias / Keys</div><div class="topbar-sub" id="topbar-sub">Selecciona una aplicacion desde la pagina de Apps</div></div>
       <div class="topbar-actions">
-        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href='/apps'" id="btn-change-app">Cambiar App</button>
         <button class="btn btn-primary" id="btn-gen" disabled onclick="openModal('modal-gen')">+ Generar Keys</button>
       </div>
     </div>
     <div class="content">
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
-        <div class="stat-card"><div class="stat-icon">🔑</div><div><div class="stat-value" id="ks-total">0</div><div class="stat-label">Total</div></div></div>
-        <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-value" id="ks-used">0</div><div class="stat-label">Usadas</div></div></div>
-        <div class="stat-card"><div class="stat-icon">🆓</div><div><div class="stat-value" id="ks-free">0</div><div class="stat-label">Disponibles</div></div></div>
-        <div class="stat-card"><div class="stat-icon">⏰</div><div><div class="stat-value" id="ks-exp">0</div><div class="stat-label">Expiradas</div></div></div>
+        <div class="stat-card"><div><div class="stat-value" id="ks-total">0</div><div class="stat-label">Total</div></div></div>
+        <div class="stat-card"><div><div class="stat-value" id="ks-used">0</div><div class="stat-label">Usadas</div></div></div>
+        <div class="stat-card"><div><div class="stat-value" id="ks-free">0</div><div class="stat-label">Disponibles</div></div></div>
+        <div class="stat-card"><div><div class="stat-value" id="ks-exp">0</div><div class="stat-label">Expiradas</div></div></div>
       </div>
       <div class="card">
         <div class="card-header">
-          <div class="card-title">🔑 Lista de Keys</div>
+          <div class="card-title">Lista de Keys</div>
           <div style="display:flex;gap:8px;">
-            <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-keys" placeholder="Buscar key..." /></div>
-            <button class="btn btn-secondary btn-sm" id="btn-export" disabled onclick="exportKeys()">📥 Exportar</button>
-            <button class="btn btn-danger btn-sm" id="btn-del-used" disabled onclick="deleteAllUsed()">🗑️ Borrar Usadas</button>
+            <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M9 9l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span><input type="text" class="search-input" id="search-keys" placeholder="Buscar key..." /></div>
+            <button class="btn btn-secondary btn-sm" id="btn-export" disabled onclick="exportKeys()">Exportar</button>
+            <button class="btn btn-danger btn-sm" id="btn-del-used" disabled onclick="deleteAllUsed()">Borrar Usadas</button>
           </div>
         </div>
         <div class="table-wrap">
@@ -47,7 +47,7 @@
 
 <div class="modal-overlay" id="modal-gen">
   <div class="modal" style="max-width:500px;">
-    <div class="modal-header"><div class="modal-title">🔑 Generar Licencias</div><button class="modal-close" onclick="closeModal('modal-gen')">✕</button></div>
+    <div class="modal-header"><div class="modal-title">Generar Licencias</div><button class="modal-close" onclick="closeModal('modal-gen')">✕</button></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Cantidad (max 500)</label><input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" /></div>
       <div class="form-group"><label class="form-label">Prefijo</label><input type="text" id="gen-prefix" class="form-control" value="KEY" maxlength="10" /></div>
@@ -67,10 +67,10 @@
 
 <div class="modal-overlay" id="modal-result">
   <div class="modal" style="max-width:560px;">
-    <div class="modal-header"><div class="modal-title">✅ Keys Generadas</div><button class="modal-close" onclick="closeModal('modal-result')">✕</button></div>
+    <div class="modal-header"><div class="modal-title">Keys Generadas</div><button class="modal-close" onclick="closeModal('modal-result')">✕</button></div>
     <div class="code-block" style="max-height:280px;overflow-y:auto;white-space:pre-wrap;padding-right:80px;" id="result-keys"></div>
     <button class="copy-btn" style="top:56px;" onclick="copyText(document.getElementById('result-keys').textContent, this)">Copiar</button>
-    <div class="modal-footer"><button class="btn btn-secondary btn-sm" onclick="dlKeys()">📥 .txt</button><button class="btn btn-primary" onclick="closeModal('modal-result')">Cerrar</button></div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" onclick="dlKeys()">.txt</button><button class="btn btn-primary" onclick="closeModal('modal-result')">Cerrar</button></div>
   </div>
 </div>
 
@@ -82,28 +82,22 @@ var currentAppId = null, keysData = [];
 (async function() {
   injectSidebar('keys');
   await requireAuth();
-  // Usar el selector persistente — restaura última app seleccionada automáticamente
-  var initialApp = await loadAppSelector('app-selector', function(appId) {
-    currentAppId = appId || null;
-    var ok = !!currentAppId;
-    document.getElementById('btn-gen').disabled = !ok;
-    document.getElementById('btn-export').disabled = !ok;
-    document.getElementById('btn-del-used').disabled = !ok;
-    if (currentAppId) {
-      var sel = document.getElementById('app-selector');
-      document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text;
-      loadKeys(currentAppId);
+  // Usar la app guardada en localStorage (seleccionada desde Apps)
+  var savedApp = getSavedApp();
+  if (savedApp) {
+    currentAppId = savedApp;
+    document.getElementById('btn-gen').disabled = false;
+    document.getElementById('btn-export').disabled = false;
+    document.getElementById('btn-del-used').disabled = false;
+    // Obtener nombre de la app
+    var ar = await apiFetch(API + '/apps');
+    if (ar && ar.success) {
+      var found = ar.apps.find(function(a){ return a.id === savedApp; });
+      if (found) document.getElementById('topbar-sub').textContent = found.name;
     }
-  });
-  if (initialApp) {
-    currentAppId = initialApp;
-    var ok = !!currentAppId;
-    document.getElementById('btn-gen').disabled = !ok;
-    document.getElementById('btn-export').disabled = !ok;
-    document.getElementById('btn-del-used').disabled = !ok;
-    var sel = document.getElementById('app-selector');
-    if (sel.selectedIndex > 0) document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text;
     loadKeys(currentAppId);
+  } else {
+    document.getElementById('keys-tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Sin app seleccionada. Ve a <a href="/apps" style="color:var(--accent);">Aplicaciones</a> y selecciona una.</p></div></td></tr>';
   }
   filterTable('search-keys','keys-table');
 })();
@@ -118,7 +112,7 @@ async function loadKeys(appId) {
   document.getElementById('ks-used').textContent  = keysData.filter(function(k){return k.used>0;}).length;
   document.getElementById('ks-free').textContent  = keysData.filter(function(k){return k.used<k.max_uses;}).length;
   document.getElementById('ks-exp').textContent   = keysData.filter(function(k){return k.expiry&&k.expiry<now;}).length;
-  if (!keysData.length) { tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🔑</div><p>Sin keys. Genera las primeras!</p></div></td></tr>'; return; }
+  if (!keysData.length) { tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><p>Sin keys. Genera las primeras!</p></div></td></tr>'; return; }
   tbody.innerHTML = keysData.map(function(k) {
     const exp = k.expiry&&k.expiry<now;
     const full = k.used>=k.max_uses;
@@ -130,9 +124,9 @@ async function loadKeys(appId) {
       '<td class="text-sm '+(exp?'text-danger':'text-muted')+'">'+fmtDateShort(k.expiry)+'</td>'+
       '<td class="text-sm text-muted">'+esc(k.note||'—')+'</td>'+
       '<td><div style="display:flex;gap:4px;">'+
-        '<button class="btn btn-secondary btn-sm" onclick="copyText(\''+esc(k.key_value)+'\',this)">📋</button>'+
-        '<button class="btn btn-success btn-sm" onclick="resetKey(\''+k.id+'\')">🔄</button>'+
-        '<button class="btn btn-danger btn-sm" onclick="delKey(\''+k.id+'\')">🗑️</button>'+
+        '<button class="btn btn-secondary btn-sm" title="Copiar" onclick="copyText(\''+esc(k.key_value)+'\',this)">Copiar</button>'+
+        '<button class="btn btn-success btn-sm" title="Reset" onclick="resetKey(\''+k.id+'\')">Reset</button>'+
+        '<button class="btn btn-danger btn-sm" title="Eliminar" onclick="delKey(\''+k.id+'\')">Del</button>'+
       '</div></td></tr>';
   }).join('');
 }
