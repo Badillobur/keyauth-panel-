@@ -74,6 +74,7 @@ async function requireAuth() {
     var sidebarRole = res.admin.role || 'superadmin';
     updateSidebarRole(sidebarRole, page);
   }
+  return res.admin;
 }
 
 // Logout

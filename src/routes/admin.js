@@ -66,14 +66,15 @@ router.post('/logout', function(req, res) {
 
 router.get('/me', requireAdmin, async function(req, res) {
   try {
-    // Si es partner, incluir su rol real (owner/partner) de la DB
     if (req.admin.role === 'partner') {
       const p = await db.get('SELECT role FROM partners WHERE id=?', [req.admin.id]);
-      const partnerRole = p ? p.role : 'partner';
+      const partnerRole = (p && p.role) ? p.role : 'partner';
       return res.json({ success: true, admin: Object.assign({}, req.admin, { partner_role: partnerRole }) });
     }
     res.json({ success: true, admin: req.admin });
-  } catch(e) { res.json({ success: true, admin: req.admin }); }
+  } catch(e) {
+    res.json({ success: true, admin: req.admin });
+  }
 });
 
 // ─── Middleware: solo admin, NO partners ──────────────────────────────────────
