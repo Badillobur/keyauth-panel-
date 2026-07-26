@@ -82,28 +82,31 @@ var currentAppId = null, keysData = [];
 (async function() {
   injectSidebar('keys');
   await requireAuth();
-  await loadSel();
+  // Usar el selector persistente — restaura última app seleccionada automáticamente
+  var initialApp = await loadAppSelector('app-selector', function(appId) {
+    currentAppId = appId || null;
+    var ok = !!currentAppId;
+    document.getElementById('btn-gen').disabled = !ok;
+    document.getElementById('btn-export').disabled = !ok;
+    document.getElementById('btn-del-used').disabled = !ok;
+    if (currentAppId) {
+      var sel = document.getElementById('app-selector');
+      document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text;
+      loadKeys(currentAppId);
+    }
+  });
+  if (initialApp) {
+    currentAppId = initialApp;
+    var ok = !!currentAppId;
+    document.getElementById('btn-gen').disabled = !ok;
+    document.getElementById('btn-export').disabled = !ok;
+    document.getElementById('btn-del-used').disabled = !ok;
+    var sel = document.getElementById('app-selector');
+    if (sel.selectedIndex > 0) document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text;
+    loadKeys(currentAppId);
+  }
   filterTable('search-keys','keys-table');
-  const a = getParam('app');
-  if (a) { document.getElementById('app-selector').value = a; onAppChange(); }
 })();
-
-async function loadSel() {
-  const r = await apiFetch(API+'/apps');
-  if (!r||!r.success) return;
-  const sel = document.getElementById('app-selector');
-  r.apps.forEach(function(a) { const o=document.createElement('option'); o.value=a.id; o.textContent=a.name+' ('+a.keyCount+')'; sel.appendChild(o); });
-}
-
-function onAppChange() {
-  const sel = document.getElementById('app-selector');
-  currentAppId = sel.value || null;
-  const ok2 = !!currentAppId;
-  document.getElementById('btn-gen').disabled = !ok2;
-  document.getElementById('btn-export').disabled = !ok2;
-  document.getElementById('btn-del-used').disabled = !ok2;
-  if (currentAppId) { document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text; loadKeys(currentAppId); }
-}
 
 async function loadKeys(appId) {
   const r = await apiFetch(API+'/apps/'+appId+'/keys');

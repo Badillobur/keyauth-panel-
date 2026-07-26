@@ -50,7 +50,7 @@ router.post('/login', async function(req, res) {
       const valid = await bcrypt.compare(password, partner.password);
       if (!valid) return res.json({ success: false, message: 'Contrasena incorrecta' });
       await db.run('UPDATE partners SET last_login=? WHERE id=?', [Math.floor(Date.now()/1000), partner.id]);
-      const token = jwt.sign({ id: partner.id, username: partner.username, role: 'partner', partner_id: partner.id }, SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ id: partner.id, username: partner.username, role: 'partner', partner_role: partner.role || 'partner', partner_id: partner.id }, SECRET, { expiresIn: '24h' });
       res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
       return res.json({ success: true, message: 'Login exitoso', token, role: 'partner' });
     }
@@ -404,6 +404,7 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   // agregar columnas si no existen (migracion)
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN key_limit INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN keys_used INTEGER DEFAULT 0'); } catch(_) {}
+  try { await db.run("ALTER TABLE partners ADD COLUMN role TEXT DEFAULT 'partner'"); } catch(_) {}
 })();
 
 // Ver límite de keys de un partner
@@ -457,14 +458,15 @@ router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
 // Crear partner — SOLO ADMIN
 router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
   try {
-    const { username, password, display_name, email, app_ids, permissions } = req.body;
+    const { username, password, display_name, email, role, app_ids, permissions } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
     const ex = await db.get('SELECT id FROM partners WHERE username=?', [username]);
     if (ex) return res.json({ success: false, message: 'Username ya existe' });
     const id = uuidv4();
     const hashed = await bcrypt.hash(password, 10);
-    await db.run('INSERT INTO partners (id,username,password,display_name,email) VALUES (?,?,?,?,?)',
-      [id, username, hashed, display_name || username, email || '']);
+    const partnerRole = (role === 'owner') ? 'owner' : 'partner';
+    await db.run('INSERT INTO partners (id,username,password,display_name,email,role) VALUES (?,?,?,?,?,?)',
+      [id, username, hashed, display_name || username, email || '', partnerRole]);
     // Asociar apps CON permisos y límite de keys
     if (app_ids && app_ids.length) {
       for (const appId of app_ids) {
@@ -477,7 +479,7 @@ router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
           [id, appId, can_genkeys, can_users, can_logs, key_limit]);
       }
     }
-    const partner = await db.get('SELECT id,username,display_name,email,active,created_at FROM partners WHERE id=?', [id]);
+    const partner = await db.get('SELECT id,username,display_name,email,role,active,created_at FROM partners WHERE id=?', [id]);
     res.json({ success: true, message: 'Partner creado', partner });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -485,15 +487,16 @@ router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
 // Actualizar partner — SOLO ADMIN
 router.put('/partners/:id', requireAdmin, adminOnly, async function(req, res) {
   try {
-    const { display_name, email, active, password, app_ids, permissions } = req.body;
+    const { display_name, email, active, password, role, app_ids, permissions } = req.body;
     const p = await db.get('SELECT * FROM partners WHERE id=?', [req.params.id]);
     if (!p) return res.json({ success: false, message: 'Partner no encontrado' });
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
       await db.run('UPDATE partners SET password=? WHERE id=?', [hashed, p.id]);
     }
-    await db.run('UPDATE partners SET display_name=?,email=?,active=? WHERE id=?',
-      [display_name ?? p.display_name, email ?? p.email, active ?? p.active, p.id]);
+    const partnerRole = role === 'owner' ? 'owner' : role === 'partner' ? 'partner' : p.role;
+    await db.run('UPDATE partners SET display_name=?,email=?,active=?,role=? WHERE id=?',
+      [display_name ?? p.display_name, email ?? p.email, active ?? p.active, partnerRole, p.id]);
     // Actualizar apps con permisos y límites — BUG FIX: guardar can_genkeys/can_users/can_logs/key_limit correctamente
     if (app_ids !== undefined) {
       await db.run('DELETE FROM partner_apps WHERE partner_id=?', [p.id]);

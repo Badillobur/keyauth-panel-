@@ -20,13 +20,18 @@ async function apiFetch(url, options) {
   try {
     var res = await fetch(url, options);
     var data = await res.json();
-    // Si la sesion fue invalidada (partner desactivado, token expirado etc) redirigir al login
-    if (res.status === 401 || res.status === 403) {
+    // Solo 401 (token inválido/expirado) redirige al login
+    // 403 (sin permiso para esa acción) solo muestra toast, NO cierra sesión
+    if (res.status === 401) {
       if (data && data.message) toast(data.message, 'error');
       setTimeout(function() {
         clearToken();
         window.location.href = '/login';
       }, 1500);
+      return null;
+    }
+    if (res.status === 403) {
+      if (data && data.message) toast(data.message, 'error');
       return null;
     }
     return data;
@@ -138,6 +143,42 @@ function filterTable(inputId, tableId) {
 
 // URL param
 function getParam(name) { return new URLSearchParams(window.location.search).get(name); }
+
+// App seleccionada persistente (se guarda en localStorage para no seleccionar cada vez)
+function getSavedApp() { return localStorage.getItem('lmax_selected_app') || ''; }
+function setSavedApp(id) { if (id) localStorage.setItem('lmax_selected_app', id); else localStorage.removeItem('lmax_selected_app'); }
+
+// Carga un selector <select id="app-selector"> con las apps y restaura la seleccion guardada
+// Retorna el app_id que quedo seleccionado (o '' si ninguno)
+async function loadAppSelector(selectorId, onChange) {
+  selectorId = selectorId || 'app-selector';
+  var sel = document.getElementById(selectorId);
+  if (!sel) return '';
+  var r = await apiFetch(API + '/apps');
+  if (!r || !r.success || !r.apps.length) return '';
+  sel.innerHTML = '<option value="">— Seleccionar App —</option>';
+  r.apps.forEach(function(a) {
+    var o = document.createElement('option');
+    o.value = a.id;
+    o.textContent = a.name + (a.keyCount !== undefined ? '  (' + a.keyCount + ' keys)' : '');
+    o.dataset.name = a.name;
+    sel.appendChild(o);
+  });
+  // Prioridad: param URL > ultima guardada
+  var fromUrl  = getParam('app');
+  var fromSave = getSavedApp();
+  var toSet    = fromUrl || fromSave;
+  if (toSet) {
+    // verificar que la opción existe
+    var exists = Array.from(sel.options).some(function(o){ return o.value === toSet; });
+    if (exists) sel.value = toSet;
+  }
+  sel.addEventListener('change', function() {
+    setSavedApp(sel.value);
+    if (typeof onChange === 'function') onChange(sel.value);
+  });
+  return sel.value;
+}
 
 // Counter animation
 function animateCount(el, target, duration) {

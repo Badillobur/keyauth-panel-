@@ -88,25 +88,25 @@ var currentAppId = null, usersData = [];
 (async function() {
   injectSidebar('users');
   await requireAuth();
-  await loadSel();
+  // Usar el selector persistente — restaura última app seleccionada automáticamente
+  var initialApp = await loadAppSelector('app-selector', function(appId) {
+    currentAppId = appId || null;
+    document.getElementById('btn-add-user').disabled = !currentAppId;
+    if (currentAppId) {
+      var sel = document.getElementById('app-selector');
+      document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text;
+      loadUsers(currentAppId);
+    }
+  });
+  if (initialApp) {
+    currentAppId = initialApp;
+    document.getElementById('btn-add-user').disabled = !currentAppId;
+    var sel = document.getElementById('app-selector');
+    if (sel.selectedIndex > 0) document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text;
+    loadUsers(currentAppId);
+  }
   filterTable('search-users','users-table');
-  const a = getParam('app');
-  if (a) { document.getElementById('app-selector').value=a; onAppChange(); }
 })();
-
-async function loadSel() {
-  const r = await apiFetch(API+'/apps');
-  if (!r||!r.success) return;
-  const sel = document.getElementById('app-selector');
-  r.apps.forEach(function(a){const o=document.createElement('option');o.value=a.id;o.textContent=a.name+' ('+a.userCount+')';sel.appendChild(o);});
-}
-
-function onAppChange() {
-  const sel=document.getElementById('app-selector');
-  currentAppId=sel.value||null;
-  document.getElementById('btn-add-user').disabled = !currentAppId;
-  if (currentAppId) { document.getElementById('topbar-sub').textContent=sel.options[sel.selectedIndex].text; loadUsers(currentAppId); }
-}
 
 async function loadUsers(appId) {
   const r = await apiFetch(API+'/apps/'+appId+'/users');
