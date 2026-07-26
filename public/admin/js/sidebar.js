@@ -27,7 +27,7 @@ function buildSidebar(activePage) {
   ];
 
   var html = '<aside class="sidebar" id="sidebar">';
-  html += '<div class="sidebar-logo"><div class="logo-icon"><img src="/admin/lmax27.png" alt="LMAx27" style="width:32px;height:32px;object-fit:contain;" /></div><div><div class="logo-text">LMAx27</div><div class="logo-version">Panel v2.0</div></div></div>';
+  html += '<div class="sidebar-logo"><div class="logo-icon"><img src="/admin/lmax27.png" alt="LMAx27" /></div><div><div class="logo-text">LMAx27</div><div class="logo-version">Panel v2.0</div></div></div>';
   html += '<nav class="sidebar-nav">';
 
   for (var i = 0; i < nav.length; i++) {
