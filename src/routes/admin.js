@@ -314,16 +314,52 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
     created_at  INTEGER DEFAULT (strftime('%s','now'))
   )`);
   await db.run(`CREATE TABLE IF NOT EXISTS partner_apps (
-    partner_id  TEXT NOT NULL,
-    app_id      TEXT NOT NULL,
-    can_genkeys INTEGER DEFAULT 1,
-    can_users   INTEGER DEFAULT 1,
-    can_logs    INTEGER DEFAULT 1,
+    partner_id   TEXT NOT NULL,
+    app_id       TEXT NOT NULL,
+    can_genkeys  INTEGER DEFAULT 1,
+    can_users    INTEGER DEFAULT 1,
+    can_logs     INTEGER DEFAULT 1,
+    key_limit    INTEGER DEFAULT 0,
+    keys_used    INTEGER DEFAULT 0,
     PRIMARY KEY (partner_id, app_id),
     FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE,
     FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE
   )`);
+  // agregar columnas si no existen (migracion)
+  try { await db.run('ALTER TABLE partner_apps ADD COLUMN key_limit INTEGER DEFAULT 0'); } catch(_) {}
+  try { await db.run('ALTER TABLE partner_apps ADD COLUMN keys_used INTEGER DEFAULT 0'); } catch(_) {}
 })();
+
+// Ver límite de keys de un partner
+router.get('/partners/:id/limits', requireAdmin, async function(req, res) {
+  try {
+    const apps = await db.all(
+      'SELECT a.id, a.name, pa.key_limit, pa.keys_used, pa.can_genkeys FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
+      [req.params.id]
+    );
+    res.json({ success: true, apps });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// Actualizar límite de keys de un partner para una app
+router.put('/partners/:id/limits/:appId', requireAdmin, async function(req, res) {
+  try {
+    const { key_limit, can_genkeys } = req.body;
+    const ex = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.params.id, req.params.appId]);
+    if (!ex) return res.json({ success: false, message: 'Relacion partner-app no encontrada' });
+    await db.run('UPDATE partner_apps SET key_limit=?, can_genkeys=? WHERE partner_id=? AND app_id=?',
+      [parseInt(key_limit) || 0, can_genkeys ? 1 : 1, req.params.id, req.params.appId]);
+    res.json({ success: true, message: 'Limite actualizado' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// Resetear contador de keys usadas por partner
+router.post('/partners/:id/limits/:appId/reset', requireAdmin, async function(req, res) {
+  try {
+    await db.run('UPDATE partner_apps SET keys_used=0 WHERE partner_id=? AND app_id=?', [req.params.id, req.params.appId]);
+    res.json({ success: true, message: 'Contador reseteado' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
 
 // Listar partners
 router.get('/partners', requireAdmin, async function(req, res) {

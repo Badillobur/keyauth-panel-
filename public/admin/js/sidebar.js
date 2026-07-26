@@ -13,21 +13,21 @@ var SVG = {
 function buildSidebar(activePage) {
   var nav = [
     { section: 'General' },
-    { page: 'dashboard', label: 'Dashboard',        href: '/admin/index.html' },
-    { page: 'apps',      label: 'Aplicaciones',     href: '/admin/apps.html' },
+    { page: 'dashboard', label: 'Dashboard',        href: '/panel' },
+    { page: 'apps',      label: 'Aplicaciones',     href: '/apps' },
     { section: 'Gestion' },
-    { page: 'keys',      label: 'Licencias / Keys', href: '/admin/keys.html' },
-    { page: 'users',     label: 'Usuarios',         href: '/admin/users.html' },
-    { page: 'logs',      label: 'Logs',             href: '/admin/logs.html' },
+    { page: 'keys',      label: 'Licencias / Keys', href: '/keys' },
+    { page: 'users',     label: 'Usuarios',         href: '/users' },
+    { page: 'logs',      label: 'Logs',             href: '/logs' },
     { section: 'Config' },
-    { page: 'vars',      label: 'Variables',        href: '/admin/vars.html' },
-    { page: 'partners',  label: 'Partners',         href: '/admin/partners.html' },
-    { page: 'discord',   label: 'Bot Discord',      href: '/admin/discord.html' },
-    { page: 'docs',      label: 'API Docs',         href: '/admin/api-docs.html' },
+    { page: 'vars',      label: 'Variables',        href: '/vars' },
+    { page: 'partners',  label: 'Partners',         href: '/partners' },
+    { page: 'discord',   label: 'Bot Discord',      href: '/discord' },
+    { page: 'docs',      label: 'API Docs',         href: '/docs' },
   ];
 
   var html = '<aside class="sidebar" id="sidebar">';
-  html += '<div class="sidebar-logo"><div class="logo-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M13 2L4 13h7l-2 7 9-11h-7l2-7z" fill="#f5c518" stroke="#f5c518" stroke-width="1" stroke-linejoin="round"/></svg></div><div><div class="logo-text">LMAx27</div><div class="logo-version">Panel v2.0</div></div></div>';
+  html += '<div class="sidebar-logo"><div class="logo-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#111"/><path d="M5 20h18M5 20l2.5-8 4.5 4 2-6 2 6 4.5-4 2.5 8z" fill="#f5c518"/><text x="14" y="19" text-anchor="middle" font-size="7" font-weight="900" fill="#0a0a0a" font-family="Arial Black,sans-serif">LMA</text></svg></div><div><div class="logo-text">LMAx27</div><div class="logo-version">Panel v2.0</div></div></div>';
   html += '<nav class="sidebar-nav">';
 
   for (var i = 0; i < nav.length; i++) {

@@ -57,9 +57,19 @@ const discordRouter = require('./routes/discord');
 app.use('/api/admin/discord', discordRouter);
 
 // Ruta raiz -> redirigir al panel
-app.get('/', function(req, res) {
-  res.redirect('/admin/login.html');
-});
+app.get('/', function(req, res) { res.redirect('/login'); });
+
+// URLs limpias y profesionales
+app.get('/login',     function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/login.html')); });
+app.get('/panel',     function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/index.html')); });
+app.get('/apps',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/apps.html')); });
+app.get('/keys',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/keys.html')); });
+app.get('/users',     function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/users.html')); });
+app.get('/logs',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/logs.html')); });
+app.get('/vars',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/vars.html')); });
+app.get('/partners',  function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/partners.html')); });
+app.get('/discord',   function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/discord.html')); });
+app.get('/docs',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/api-docs.html')); });
 
 // Ruta de salud
 app.get('/health', function(req, res) {

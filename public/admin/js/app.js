@@ -31,14 +31,14 @@ async function apiFetch(url, options) {
 async function requireAuth() {
   var token = getToken();
   if (!token) {
-    window.location.href = '/admin/login.html';
+    window.location.href = '/login';
     return null;
   }
   // Verificar con el servidor
   var res = await apiFetch(API + '/me');
   if (!res || !res.success) {
     clearToken();
-    window.location.href = '/admin/login.html';
+    window.location.href = '/login';
     return null;
   }
   var nameEl = document.getElementById('admin-name');
@@ -53,7 +53,7 @@ async function requireAuth() {
 // Logout
 function logout() {
   clearToken();
-  window.location.href = '/admin/login.html';
+  window.location.href = '/login';
 }
 
 // Toast
