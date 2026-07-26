@@ -27,15 +27,27 @@ async function apiFetch(url, options) {
   }
 }
 
-// Auth guard — simplificado, sin redirect (el panel es open)
+// Auth guard — verifica token y redirige al login si no hay sesion
 async function requireAuth() {
+  var token = getToken();
+  if (!token) {
+    window.location.href = '/admin/login.html';
+    return null;
+  }
+  // Verificar con el servidor
+  var res = await apiFetch(API + '/me');
+  if (!res || !res.success) {
+    clearToken();
+    window.location.href = '/admin/login.html';
+    return null;
+  }
   var nameEl = document.getElementById('admin-name');
   var roleEl = document.getElementById('admin-role');
   var avatarEl = document.getElementById('admin-avatar');
-  if (nameEl) nameEl.textContent = 'Admin';
-  if (roleEl) roleEl.textContent = 'superadmin';
-  if (avatarEl) avatarEl.textContent = 'L';
-  return { id: 'admin', username: 'admin', role: 'superadmin' };
+  if (nameEl) nameEl.textContent = res.admin.username || 'Admin';
+  if (roleEl) roleEl.textContent = res.admin.role || 'superadmin';
+  if (avatarEl) avatarEl.textContent = (res.admin.username || 'L').charAt(0).toUpperCase();
+  return res.admin;
 }
 
 // Logout

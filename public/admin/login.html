@@ -3,90 +3,261 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LMAx27 — Login</title>
+  <title>LMAx27 — Acceso</title>
+  <link rel="icon" type="image/svg+xml" href="/admin/favicon.svg" />
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); }
-    .login-wrap { width:100%; max-width:380px; padding:20px; position:relative; z-index:1; }
-    .login-logo { text-align:center; margin-bottom:32px; }
-    .login-logo .icon { width:70px; height:70px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 14px; box-shadow:0 0 40px var(--accent-glow), 0 8px 24px rgba(0,0,0,0.5); animation:pulseLogo 3s ease infinite; }
-    .login-logo h1 { font-size:28px; font-weight:900; color:var(--accent); letter-spacing:2px; text-shadow:0 0 30px var(--accent-glow); }
-    .login-logo p  { font-size:12px; color:var(--text3); margin-top:4px; letter-spacing:1px; text-transform:uppercase; }
-    .login-card { background:var(--bg2); border:1px solid rgba(245,197,24,0.2); border-radius:var(--radius-lg); padding:30px; box-shadow:var(--shadow), 0 0 40px rgba(245,197,24,0.08); }
-    .login-card h2 { font-size:16px; font-weight:800; color:var(--text); margin-bottom:4px; }
-    .login-card .sub { font-size:12px; color:var(--text3); margin-bottom:22px; }
-    .input-wrap { position:relative; }
-    .input-wrap .ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:14px; pointer-events:none; }
-    .input-wrap .form-control { padding-left:36px; }
-    .btn-login { width:100%; padding:12px; font-size:13px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#000; border:none; border-radius:var(--radius); font-weight:800; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; letter-spacing:0.5px; margin-top:6px; box-shadow:0 4px 20px var(--accent-glow); }
-    .btn-login:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(245,197,24,0.4); }
-    .btn-login:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
-    .err { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); color:#f87171; border-radius:var(--radius); padding:10px 14px; font-size:12px; margin-bottom:14px; display:none; align-items:center; gap:8px; }
-    .err.show { display:flex; }
-    .login-footer { text-align:center; margin-top:22px; font-size:11px; color:var(--text3); }
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+
+    .login-bg {
+      position:fixed; inset:0; z-index:0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(245,197,24,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 100% 100%, rgba(245,197,24,0.04) 0%, transparent 50%),
+                  var(--bg);
+    }
+
+    .login-wrap { width:100%; max-width:420px; padding:20px; position:relative; z-index:1; }
+
+    .login-logo { text-align:center; margin-bottom:36px; }
+
+    .logo-mark {
+      width:80px; height:80px;
+      margin:0 auto 16px;
+      position:relative;
+    }
+
+    .logo-mark svg { width:100%; height:100%; }
+
+    .logo-glow {
+      position:absolute; inset:-10px;
+      border-radius:50%;
+      background: radial-gradient(circle, rgba(245,197,24,0.3) 0%, transparent 70%);
+      animation: glowPulse 3s ease infinite;
+    }
+
+    @keyframes glowPulse {
+      0%,100% { opacity:0.5; transform:scale(1); }
+      50% { opacity:1; transform:scale(1.1); }
+    }
+
+    .login-title {
+      font-size:32px; font-weight:900; color:var(--accent);
+      letter-spacing:3px; text-shadow:0 0 30px rgba(245,197,24,0.4);
+      line-height:1;
+    }
+    .login-subtitle { font-size:11px; color:var(--text3); margin-top:6px; letter-spacing:2px; text-transform:uppercase; }
+
+    .login-card {
+      background: linear-gradient(135deg, rgba(20,20,20,0.95), rgba(15,15,15,0.95));
+      border:1px solid rgba(245,197,24,0.15);
+      border-radius:16px;
+      padding:32px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,197,24,0.05) inset;
+      backdrop-filter:blur(20px);
+    }
+
+    .card-header { margin-bottom:24px; }
+    .card-title { font-size:18px; font-weight:800; color:var(--text); }
+    .card-sub { font-size:12px; color:var(--text3); margin-top:4px; }
+
+    .input-group { position:relative; margin-bottom:16px; }
+
+    .input-label {
+      display:block; font-size:11px; font-weight:700;
+      color:var(--text3); margin-bottom:6px;
+      text-transform:uppercase; letter-spacing:0.8px;
+    }
+
+    .input-icon {
+      position:absolute; left:14px; bottom:0;
+      height:44px; display:flex; align-items:center;
+      color:var(--text3); pointer-events:none;
+    }
+
+    .input-field {
+      width:100%; height:44px;
+      padding:0 14px 0 42px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:10px;
+      color:var(--text); font-size:14px;
+      outline:none; transition:all 0.2s;
+    }
+
+    .input-field:focus {
+      border-color:rgba(245,197,24,0.4);
+      background:rgba(245,197,24,0.04);
+      box-shadow:0 0 0 3px rgba(245,197,24,0.08);
+    }
+
+    .input-field::placeholder { color:var(--text3); }
+
+    .err-box {
+      display:none; align-items:center; gap:10px;
+      background:rgba(239,68,68,0.08);
+      border:1px solid rgba(239,68,68,0.2);
+      border-radius:8px; padding:10px 14px;
+      font-size:12px; color:#f87171;
+      margin-bottom:16px;
+    }
+    .err-box.show { display:flex; }
+
+    .btn-enter {
+      width:100%; height:48px;
+      background:linear-gradient(135deg, #f5c518, #e6b800);
+      border:none; border-radius:10px;
+      color:#000; font-size:14px; font-weight:800;
+      cursor:pointer; letter-spacing:0.5px;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      transition:all 0.2s;
+      box-shadow:0 4px 20px rgba(245,197,24,0.3);
+      margin-top:8px;
+    }
+    .btn-enter:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(245,197,24,0.4); }
+    .btn-enter:active { transform:translateY(0); }
+    .btn-enter:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    .security-note {
+      display:flex; align-items:center; gap:8px;
+      margin-top:20px; padding:10px 12px;
+      background:rgba(245,197,24,0.04);
+      border:1px solid rgba(245,197,24,0.1);
+      border-radius:8px; font-size:11px; color:var(--text3);
+    }
+
+    .login-footer { text-align:center; margin-top:20px; font-size:11px; color:var(--text3); letter-spacing:0.5px; }
   </style>
 </head>
 <body>
+<div class="login-bg"></div>
 <div id="particles"></div>
+
 <div class="login-wrap">
   <div class="login-logo">
-    <div class="icon">⚡</div>
-    <h1>LMAx27</h1>
-    <p>Sistema de Licenciamiento</p>
+    <div class="logo-mark">
+      <div class="logo-glow"></div>
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="80" height="80" rx="20" fill="#111"/>
+        <rect width="80" height="80" rx="20" fill="url(#grad)" opacity="0.3"/>
+        <path d="M47 12L20 46h18l-7 22 29-34H42l5-22z" fill="#f5c518"/>
+        <path d="M47 12L20 46h18l-7 22 29-34H42l5-22z" fill="url(#glow)" opacity="0.4"/>
+        <defs>
+          <linearGradient id="grad" x1="0" y1="0" x2="80" y2="80">
+            <stop offset="0%" stop-color="#f5c518"/>
+            <stop offset="100%" stop-color="#e6b800"/>
+          </linearGradient>
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff"/>
+            <stop offset="100%" stop-color="transparent"/>
+          </radialGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="login-title">LMAx27</div>
+    <div class="login-subtitle">Sistema de Licenciamiento</div>
   </div>
+
   <div class="login-card">
-    <h2>Acceder al Panel</h2>
-    <p class="sub">Ingresa tus credenciales de administrador</p>
-    <div class="err" id="err"><span>⚠</span><span id="err-text"></span></div>
+    <div class="card-header">
+      <div class="card-title">Iniciar Sesion</div>
+      <div class="card-sub">Ingresa tus credenciales para acceder al panel</div>
+    </div>
+
+    <div class="err-box" id="err">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#ef4444" stroke-width="1.3"/><path d="M7 4v3M7 9.5v.5" stroke="#ef4444" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span id="err-text"></span>
+    </div>
+
     <form id="login-form">
-      <div class="form-group">
-        <label class="form-label">Usuario</label>
-        <div class="input-wrap">
-          <span class="ico">👤</span>
-          <input type="text" id="username" class="form-control" placeholder="admin" autocomplete="username" required />
+      <div class="input-group">
+        <label class="input-label">Usuario</label>
+        <div class="input-icon">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="4.5" r="2.5" stroke="#555" stroke-width="1.3"/><path d="M2 13.5c0-3 2.5-4.5 5.5-4.5s5.5 1.5 5.5 4.5" stroke="#555" stroke-width="1.3" stroke-linecap="round"/></svg>
         </div>
+        <input type="text" id="username" class="input-field" placeholder="Ingresa tu usuario" autocomplete="username" required />
       </div>
-      <div class="form-group">
-        <label class="form-label">Contraseña</label>
-        <div class="input-wrap">
-          <span class="ico">🔒</span>
-          <input type="password" id="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required />
+
+      <div class="input-group">
+        <label class="input-label">Contraseña</label>
+        <div class="input-icon">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2.5" y="6" width="10" height="7.5" rx="1.5" stroke="#555" stroke-width="1.3"/><path d="M5 6V4.5a2.5 2.5 0 015 0V6" stroke="#555" stroke-width="1.3" stroke-linecap="round"/><circle cx="7.5" cy="9.5" r="1" fill="#555"/></svg>
         </div>
+        <input type="password" id="password" class="input-field" placeholder="Ingresa tu contraseña" autocomplete="current-password" required />
       </div>
-      <button type="submit" class="btn-login" id="login-btn">
-        <span id="btn-text">⚡ Entrar</span>
-        <span id="btn-loader" style="display:none"><span class="loader" style="width:14px;height:14px;border-width:2px;"></span></span>
+
+      <button type="submit" class="btn-enter" id="login-btn">
+        <span id="btn-text">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M6 3H3.5A1.5 1.5 0 002 4.5v7A1.5 1.5 0 003.5 13H6M10.5 5l4 3-4 3M14.5 8H6" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Acceder al Panel
+        </span>
+        <span id="btn-loader" style="display:none">
+          <span class="loader" style="width:16px;height:16px;border-width:2px;border-top-color:#000;border-color:rgba(0,0,0,0.2);"></span>
+        </span>
       </button>
     </form>
+
+    <div class="security-note">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5L2 3.5v3c0 2.8 2 5.3 4.5 6 2.5-.7 4.5-3.2 4.5-6v-3L6.5 1.5z" stroke="#f5c518" stroke-width="1.2" stroke-linejoin="round"/><path d="M4.5 6.5l1.5 1.5 2.5-2.5" stroke="#f5c518" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Conexion segura — La sesion expira automaticamente
+    </div>
   </div>
-  <div class="login-footer">LMAx27 Panel v2.0 — Sistema de Licenciamiento</div>
+
+  <div class="login-footer">LMAx27 Panel v2.0 &nbsp;·&nbsp; Sistema Privado</div>
 </div>
+
 <div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
 <script>
+// Particles minimo sin app.js
+(function(){
+  var c=document.getElementById('particles');
+  if(!c)return;
+  for(var i=0;i<15;i++){
+    var p=document.createElement('div');
+    p.className='particle';
+    p.style.cssText='left:'+Math.random()*100+'%;animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+(Math.random()*8)+'s;width:'+(Math.random()*2+1)+'px;height:'+(Math.random()*2+1)+'px;';
+    c.appendChild(p);
+  }
+})();
+
 document.getElementById('login-form').addEventListener('submit', async function(e) {
   e.preventDefault();
-  const btn = document.getElementById('login-btn');
-  const btnText = document.getElementById('btn-text');
-  const btnLoader = document.getElementById('btn-loader');
-  const errEl = document.getElementById('err');
-  btn.disabled = true; btnText.style.display = 'none'; btnLoader.style.display = 'block';
+  var btn = document.getElementById('login-btn');
+  var btnText = document.getElementById('btn-text');
+  var btnLoader = document.getElementById('btn-loader');
+  var errEl = document.getElementById('err');
+
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  btnLoader.style.display = 'block';
   errEl.classList.remove('show');
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
+
+  var username = document.getElementById('username').value.trim();
+  var password = document.getElementById('password').value;
+
   try {
-    const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({username, password}) });
-    const data = await res.json();
-    btn.disabled = false; btnText.style.display = 'block'; btnLoader.style.display = 'none';
+    var res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username: username, password: password })
+    });
+    var data = await res.json();
+
+    btn.disabled = false;
+    btnText.style.display = 'block';
+    btnLoader.style.display = 'none';
+
     if (data.success) {
       localStorage.setItem('lmax_token', data.token);
-      setTimeout(function() { window.location.href = '/admin/index.html'; }, 300);
+      window.location.href = '/admin/index.html';
     } else {
-      document.getElementById('err-text').textContent = data.message || 'Credenciales invalidas';
+      document.getElementById('err-text').textContent = data.message || 'Credenciales incorrectas';
       errEl.classList.add('show');
     }
   } catch(err) {
-    btn.disabled = false; btnText.style.display = 'block'; btnLoader.style.display = 'none';
+    btn.disabled = false;
+    btnText.style.display = 'block';
+    btnLoader.style.display = 'none';
     document.getElementById('err-text').textContent = 'Error de conexion con el servidor';
     errEl.classList.add('show');
   }
