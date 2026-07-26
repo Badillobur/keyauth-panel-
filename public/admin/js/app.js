@@ -2,26 +2,13 @@
 
 const API = '/api/admin';
 
-// ─── Token ───────────────────────────────────────────────────────────────────
-function getToken() {
-  return localStorage.getItem('ka_token') || '';
-}
+function getToken() { return 'no-auth'; }
+function setToken(t) {}
+function clearToken() {}
 
-function setToken(t) {
-  localStorage.setItem('ka_token', t);
-}
-
-function clearToken() {
-  localStorage.removeItem('ka_token');
-  localStorage.removeItem('ka_admin');
-}
-
-// ─── Fetch wrapper ────────────────────────────────────────────────────────────
 async function apiFetch(url, options) {
   options = options || {};
   options.headers = options.headers || {};
-  const token = getToken();
-  if (token) options.headers['Authorization'] = 'Bearer ' + token;
   options.credentials = 'include';
   if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
     options.headers['Content-Type'] = 'application/json';
@@ -29,11 +16,6 @@ async function apiFetch(url, options) {
   }
   try {
     const res = await fetch(url, options);
-    if (res.status === 401) {
-      clearToken();
-      window.location.href = '/admin/login.html';
-      return null;
-    }
     return await res.json();
   } catch (e) {
     toast('Error de conexion con el servidor', 'error');
@@ -41,7 +23,6 @@ async function apiFetch(url, options) {
   }
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
 function toast(msg, type) {
   type = type || 'info';
   let container = document.getElementById('toast-container');
@@ -63,7 +44,6 @@ function toast(msg, type) {
   }, 3500);
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
 function openModal(id) {
   const el = document.getElementById(id);
   if (el) el.classList.add('open');
@@ -74,14 +54,12 @@ function closeModal(id) {
   if (el) el.classList.remove('open');
 }
 
-// Cerrar modal al click fuera
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('open');
   }
 });
 
-// ─── Copy to clipboard ───────────────────────────────────────────────────────
 function copyText(text, btn) {
   navigator.clipboard.writeText(text).then(function() {
     if (btn) {
@@ -93,7 +71,6 @@ function copyText(text, btn) {
   });
 }
 
-// ─── Format date ─────────────────────────────────────────────────────────────
 function fmtDate(ts) {
   if (!ts) return '—';
   const d = new Date(typeof ts === 'number' && ts < 9999999999 ? ts * 1000 : ts);
@@ -114,7 +91,6 @@ function isExpired(ts) {
   return Date.now() > t;
 }
 
-// ─── Relative time ───────────────────────────────────────────────────────────
 function relTime(ts) {
   if (!ts) return '—';
   const t = typeof ts === 'number' && ts < 9999999999 ? ts * 1000 : ts;
@@ -125,46 +101,28 @@ function relTime(ts) {
   if (m < 60) return 'hace ' + m + 'm';
   const h = Math.floor(m / 60);
   if (h < 24) return 'hace ' + h + 'h';
-  const day = Math.floor(h / 24);
-  return 'hace ' + day + 'd';
+  return 'hace ' + Math.floor(h / 24) + 'd';
 }
 
-// ─── Confirm dialog ───────────────────────────────────────────────────────────
 function confirmAction(msg, cb) {
   if (confirm(msg)) cb();
 }
 
-// ─── Logout ───────────────────────────────────────────────────────────────────
-async function logout() {
-  await apiFetch(API + '/logout', { method: 'POST' });
-  clearToken();
-  window.location.href = '/admin/login.html';
+function logout() {
+  window.location.href = '/admin/index.html';
 }
 
-// ─── Auth guard ───────────────────────────────────────────────────────────────
+// Sin auth - devuelve admin falso directo
 async function requireAuth() {
-  const token = getToken();
-  if (!token) {
-    window.location.href = '/admin/login.html';
-    return null;
-  }
-  const res = await apiFetch(API + '/me');
-  if (!res || !res.success) {
-    clearToken();
-    window.location.href = '/admin/login.html';
-    return null;
-  }
-  // Rellenar info del admin en sidebar
   const nameEl = document.getElementById('admin-name');
   const roleEl = document.getElementById('admin-role');
   const avatarEl = document.getElementById('admin-avatar');
-  if (nameEl) nameEl.textContent = res.admin.username;
-  if (roleEl) roleEl.textContent = res.admin.role;
-  if (avatarEl) avatarEl.textContent = res.admin.username.charAt(0).toUpperCase();
-  return res.admin;
+  if (nameEl) nameEl.textContent = 'Admin';
+  if (roleEl) roleEl.textContent = 'superadmin';
+  if (avatarEl) avatarEl.textContent = 'A';
+  return { id: 'admin', username: 'admin', role: 'superadmin' };
 }
 
-// ─── Active nav ───────────────────────────────────────────────────────────────
 function setActiveNav(page) {
   document.querySelectorAll('.nav-item').forEach(function(el) {
     el.classList.remove('active');
@@ -172,7 +130,6 @@ function setActiveNav(page) {
   });
 }
 
-// ─── Search filter on table ───────────────────────────────────────────────────
 function filterTable(inputId, tableId) {
   const input = document.getElementById(inputId);
   const table = document.getElementById(tableId);
@@ -185,7 +142,6 @@ function filterTable(inputId, tableId) {
   });
 }
 
-// ─── Get URL param ────────────────────────────────────────────────────────────
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }

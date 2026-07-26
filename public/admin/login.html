@@ -158,56 +158,9 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="/admin/js/app.js"></script>
-  <script>
-    // Si ya hay token válido, redirigir
-    (async function() {
-      const token = getToken();
-      if (token) {
-        const res = await apiFetch(API + '/me');
-        if (res && res.success) {
-          window.location.href = '/admin/index.html';
-        }
-      }
-    })();
-
-    document.getElementById('login-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const btn = document.getElementById('login-btn');
-      const btnText = document.getElementById('btn-text');
-      const btnLoader = document.getElementById('btn-loader');
-      const errEl = document.getElementById('error-msg');
-      const errText = document.getElementById('error-text');
-
-      btn.disabled = true;
-      btnText.style.display = 'none';
-      btnLoader.style.display = 'block';
-      errEl.classList.remove('show');
-
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await res.json();
-      btn.disabled = false;
-      btnText.style.display = 'block';
-      btnLoader.style.display = 'none';
-
-      if (data.success) {
-        setToken(data.token);
-        toast('Login exitoso, redirigiendo...', 'success');
-        setTimeout(function() { window.location.href = '/admin/index.html'; }, 600);
-      } else {
-        errText.textContent = data.message || 'Credenciales invalidas';
-        errEl.classList.add('show');
-      }
-    });
-  </script>
+    <script>
+    // Sin login - redirigir directo al panel
+    window.location.href = '/admin/index.html';
+    </script>
 </body>
 </html>
