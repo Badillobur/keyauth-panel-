@@ -99,7 +99,7 @@ html, body {
 }
 
 .logo-icon {
-  width: 90px; height: 90px;
+  width: 100px; height: 100px;
   background: transparent;
   border-radius: 0;
   display: flex; align-items: center; justify-content: center;
@@ -109,19 +109,19 @@ html, body {
 }
 
 .logo-icon img {
-  width: 90px; height: 90px;
+  width: 100px; height: 100px;
   object-fit: contain;
-  filter: drop-shadow(0 0 16px rgba(245,197,24,0.6));
+  filter: drop-shadow(0 0 18px rgba(245,197,24,0.7));
   animation: logoFloat 4s ease-in-out infinite;
 }
 
 @keyframes logoFloat {
-  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 12px rgba(245,197,24,0.5)); }
-  50% { transform: translateY(-5px) scale(1.05); filter: drop-shadow(0 0 28px rgba(245,197,24,0.9)); }
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 14px rgba(245,197,24,0.6)); }
+  50% { transform: translateY(-6px) scale(1.06); filter: drop-shadow(0 0 32px rgba(245,197,24,1)); }
 }
 
-.logo-text { font-size: 22px; font-weight: 900; color: var(--accent); letter-spacing: 1px; text-shadow: 0 0 20px var(--accent-glow); }
-.logo-version { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.logo-text { font-size: 24px; font-weight: 900; color: var(--accent); letter-spacing: 1px; text-shadow: 0 0 20px var(--accent-glow); }
+.logo-version { font-size: 10px; color: var(--text3); margin-top: 2px; }
 
 .sidebar-nav { flex: 1; padding: 14px 10px; overflow-y: auto; }
 .nav-section-title { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 10px 6px; }

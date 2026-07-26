@@ -11,28 +11,30 @@
     .partner-card:hover { border-color:rgba(245,197,24,0.25); }
     .partner-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
     .partner-name { font-size:16px; font-weight:800; color:var(--accent); }
-    .partner-user { font-size:11px; color:var(--text3); font-family:monospace; margin-top:2px; }
-
-    .perms-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:8px; margin-top:12px; }
-    .perm-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); }
-    .perm-label { font-size:12px; color:var(--text2); display:flex; align-items:center; gap:8px; }
-    .perm-icon { color:var(--accent); }
-
-    .toggle-sw { width:36px; height:20px; background:var(--bg4); border:1px solid var(--border); border-radius:10px; position:relative; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
-    .toggle-sw::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; background:var(--text3); border-radius:50%; transition:all 0.2s; }
+    .partner-meta { font-size:11px; color:var(--text3); font-family:monospace; margin-top:2px; }
+    .role-badge { display:inline-block; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:700; margin-left:8px; text-transform:uppercase; }
+    .role-owner { background:rgba(245,197,24,0.15); color:#f5c518; border:1px solid rgba(245,197,24,0.3); }
+    .role-partner { background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.3); }
+    
+    .perms-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:8px; margin-top:12px; }
+    .perm-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text2); }
+    .toggle-sw { width:32px; height:18px; background:var(--bg4); border:1px solid var(--border); border-radius:9px; position:relative; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+    .toggle-sw::after { content:''; position:absolute; top:2px; left:2px; width:12px; height:12px; background:var(--text3); border-radius:50%; transition:all 0.2s; }
     .toggle-sw.on { background:var(--accent-dim); border-color:var(--accent); }
-    .toggle-sw.on::after { left:18px; background:var(--accent); box-shadow:0 0 6px rgba(245,197,24,0.5); }
+    .toggle-sw.on::after { left:16px; background:var(--accent); box-shadow:0 0 6px rgba(245,197,24,0.5); }
 
-    .app-assign { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:6px; }
-    .app-assign label { flex:1; font-size:13px; color:var(--text2); cursor:pointer; }
-    .app-assign input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; }
+    .app-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; }
+    .app-check { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; flex-shrink:0; }
+    .app-info { flex:1; }
+    .app-name { font-weight:700; color:var(--text); font-size:13px; }
+    .app-perms { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+    .perm-toggle { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); }
+    .key-limit-input { width:70px; padding:4px 6px; background:var(--bg4); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:11px; outline:none; }
+    .key-limit-input:focus { border-color:var(--accent); }
 
-    .key-limit-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
-    .key-limit-row label { font-size:11px; color:var(--text3); white-space:nowrap; }
-    .key-limit-row input { width:80px; padding:4px 8px; background:var(--bg4); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; outline:none; }
-    .key-limit-row input:focus { border-color:var(--accent); }
-
-    .section-label { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.8px; margin:14px 0 8px; }
+    .section-label { font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:0.8px; margin:14px 0 8px; }
+    .contact-banner { background:rgba(245,197,24,0.08); border:1px solid rgba(245,197,24,0.2); border-radius:var(--radius); padding:12px; margin-top:12px; font-size:12px; color:var(--text2); }
+    .contact-banner strong { color:var(--accent); }
   </style>
 </head>
 <body>
@@ -54,12 +56,6 @@
     </div>
 
     <div class="content">
-      <div class="card" style="background:rgba(245,197,24,0.04);border-color:rgba(245,197,24,0.12);margin-bottom:18px;">
-        <div style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:10px;">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 4.5v4c0 3.5 2.5 6.7 6 7.5 3.5-.8 6-4 6-7.5v-4L8 1.5z" stroke="#f5c518" stroke-width="1.2" stroke-linejoin="round"/><path d="M5.5 8l2 2 3.5-3.5" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span><strong style="color:var(--accent);">Partners</strong> tienen acceso limitado. Solo ven las apps que les asignes y solo pueden hacer lo que les permitas.</span>
-        </div>
-      </div>
       <div id="partners-list"><div class="empty-state"><div class="loader"></div></div></div>
     </div>
   </main>
@@ -67,7 +63,7 @@
 
 <!-- Modal Crear -->
 <div class="modal-overlay" id="modal-create">
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:580px;">
     <div class="modal-header"><div class="modal-title">Nuevo Partner</div><button class="modal-close" onclick="closeModal('modal-create')">✕</button></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="new-username" class="form-control" placeholder="username" /></div>
@@ -78,7 +74,7 @@
       <div class="form-group"><label class="form-label">Email</label><input type="email" id="new-email" class="form-control" placeholder="email@ejemplo.com" /></div>
     </div>
 
-    <div class="section-label">Apps que puede ver y sus permisos</div>
+    <div class="section-label">Selecciona apps y permisos</div>
     <div id="new-apps-list"><div class="empty-state" style="padding:12px;"><div class="loader"></div></div></div>
 
     <div class="modal-footer">
@@ -90,7 +86,7 @@
 
 <!-- Modal Editar -->
 <div class="modal-overlay" id="modal-edit">
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:580px;">
     <div class="modal-header"><div class="modal-title">Editar Partner</div><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
     <input type="hidden" id="edit-id" />
     <div class="form-row">
@@ -131,21 +127,19 @@ async function loadPartners() {
   const res = await apiFetch(API + '/partners');
   const el = document.getElementById('partners-list');
   if (!res || !res.success || !res.partners.length) {
-    el.innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="margin:0 auto 10px;display:block;"><circle cx="14" cy="12" r="6" stroke="#333" stroke-width="2"/><circle cx="26" cy="12" r="6" stroke="#333" stroke-width="2"/><path d="M2 36c0-6.6 5.4-10.5 12-10.5M38 36c0-6.6-5.4-10.5-12-10.5M20 25.5c6.6 0 12 3.9 12 10.5H8c0-6.6 5.4-10.5 12-10.5z" stroke="#333" stroke-width="2"/></svg><p>No hay partners aun</p></div>';
+    el.innerHTML = '<div class="empty-state"><p>No hay partners aun</p></div>';
     return;
   }
   el.innerHTML = res.partners.map(function(p) {
-    const statusBadge = p.active
-      ? '<span class="badge badge-green">Activo</span>'
-      : '<span class="badge badge-red">Inactivo</span>';
+    const statusBadge = p.active ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
     const appTags = p.apps.length
       ? p.apps.map(function(a) {
           const perms = [];
-          if (a.can_genkeys) perms.push('Generar Keys');
-          if (a.can_users)   perms.push('Ver Usuarios');
-          if (a.can_logs)    perms.push('Ver Logs');
-          const limit = a.key_limit > 0 ? ' (max '+a.key_limit+' keys)' : '';
-          return '<div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid rgba(245,197,24,0.2);border-radius:6px;padding:3px 10px;margin:2px;font-size:11px;color:var(--accent);">' +
+          if (a.can_genkeys) perms.push('Keys');
+          if (a.can_users)   perms.push('Users');
+          if (a.can_logs)    perms.push('Logs');
+          const limit = a.key_limit > 0 ? ' (' + (a.keys_used || 0) + '/' + a.key_limit + ')' : '';
+          return '<div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid rgba(245,197,24,0.2);border-radius:6px;padding:4px 10px;margin:2px;font-size:11px;color:var(--accent);">' +
             '<strong>' + esc(a.name) + '</strong>' + limit +
             (perms.length ? '<span style="color:var(--text3);font-size:10px;">· '+perms.join(', ')+'</span>' : '') +
           '</div>';
@@ -154,7 +148,7 @@ async function loadPartners() {
     return '<div class="partner-card">' +
       '<div class="partner-head">' +
         '<div><div class="partner-name">' + esc(p.display_name||p.username) + ' ' + statusBadge + '</div>' +
-        '<div class="partner-user">@' + esc(p.username) + ' · ' + (p.last_login ? 'ultimo login '+relTime(p.last_login) : 'nunca entro') + '</div></div>' +
+        '<div class="partner-meta">@' + esc(p.username) + ' · ' + (p.last_login ? 'último login '+relTime(p.last_login) : 'nunca entró') + '</div></div>' +
         '<div style="display:flex;gap:6px;">' +
           '<button class="btn btn-secondary btn-sm" onclick="editPartner(\''+p.id+'\')">Editar</button>' +
           '<button class="btn btn-danger btn-sm" onclick="delPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>' +
@@ -165,7 +159,6 @@ async function loadPartners() {
   }).join('');
 }
 
-// Construir lista de apps con checkboxes y permisos granulares
 function buildAppPerms(containerId, selectedApps) {
   const el = document.getElementById(containerId);
   if (!allApps.length) { el.innerHTML = '<p style="color:var(--text3);font-size:12px;padding:8px;">Sin apps disponibles.</p>'; return; }
@@ -176,21 +169,20 @@ function buildAppPerms(containerId, selectedApps) {
     const cu = sel.can_users !== undefined ? sel.can_users : 1;
     const cl = sel.can_logs !== undefined ? sel.can_logs : 1;
     const kl = sel.key_limit || 0;
-    return '<div class="app-assign" style="flex-direction:column;align-items:flex-start;">' +
-      '<div style="display:flex;align-items:center;gap:10px;width:100%;">' +
-        '<input type="checkbox" id="chk-'+containerId+'-'+a.id+'" value="'+a.id+'" '+checked+' onchange="toggleAppPerms(\''+containerId+'\',\''+a.id+'\')" />' +
-        '<label for="chk-'+containerId+'-'+a.id+'" style="font-weight:700;color:var(--text);">'+esc(a.name)+'</label>' +
-        '<span style="font-size:10px;color:var(--text3);">v'+esc(a.version)+'</span>' +
-      '</div>' +
-      '<div id="perms-'+containerId+'-'+a.id+'" style="margin-top:8px;padding-left:26px;width:100%;'+(checked?'':'display:none;')+'">' +
-        '<div class="perms-grid">' +
-          '<div class="perm-item"><div class="perm-label">Generar Keys</div><div class="toggle-sw '+(ck?'on':'')+'" id="perm-genkeys-'+containerId+'-'+a.id+'" onclick="togglePerm(this)"></div></div>' +
-          '<div class="perm-item"><div class="perm-label">Ver Usuarios</div><div class="toggle-sw '+(cu?'on':'')+'" id="perm-users-'+containerId+'-'+a.id+'" onclick="togglePerm(this)"></div></div>' +
-          '<div class="perm-item"><div class="perm-label">Ver Logs</div><div class="toggle-sw '+(cl?'on':'')+'" id="perm-logs-'+containerId+'-'+a.id+'" onclick="togglePerm(this)"></div></div>' +
-        '</div>' +
-        '<div class="key-limit-row">' +
-          '<label>Limite de keys (0 = sin limite):</label>' +
-          '<input type="number" id="keylimit-'+containerId+'-'+a.id+'" value="'+kl+'" min="0" />' +
+    return '<div class="app-item">' +
+      '<input type="checkbox" id="chk-'+containerId+'-'+a.id+'" class="app-check" value="'+a.id+'" '+checked+' onchange="toggleAppPerms(\''+containerId+'\',\''+a.id+'\')" />' +
+      '<div class="app-info">' +
+        '<div class="app-name">'+esc(a.name)+'</div>' +
+        '<div id="perms-'+containerId+'-'+a.id+'" style="'+(checked?'':'display:none;')+'">' +
+          '<div class="app-perms">' +
+            '<div class="perm-toggle"><label style="cursor:pointer;"><input type="checkbox" id="perm-genkeys-'+containerId+'-'+a.id+'" '+(ck?'checked':'')+' /> Generar Keys</label></div>' +
+            '<div class="perm-toggle"><label style="cursor:pointer;"><input type="checkbox" id="perm-users-'+containerId+'-'+a.id+'" '+(cu?'checked':'')+' /> Ver Users</label></div>' +
+            '<div class="perm-toggle"><label style="cursor:pointer;"><input type="checkbox" id="perm-logs-'+containerId+'-'+a.id+'" '+(cl?'checked':'')+' /> Ver Logs</label></div>' +
+          '</div>' +
+          '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">' +
+            '<label style="font-size:11px;color:var(--text3);">Limite de keys (0=sin límite):</label>' +
+            '<input type="number" id="keylimit-'+containerId+'-'+a.id+'" class="key-limit-input" value="'+kl+'" min="0" style="display:block;margin-top:4px;" />' +
+          '</div>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -203,8 +195,6 @@ function toggleAppPerms(containerId, appId) {
   if (perms) perms.style.display = chk.checked ? '' : 'none';
 }
 
-function togglePerm(el) { el.classList.toggle('on'); }
-
 function getAppPerms(containerId) {
   const result = [];
   allApps.forEach(function(a) {
@@ -216,9 +206,9 @@ function getAppPerms(containerId) {
       const kl = document.getElementById('keylimit-'+containerId+'-'+a.id);
       result.push({
         id: a.id,
-        can_genkeys: gk && gk.classList.contains('on') ? 1 : 0,
-        can_users:   cu && cu.classList.contains('on') ? 1 : 0,
-        can_logs:    cl && cl.classList.contains('on') ? 1 : 0,
+        can_genkeys: gk && gk.checked ? 1 : 0,
+        can_users:   cu && cu.checked ? 1 : 0,
+        can_logs:    cl && cl.checked ? 1 : 0,
         key_limit:   kl ? parseInt(kl.value) || 0 : 0
       });
     }
@@ -233,7 +223,14 @@ async function createPartner() {
   const email = document.getElementById('new-email').value.trim();
   if (!username || !password) { toast('Usuario y contraseña requeridos', 'error'); return; }
   const appPerms = getAppPerms('new-apps-list');
-  const res = await apiFetch(API + '/partners', { method:'POST', body:{ username, password, display_name, email, app_ids: appPerms.map(function(a){return a.id;}), permissions: Object.fromEntries(appPerms.map(function(a){return [a.id,a];})) }});
+  const res = await apiFetch(API + '/partners', {
+    method:'POST',
+    body:{
+      username, password, display_name, email,
+      app_ids: appPerms.map(function(a){return a.id;}),
+      permissions: Object.fromEntries(appPerms.map(function(a){return [a.id,a];}))
+    }
+  });
   if (res && res.success) {
     toast('Partner "'+username+'" creado!', 'success');
     closeModal('modal-create');
@@ -246,13 +243,11 @@ async function createPartner() {
   } else if (res) toast(res.message, 'error');
 }
 
-var editData = null;
 async function editPartner(id) {
   const res = await apiFetch(API + '/partners');
   if (!res || !res.success) return;
   const p = res.partners.find(function(x){return x.id===id;});
   if (!p) return;
-  editData = p;
   document.getElementById('edit-id').value = p.id;
   document.getElementById('edit-username').value = p.username;
   document.getElementById('edit-display').value = p.display_name||'';
@@ -268,7 +263,11 @@ async function saveEdit() {
   const active = parseInt(document.getElementById('edit-active').value);
   const password = document.getElementById('edit-password').value;
   const appPerms = getAppPerms('edit-apps-list');
-  const body = { display_name, active, app_ids: appPerms.map(function(a){return a.id;}), permissions: Object.fromEntries(appPerms.map(function(a){return [a.id,a];})) };
+  const body = {
+    display_name, active,
+    app_ids: appPerms.map(function(a){return a.id;}),
+    permissions: Object.fromEntries(appPerms.map(function(a){return [a.id,a];}))
+  };
   if (password) body.password = password;
   const res = await apiFetch(API + '/partners/' + id, { method:'PUT', body });
   if (res && res.success) { toast('Partner actualizado', 'success'); closeModal('modal-edit'); loadPartners(); }
