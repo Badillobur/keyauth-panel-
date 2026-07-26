@@ -195,7 +195,11 @@ async function loadApps() {
   document.getElementById('stat-paused').textContent = appsData.filter(function(a){return !a.status;}).length;
   renderApps(appsData);
   // Auto-seleccionar la primera app para mostrar credenciales
-  if (!isPartner && appsData.length) selectApp(appsData[0]);
+  if (!isPartner && appsData.length) {
+    var savedAppId = getSavedAppId();
+    var appToSelect = appsData.find(function(a){ return a.id === savedAppId; }) || appsData[0];
+    selectApp(appToSelect);
+  }
 }
 
 function selectApp(app) {
@@ -274,6 +278,20 @@ function selectApp(app) {
         '<button class="cred-copy-btn" style="font-size:10px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;" onclick="copyText(\'' + safeCpp + '\',this)">Copiar</button>' +
       '</div>' +
       '<pre style="margin:0;font-size:9px;line-height:1.5;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;max-height:200px;overflow-y:auto;">' + esc(cppCode) + '</pre>' +
+    '</div>' +
+    '<div style="margin-top:12px;padding:12px;background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.2);border-radius:var(--radius);">' +
+      '<div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;">Descargar SDK LMAx27</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+        '<a href="/sdk/LMAx27Auth.lib" download class="app-btn" style="font-size:10px;text-decoration:none;padding:6px 10px;">' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2.5 6l3 3 3-3M1 10h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.lib' +
+        '</a>' +
+        '<a href="/sdk/LMAx27Auth.h" download class="app-btn" style="font-size:10px;text-decoration:none;padding:6px 10px;">' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2.5 6l3 3 3-3M1 10h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Auth.h' +
+        '</a>' +
+        '<a href="/sdk/LMAx27Enc.h" download class="app-btn" style="font-size:10px;text-decoration:none;padding:6px 10px;">' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2.5 6l3 3 3-3M1 10h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>LMAx27Enc.h' +
+        '</a>' +
+      '</div>' +
     '</div>';
 }
 
@@ -416,8 +434,12 @@ async function deleteApp(id, name) {
   });
 }
 
-function showCreds(app) { showFullCreds(app); }
-function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); }
+function setSavedApp(appId) {
+  localStorage.setItem('selected_app_id', appId);
+}
+function getSavedAppId() {
+  return localStorage.getItem('selected_app_id');
+}
 </script>
 
 
