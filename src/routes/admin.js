@@ -78,15 +78,32 @@ function adminOnly(req, res, next) {
 
 // ─── STATS ────────────────────────────────────────────────────────────────────
 
-router.get('/stats', requireAdmin, adminOnly, async function(req, res) {
+router.get('/stats', requireAdmin, async function(req, res) {
   try {
     const now = Math.floor(Date.now() / 1000);
-    const totalApps    = ((await db.get('SELECT COUNT(*) as c FROM apps')) || {}).c || 0;
-    const totalUsers   = ((await db.get('SELECT COUNT(*) as c FROM users')) || {}).c || 0;
-    const totalKeys    = ((await db.get('SELECT COUNT(*) as c FROM licenses')) || {}).c || 0;
-    const usedKeys     = ((await db.get('SELECT COUNT(*) as c FROM licenses WHERE used>0')) || {}).c || 0;
-    const onlineUsers  = ((await db.get('SELECT COUNT(*) as c FROM sessions WHERE expires_at>?', [now])) || {}).c || 0;
-    const recentLogs   = await db.all('SELECT * FROM logs ORDER BY created_at DESC LIMIT 10');
+
+    // Partner: stats solo de sus apps
+    if (req.admin.role === 'partner') {
+      const partnerApps = await db.all('SELECT app_id FROM partner_apps WHERE partner_id=?', [req.admin.id]);
+      const appIds = partnerApps.map(function(p){return p.app_id;});
+      if (!appIds.length) return res.json({success:true, stats:{totalApps:0,totalUsers:0,totalKeys:0,usedKeys:0,onlineUsers:0,recentLogs:[]}});
+      const ph = appIds.map(function(){return '?';}).join(',');
+      const totalApps   = appIds.length;
+      const totalUsers  = ((await db.get('SELECT COUNT(*) as c FROM users WHERE app_id IN ('+ph+')', appIds))||{}).c||0;
+      const totalKeys   = ((await db.get('SELECT COUNT(*) as c FROM licenses WHERE app_id IN ('+ph+')', appIds))||{}).c||0;
+      const usedKeys    = ((await db.get('SELECT COUNT(*) as c FROM licenses WHERE used>0 AND app_id IN ('+ph+')', appIds))||{}).c||0;
+      const onlineUsers = ((await db.get('SELECT COUNT(*) as c FROM sessions WHERE expires_at>? AND app_id IN ('+ph+')', [now,...appIds]))||{}).c||0;
+      const recentLogs  = await db.all('SELECT * FROM logs WHERE app_id IN ('+ph+') ORDER BY created_at DESC LIMIT 10', appIds);
+      return res.json({success:true, stats:{totalApps,totalUsers,totalKeys,usedKeys,onlineUsers,recentLogs}});
+    }
+
+    // Admin: stats globales
+    const totalApps   = ((await db.get('SELECT COUNT(*) as c FROM apps')) || {}).c || 0;
+    const totalUsers  = ((await db.get('SELECT COUNT(*) as c FROM users')) || {}).c || 0;
+    const totalKeys   = ((await db.get('SELECT COUNT(*) as c FROM licenses')) || {}).c || 0;
+    const usedKeys    = ((await db.get('SELECT COUNT(*) as c FROM licenses WHERE used>0')) || {}).c || 0;
+    const onlineUsers = ((await db.get('SELECT COUNT(*) as c FROM sessions WHERE expires_at>?', [now])) || {}).c || 0;
+    const recentLogs  = await db.all('SELECT * FROM logs ORDER BY created_at DESC LIMIT 10');
     res.json({ success: true, stats: { totalApps, totalUsers, totalKeys, usedKeys, onlineUsers, recentLogs } });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -426,8 +443,9 @@ router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
     const partners = await db.all('SELECT * FROM partners ORDER BY created_at DESC');
     const result = [];
     for (const p of partners) {
+      // BUG FIX: incluir key_limit y keys_used
       const apps = await db.all(
-        'SELECT a.id, a.name, pa.can_genkeys, pa.can_users, pa.can_logs FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
+        'SELECT a.id, a.name, pa.can_genkeys, pa.can_users, pa.can_logs, pa.key_limit, pa.keys_used FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
         [p.id]
       );
       result.push(Object.assign({}, p, { password: undefined, apps }));
@@ -439,18 +457,24 @@ router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
 // Crear partner — SOLO ADMIN
 router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
   try {
-    const { username, password, display_name, email, app_ids } = req.body;
-    if (!username || !password) return res.json({ success: false, message: 'Usuario y contraseña requeridos' });
+    const { username, password, display_name, email, app_ids, permissions } = req.body;
+    if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
     const ex = await db.get('SELECT id FROM partners WHERE username=?', [username]);
     if (ex) return res.json({ success: false, message: 'Username ya existe' });
     const id = uuidv4();
     const hashed = await bcrypt.hash(password, 10);
     await db.run('INSERT INTO partners (id,username,password,display_name,email) VALUES (?,?,?,?,?)',
       [id, username, hashed, display_name || username, email || '']);
-    // Asociar apps
+    // Asociar apps CON permisos y límite de keys
     if (app_ids && app_ids.length) {
       for (const appId of app_ids) {
-        await db.run('INSERT OR IGNORE INTO partner_apps (partner_id,app_id) VALUES (?,?)', [id, appId]);
+        const perm = (permissions && permissions[appId]) || {};
+        const can_genkeys = perm.can_genkeys !== undefined ? (perm.can_genkeys ? 1 : 0) : 1;
+        const can_users   = perm.can_users   !== undefined ? (perm.can_users   ? 1 : 0) : 1;
+        const can_logs    = perm.can_logs    !== undefined ? (perm.can_logs    ? 1 : 0) : 1;
+        const key_limit   = parseInt(perm.key_limit) || 0;
+        await db.run('INSERT OR REPLACE INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,?,?,?,?,0)',
+          [id, appId, can_genkeys, can_users, can_logs, key_limit]);
       }
     }
     const partner = await db.get('SELECT id,username,display_name,email,active,created_at FROM partners WHERE id=?', [id]);
@@ -470,13 +494,17 @@ router.put('/partners/:id', requireAdmin, adminOnly, async function(req, res) {
     }
     await db.run('UPDATE partners SET display_name=?,email=?,active=? WHERE id=?',
       [display_name ?? p.display_name, email ?? p.email, active ?? p.active, p.id]);
-    // Actualizar apps: borrar y reinsertar
+    // Actualizar apps con permisos y límites — BUG FIX: guardar can_genkeys/can_users/can_logs/key_limit correctamente
     if (app_ids !== undefined) {
       await db.run('DELETE FROM partner_apps WHERE partner_id=?', [p.id]);
       for (const appId of (app_ids || [])) {
         const perm = (permissions && permissions[appId]) || {};
-        await db.run('INSERT INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs) VALUES (?,?,?,?,?)',
-          [p.id, appId, perm.can_genkeys ? 1 : 1, perm.can_users ? 1 : 1, perm.can_logs ? 1 : 1]);
+        const can_genkeys = perm.can_genkeys !== undefined ? (perm.can_genkeys ? 1 : 0) : 1;
+        const can_users   = perm.can_users   !== undefined ? (perm.can_users   ? 1 : 0) : 1;
+        const can_logs    = perm.can_logs    !== undefined ? (perm.can_logs    ? 1 : 0) : 1;
+        const key_limit   = parseInt(perm.key_limit) || 0;
+        await db.run('INSERT INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,?,?,?,?,0)',
+          [p.id, appId, can_genkeys, can_users, can_logs, key_limit]);
       }
     }
     res.json({ success: true, message: 'Partner actualizado' });
