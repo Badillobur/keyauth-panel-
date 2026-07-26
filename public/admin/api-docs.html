@@ -2,24 +2,37 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="/admin/lmax27.png" type="image/png" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LMAx27 — API Docs</title>
+  <link rel="icon" href="/admin/lmax27.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — API</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    .ep{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-    .ep-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-    .method{padding:2px 8px;border-radius:5px;font-size:10px;font-weight:800;font-family:monospace;}
-    .method.post{background:rgba(34,197,94,0.15);color:var(--green);}
-    .ep-path{font-family:monospace;font-size:12px;color:var(--accent);}
-    .ep-desc{font-size:12px;color:var(--text2);margin-bottom:8px;}
-    .params{width:100%;border-collapse:collapse;font-size:11px;}
-    .params th{color:var(--text3);font-weight:700;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);}
-    .params td{padding:4px 8px;color:var(--text2);border-bottom:1px solid rgba(42,42,42,0.4);}
-    .pname{color:var(--accent);font-family:monospace;}
-    .req{color:var(--red);font-size:9px;font-weight:800;}
-    .opt{color:var(--text3);font-size:9px;}
-    pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:11px;color:var(--accent);overflow-x:auto;line-height:1.7;margin-top:8px;}
-    .sec{font-size:16px;font-weight:800;color:var(--accent);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(245,197,24,0.15);text-shadow:0 0 20px var(--accent-glow);}
+    .api-layout { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .api-section-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:4px; }
+    .api-section-sub   { font-size:12px; color:var(--text3); margin-bottom:16px; }
+    .api-block { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:12px; }
+    .api-block-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .api-block-sub   { font-size:11px; color:var(--text3); margin-bottom:10px; }
+    .status-row { display:flex; align-items:center; justify-content:space-between; }
+    .status-badge { padding:4px 12px; border-radius:5px; font-size:11px; font-weight:800; }
+    .status-disabled { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+    .status-enabled  { background:rgba(34,197,94,.15);  color:#22c55e;  border:1px solid rgba(34,197,94,.3); }
+    .key-locked { background:var(--bg4); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text3); font-family:monospace; }
+    .key-locked svg { flex-shrink:0; opacity:.5; }
+    .live-item { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:8px; cursor:pointer; transition:border-color .15s; }
+    .live-item:hover { border-color:rgba(88,101,242,.4); }
+    .live-item-head { display:flex; align-items:center; gap:10px; }
+    .method-badge { padding:3px 8px; border-radius:4px; font-size:10px; font-weight:800; font-family:monospace; background:rgba(88,101,242,.2); color:#7289da; border:1px solid rgba(88,101,242,.3); }
+    .live-path  { font-family:monospace; font-size:12px; color:var(--text); font-weight:700; }
+    .live-desc  { font-size:11px; color:var(--text3); margin-top:3px; }
+    .live-arrow { margin-left:auto; color:var(--text3); font-size:12px; }
+    .upgrade-note { background:rgba(245,197,24,.06); border:1px solid rgba(245,197,24,.2); border-radius:var(--radius); padding:10px 14px; font-size:11px; color:var(--text2); margin-top:10px; }
+    .upgrade-note a { color:var(--accent); text-decoration:none; }
+    /* Admin only */
+    .cred-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .cred-label { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.6px; min-width:72px; }
+    .cred-val { font-family:monospace; font-size:11px; color:var(--accent); background:var(--bg4); padding:5px 10px; border-radius:4px; border:1px solid var(--border); flex:1; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    pre { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:12px; font-size:11px; color:var(--accent); overflow-x:auto; line-height:1.7; }
   </style>
 </head>
 <body>
@@ -28,109 +41,257 @@
   <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div><div class="topbar-title">📖 API Docs</div><div class="topbar-sub">Referencia para integrar tu software C++</div></div>
+      <div>
+        <div class="topbar-title">API</div>
+        <div class="topbar-sub" id="topbar-sub">Credenciales y endpoints de la API</div>
+      </div>
+      <div class="topbar-actions" id="admin-toggle-wrap" style="display:none;">
+        <button class="btn btn-secondary btn-sm" onclick="toggleApiStatus()" id="btn-toggle-api">Activar / Desactivar API</button>
+      </div>
     </div>
-    <div class="content" style="max-width:860px;">
 
-      <div class="card">
-        <div class="card-title" style="margin-bottom:10px;">📡 Endpoint Base</div>
-        <div class="code-block" id="base-url" style="font-size:14px;"></div>
-        <p style="color:var(--text3);font-size:12px;margin-top:10px;">Todos los requests son <strong style="color:var(--text);">POST</strong> con <code style="color:var(--accent);">Content-Type: application/x-www-form-urlencoded</code>. El campo <code style="color:var(--accent);">type</code> determina la accion.</p>
+    <div class="content">
+      <!-- App selector (partners lo usan para ver cual app) -->
+      <div id="app-selector-wrap" style="margin-bottom:16px;display:none;">
+        <select id="app-selector" class="form-control" style="max-width:300px;" onchange="onAppChange()">
+          <option value="">Seleccionar app...</option>
+        </select>
       </div>
 
-      <div class="sec">📦 Formato de Respuesta</div>
-      <pre>{"success": true | false, "message": "descripcion", ...datos}</pre>
+      <div class="api-layout">
+        <!-- Columna izq: API Settings -->
+        <div>
+          <div class="api-section-title">API Settings</div>
+          <div class="api-section-sub">Administra el estado, clave y conexion API de esta aplicacion.</div>
 
-      <div class="sec">⚡ Endpoints</div>
+          <!-- Status -->
+          <div class="api-block">
+            <div class="api-block-title">API Status</div>
+            <div class="api-block-sub">Controla si la API de esta aplicacion esta activa o apagada.</div>
+            <div class="status-row">
+              <span style="font-size:12px;color:var(--text2);">Estado actual</span>
+              <span class="status-badge status-disabled" id="api-status-badge">Disabled</span>
+            </div>
+            <!-- Solo admin puede toggle -->
+            <div id="admin-status-btn" style="margin-top:10px;display:none;">
+              <button class="btn btn-secondary" style="width:100%;opacity:.5;" id="btn-api-toggle" onclick="toggleApiStatus()">
+                Apagar / Encender API
+              </button>
+            </div>
+            <!-- Partner: solo lectura -->
+            <div id="partner-status-note" style="display:none;">
+              <div class="upgrade-note" style="margin-top:10px;">Solo el administrador puede activar o desactivar la API.</div>
+            </div>
+          </div>
 
-      <div class="ep">
-        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=init</span></div>
-        <div class="ep-desc">Inicializar sesion. Siempre llamar primero.</div>
-        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
-        <tr><td class="pname">name</td><td><span class="req">REQ</span></td><td>Nombre de la app</td></tr>
-        <tr><td class="pname">ownerid</td><td><span class="req">REQ</span></td><td>Owner ID</td></tr>
-        <tr><td class="pname">ver</td><td><span class="req">REQ</span></td><td>Version del cliente</td></tr></table>
-      </div>
+          <!-- API Key / Credenciales -->
+          <div class="api-block">
+            <div class="api-block-title">API Key</div>
+            <div class="api-block-sub">Esta clave privada usa el <strong style="color:var(--text);">ownerid</strong> de la aplicacion actual.</div>
 
-      <div class="ep">
-        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=login</span></div>
-        <div class="ep-desc">Login con usuario y contraseña.</div>
-        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
-        <tr><td class="pname">sessionid</td><td><span class="req">REQ</span></td><td>ID de sesion del init</td></tr>
-        <tr><td class="pname">username</td><td><span class="req">REQ</span></td><td>Nombre de usuario</td></tr>
-        <tr><td class="pname">pass</td><td><span class="req">REQ</span></td><td>Contraseña</td></tr>
-        <tr><td class="pname">hwid</td><td><span class="opt">OPT</span></td><td>Hardware ID</td></tr></table>
-      </div>
+            <!-- Admin: ve credenciales reales -->
+            <div id="admin-creds" style="display:none;">
+              <div style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">CREDENCIALES C++</div>
+              <div class="cred-row"><span class="cred-label">Name</span><div class="cred-val" id="c-name" onclick="copyText(this.textContent,this)" title="Click para copiar">—</div></div>
+              <div class="cred-row"><span class="cred-label">Owner ID</span><div class="cred-val" id="c-ownerid" onclick="copyText(this.textContent,this)" title="Click para copiar">—</div></div>
+              <div class="cred-row"><span class="cred-label">Secret</span><div class="cred-val" id="c-secret" onclick="copyText(this.textContent,this)" title="Click para copiar">—</div></div>
+              <div class="cred-row"><span class="cred-label">URL</span><div class="cred-val" id="c-url" onclick="copyText(this.textContent,this)" title="Click para copiar">—</div></div>
+            </div>
 
-      <div class="ep">
-        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=register</span></div>
-        <div class="ep-desc">Registro de nuevo usuario con key.</div>
-        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
-        <tr><td class="pname">sessionid</td><td><span class="req">REQ</span></td><td>ID sesion</td></tr>
-        <tr><td class="pname">username</td><td><span class="req">REQ</span></td><td>Usuario</td></tr>
-        <tr><td class="pname">pass</td><td><span class="req">REQ</span></td><td>Contraseña</td></tr>
-        <tr><td class="pname">key</td><td><span class="req">REQ</span></td><td>Licencia de activacion</td></tr>
-        <tr><td class="pname">email</td><td><span class="opt">OPT</span></td><td>Email</td></tr></table>
-      </div>
-
-      <div class="ep">
-        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=license</span></div>
-        <div class="ep-desc">Activar acceso solo con key (sin usuario).</div>
-        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
-        <tr><td class="pname">sessionid</td><td><span class="req">REQ</span></td><td>ID sesion</td></tr>
-        <tr><td class="pname">key</td><td><span class="req">REQ</span></td><td>Licencia</td></tr></table>
-      </div>
-
-      <div class="ep"><div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=check</span></div><div class="ep-desc">Verificar que la sesion sigue activa.</div></div>
-      <div class="ep"><div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=var &amp;varid=nombre</span></div><div class="ep-desc">Obtener valor de variable remota.</div></div>
-      <div class="ep"><div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=log &amp;message=texto</span></div><div class="ep-desc">Guardar log desde el cliente.</div></div>
-
-      <div class="sec">💻 Código C++ de Ejemplo</div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Integracion completa con LMAx27</div>
-          <button class="btn btn-secondary btn-sm" onclick="copyText(document.getElementById('cpp-ex').textContent, this)">📋 Copiar</button>
+            <!-- Partner/Owner: clave bloqueada -->
+            <div id="partner-creds" style="display:none;">
+              <div style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">SELLER KEY</div>
+              <div class="key-locked">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="6.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 6.5V4.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Debes adquirir acceso API para ver esta clave.
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-left:auto;"><rect x="2" y="6.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 6.5V4.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              </div>
+              <div class="upgrade-note" style="margin-top:10px;">
+                Modo solo lectura. Para apagar/encender la API o generar una nueva API Key, debes adquirir acceso API.<br>
+                <a href="https://wa.me/51928140884" target="_blank">Whatsapp: +51928140884</a>
+              </div>
+            </div>
+          </div>
         </div>
-        <pre id="cpp-ex">// En Kaflow.hpp:
-std::string name    = XorStr("TuAppName").c_str();
-std::string ownerid = XorStr("TuOwnerId").c_str();
-std::string secret  = XorStr("TuSecret").c_str();
-std::string version = XorStr("1.0").c_str();
-std::string url     = XorStr("https://tu-servidor.onrender.com/api/1.2/").c_str();
-api KeyAuthApp(name, ownerid, secret, version, url);
 
-// En WinMain.hpp - antes del init:
-name    = XorStr("TuAppName").c_str();
-ownerid = XorStr("TuOwnerId").c_str();
-secret  = XorStr("TuSecret").c_str();
-version = XorStr("1.0").c_str();
-url     = XorStr("https://tu-servidor.onrender.com/api/1.2/").c_str();
-KeyAuthApp.init();
+        <!-- Columna der: Live Test -->
+        <div>
+          <div class="api-section-title">Live Test</div>
+          <div class="api-section-sub">Pruebas visuales con formato real de logs, sin generar datos reales.</div>
 
-// Login:
-KeyAuthApp.login(username, password);
-if (KeyAuthApp.response.success) {
-    // acceso concedido
-    std::string user = KeyAuthApp.user_data.username;
-    // Iterar suscripciones:
-    for (const auto&amp; sub : KeyAuthApp.user_data.subscriptions) {
-        if (sub.name == "Supreme" || sub.name == "default") { /* menu completo */ }
-        if (sub.name == "Basico")  { /* menu basico */ }
-    }
-}
+          <div class="live-item" onclick="expandLive(this)">
+            <div class="live-item-head">
+              <span class="method-badge">GET</span>
+              <span class="live-path">/Auth/seller/create_license</span>
+              <span class="live-arrow">&#8250;</span>
+            </div>
+            <div class="live-desc">Crea licencias. Resultado visual tipo logs.</div>
+          </div>
 
-// Obtener variable remota:
-std::string config = KeyAuthApp.var("mi_variable");</pre>
+          <div class="live-item" onclick="expandLive(this)">
+            <div class="live-item-head">
+              <span class="method-badge">GET</span>
+              <span class="live-path">/Auth/seller/create_user</span>
+              <span class="live-arrow">&#8250;</span>
+            </div>
+            <div class="live-desc">Create user. Resultado visual tipo logs.</div>
+          </div>
+
+          <div class="live-item" onclick="expandLive(this)">
+            <div class="live-item-head">
+              <span class="method-badge">GET</span>
+              <span class="live-path">/Auth/seller/create_authorization</span>
+              <span class="live-arrow">&#8250;</span>
+            </div>
+            <div class="live-desc">Create authorization Sty/lava (simulado). Resultado visual tipo logs.</div>
+          </div>
+
+          <!-- Admin: endpoints adicionales -->
+          <div id="admin-live" style="display:none;">
+            <div class="live-item" onclick="expandLive(this)">
+              <div class="live-item-head"><span class="method-badge">POST</span><span class="live-path">?type=init</span><span class="live-arrow">&#8250;</span></div>
+              <div class="live-desc">Inicializar sesion con la app.</div>
+            </div>
+            <div class="live-item" onclick="expandLive(this)">
+              <div class="live-item-head"><span class="method-badge">POST</span><span class="live-path">?type=login</span><span class="live-arrow">&#8250;</span></div>
+              <div class="live-desc">Login de usuario con key.</div>
+            </div>
+            <div class="live-item" onclick="expandLive(this)">
+              <div class="live-item-head"><span class="method-badge">POST</span><span class="live-path">?type=register</span><span class="live-arrow">&#8250;</span></div>
+              <div class="live-desc">Registro nuevo usuario.</div>
+            </div>
+            <div style="margin-top:14px;">
+              <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Codigo C++ listo</div>
+              <pre id="cpp-ex" style="font-size:10px;"></pre>
+              <button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="copyText(document.getElementById('cpp-ex').textContent,this)">Copiar</button>
+            </div>
+          </div>
+        </div>
       </div>
-
     </div>
   </main>
 </div>
+
 <div id="toast-container"></div>
 <script src="/admin/js/app.js"></script>
-<script src="/admin/js/icons.js"></script><script src="/admin/js/sidebar.js"></script>
+<script src="/admin/js/sidebar.js"></script>
 <script>
-(async function(){injectSidebar('docs');await requireAuth();document.getElementById('base-url').textContent=window.location.origin+'/api/1.2/';})();
+var isAdmin = false;
+var currentAppId = null;
+var appsData = [];
+
+(async function() {
+  injectSidebar('docs');
+  var admin = await requireAuth();
+  if (!admin) return;
+  isAdmin = admin.role !== 'partner';
+
+  var apiUrl = window.location.origin + '/api/1.2/';
+
+  if (isAdmin) {
+    // Admin: ver todo
+    document.getElementById('admin-creds').style.display = '';
+    document.getElementById('admin-status-btn').style.display = '';
+    document.getElementById('admin-live').style.display = '';
+    document.getElementById('admin-toggle-wrap').style.display = '';
+    document.getElementById('c-url').textContent = apiUrl;
+
+    // Cargar apps del admin con selector
+    var ar = await apiFetch(API + '/apps');
+    if (ar && ar.success) {
+      appsData = ar.apps;
+      var wrap = document.getElementById('app-selector-wrap');
+      var sel = document.getElementById('app-selector');
+      wrap.style.display = '';
+      appsData.forEach(function(a) {
+        var o = document.createElement('option');
+        o.value = a.id;
+        o.textContent = a.name;
+        sel.appendChild(o);
+      });
+      // Auto-select primera app
+      if (appsData.length) {
+        sel.value = appsData[0].id;
+        onAppChange();
+      }
+    }
+  } else {
+    // Partner/Owner: vista restringida
+    document.getElementById('partner-creds').style.display = '';
+    document.getElementById('partner-status-note').style.display = '';
+
+    // Cargar sus apps
+    var ar = await apiFetch(API + '/apps');
+    if (ar && ar.success && ar.apps.length) {
+      appsData = ar.apps;
+      var wrap = document.getElementById('app-selector-wrap');
+      var sel = document.getElementById('app-selector');
+      wrap.style.display = '';
+      appsData.forEach(function(a) {
+        var o = document.createElement('option');
+        o.value = a.id;
+        o.textContent = a.name;
+        sel.appendChild(o);
+      });
+      sel.value = appsData[0].id;
+      onAppChange();
+    }
+    // Status badge: mostrar estado de su app (read-only)
+    document.getElementById('topbar-sub').textContent = 'Vista de API — Solo lectura';
+  }
+})();
+
+function onAppChange() {
+  var sel = document.getElementById('app-selector');
+  currentAppId = sel.value;
+  var app = appsData.find(function(a) { return a.id === currentAppId; });
+  if (!app) return;
+
+  // Status badge
+  var badge = document.getElementById('api-status-badge');
+  if (app.status) {
+    badge.textContent = 'Enabled';
+    badge.className = 'status-badge status-enabled';
+  } else {
+    badge.textContent = 'Disabled';
+    badge.className = 'status-badge status-disabled';
+  }
+
+  if (isAdmin) {
+    // Credenciales reales
+    var apiUrl = window.location.origin + '/api/1.2/';
+    document.getElementById('c-name').textContent    = app.name;
+    document.getElementById('c-ownerid').textContent = app.owner_id;
+    document.getElementById('c-secret').textContent  = app.secret;
+    document.getElementById('c-url').textContent     = apiUrl;
+    // C++ snippet
+    document.getElementById('cpp-ex').textContent =
+      'std::string name    = XorStr("'+app.name+'").c_str();\n' +
+      'std::string ownerid = XorStr("'+app.owner_id+'").c_str();\n' +
+      'std::string secret  = XorStr("'+app.secret+'").c_str();\n' +
+      'std::string version = XorStr("'+app.version+'").c_str();\n' +
+      'std::string url     = XorStr("'+apiUrl+'").c_str();';
+  }
+}
+
+async function toggleApiStatus() {
+  if (!isAdmin || !currentAppId) return;
+  var app = appsData.find(function(a) { return a.id === currentAppId; });
+  if (!app) return;
+  var newStatus = app.status ? 0 : 1;
+  var res = await apiFetch(API + '/apps/' + currentAppId, { method: 'PUT', body: { status: newStatus } });
+  if (res && res.success) {
+    app.status = newStatus;
+    onAppChange();
+    toast(newStatus ? 'API activada' : 'API desactivada', 'success');
+  } else if (res) toast(res.message, 'error');
+}
+
+function expandLive(el) {
+  // Efecto visual simple al click
+  el.style.borderColor = 'rgba(88,101,242,.6)';
+  setTimeout(function() { el.style.borderColor = ''; }, 600);
+}
 </script>
 </body>
 </html>

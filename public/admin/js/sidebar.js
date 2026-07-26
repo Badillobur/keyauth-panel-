@@ -10,7 +10,15 @@ var SVG = {
   docs:      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2.5" y="1" width="10" height="13" rx="1.5" stroke="#f5c518" stroke-width="1.4"/><path d="M5 5h5M5 7.5h5M5 10h3" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round"/></svg>',
 };
 
-function buildSidebar(activePage) {
+function buildSidebar(activePage, role) {
+  role = role || 'superadmin';
+
+  // Items visibles por rol
+  // superadmin: todo
+  // partner con role=owner: apps, keys, users, logs, discord (sin docs, partners, vars)
+  // partner normal: apps, keys, users, logs, discord (sin docs, partners, vars)
+  var adminOnly = ['partners', 'docs', 'vars'];
+
   var nav = [
     { section: 'General' },
     { page: 'dashboard', label: 'Dashboard',        href: '/panel' },
@@ -20,25 +28,38 @@ function buildSidebar(activePage) {
     { page: 'users',     label: 'Usuarios',         href: '/users' },
     { page: 'logs',      label: 'Logs',             href: '/logs' },
     { section: 'Config' },
-    { page: 'vars',      label: 'Variables',        href: '/vars' },
-    { page: 'partners',  label: 'Partners',         href: '/partners' },
+    { page: 'vars',      label: 'Variables',        href: '/vars',     adminOnly: true },
+    { page: 'partners',  label: 'Partners',         href: '/partners', adminOnly: true },
     { page: 'discord',   label: 'Bot Discord',      href: '/discord' },
-    { page: 'docs',      label: 'API Docs',         href: '/docs' },
+    { page: 'docs',      label: 'API Docs',         href: '/docs',     adminOnly: true },
   ];
 
   var html = '<aside class="sidebar" id="sidebar">';
   html += '<div class="sidebar-logo"><div class="logo-icon"><img src="/admin/lmax27.png" alt="LMAx27" /></div><div><div class="logo-text">LMAx27</div><div class="logo-version">Panel v2.0</div></div></div>';
   html += '<nav class="sidebar-nav">';
 
+  var isPartner = role === 'partner';
+  var lastWasSection = false;
+  var pendingSection = null;
+
   for (var i = 0; i < nav.length; i++) {
     var item = nav[i];
     if (item.section) {
-      html += '<div class="nav-section-title">' + item.section + '</div>';
-    } else {
-      var active = item.page === activePage ? ' active' : '';
-      var icon = SVG[item.page] || '';
-      html += '<a href="' + item.href + '" class="nav-item' + active + '" data-page="' + item.page + '"><span class="nav-icon">' + icon + '</span>' + item.label + '</a>';
+      pendingSection = item.section;
+      continue;
     }
+    // Ocultar items adminOnly para partners
+    if (isPartner && item.adminOnly) continue;
+
+    // Imprimir sección solo si hay items visibles
+    if (pendingSection) {
+      html += '<div class="nav-section-title">' + pendingSection + '</div>';
+      pendingSection = null;
+    }
+
+    var active = item.page === activePage ? ' active' : '';
+    var icon = SVG[item.page] || '';
+    html += '<a href="' + item.href + '" class="nav-item' + active + '" data-page="' + item.page + '"><span class="nav-icon">' + icon + '</span>' + item.label + '</a>';
   }
 
   html += '</nav>';
@@ -51,5 +72,19 @@ function buildSidebar(activePage) {
 
 function injectSidebar(activePage) {
   var container = document.getElementById('sidebar-container');
-  if (container) container.innerHTML = buildSidebar(activePage);
+  if (!container) return;
+  // Primero renderizar con role desconocido, luego actualizar cuando llega el rol real
+  container.innerHTML = buildSidebar(activePage, 'superadmin');
+  // Actualizar sidebar cuando requireAuth resuelva el rol real
+  var _orig = window._sidebarRole;
+  if (window._sidebarRole) {
+    container.innerHTML = buildSidebar(activePage, window._sidebarRole);
+  }
+}
+
+// Llamado desde requireAuth después de conocer el rol
+function updateSidebarRole(role, activePage) {
+  window._sidebarRole = role;
+  var container = document.getElementById('sidebar-container');
+  if (container) container.innerHTML = buildSidebar(activePage, role);
 }

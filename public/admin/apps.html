@@ -6,6 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LMAx27 — Aplicaciones</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
+  <style>
+    .apps-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+    .apps-search { flex:1; padding:9px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:13px; outline:none; transition:border-color .15s; }
+    .apps-search:focus { border-color:rgba(245,197,24,.4); }
+    .apps-search::placeholder { color:var(--text3); }
+    .app-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:10px; transition:border-color .15s; }
+    .app-card:hover { border-color:rgba(245,197,24,.2); }
+    .app-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .app-card-name { font-size:16px; font-weight:800; color:var(--text); }
+    .app-card-status { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
+    .app-active   { background:rgba(34,197,94,.15); color:#22c55e; border:1px solid rgba(34,197,94,.3); }
+    .app-inactive { background:rgba(239,68,68,.15);  color:#ef4444;  border:1px solid rgba(239,68,68,.3); }
+    .app-card-meta { display:flex; gap:24px; margin-top:8px; }
+    .app-meta-item { display:flex; flex-direction:column; gap:1px; }
+    .app-meta-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+    .app-meta-value { font-size:13px; font-weight:700; color:var(--text2); }
+    .app-card-desc { font-size:12px; color:var(--text2); margin-top:6px; min-width:160px; }
+    .app-card-desc .desc-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+    .app-card-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+    .app-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:var(--radius); font-size:12px; font-weight:700; cursor:pointer; border:1px solid var(--border); background:var(--bg3); color:var(--text2); transition:all .15s; text-decoration:none; }
+    .app-btn:hover { border-color:rgba(245,197,24,.35); color:var(--text); background:var(--bg4); }
+    .app-btn.danger { background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.3); color:#ef4444; }
+    .app-btn.danger:hover { background:rgba(239,68,68,.2); }
+    .app-btn.primary { background:var(--accent-dim); border-color:rgba(245,197,24,.3); color:var(--accent); }
+    .app-btn.primary:hover { background:rgba(245,197,24,.2); }
+  </style>
 </head>
 <body>
 <div id="particles"></div>
@@ -13,76 +39,71 @@
   <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div><div class="topbar-title">Aplicaciones</div><div class="topbar-sub" id="topbar-sub">Gestiona tus apps y credenciales</div></div>
+      <div>
+        <div class="topbar-title">Aplicaciones</div>
+        <div class="topbar-sub" id="topbar-sub">Gestiona tus apps</div>
+      </div>
       <div class="topbar-actions" id="admin-actions">
         <button class="btn btn-primary" onclick="openModal('modal-create')">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
-          Nueva App
+          Crear Aplicacion
         </button>
       </div>
     </div>
+
     <div class="content">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke="#f5c518" stroke-width="1.3"/><path d="M1.5 6h13M6 6v9" stroke="#f5c518" stroke-width="1.3"/></svg>
-            Aplicaciones
-          </div>
-          <div class="search-wrap">
-            <span class="search-icon">
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M9 9l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-            </span>
-            <input type="text" class="search-input" id="search-apps" placeholder="Buscar..." />
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table id="apps-table">
-            <thead>
-              <tr>
-                <th>Nombre</th><th>Version</th><th>Usuarios</th><th>Keys</th><th>Estado</th><th>Creada</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="apps-tbody"><tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr></tbody>
-          </table>
-        </div>
+      <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;">My Applications</div>
+      <div class="apps-header">
+        <input type="text" class="apps-search" id="search-apps" placeholder="Search applications..." oninput="filterApps(this.value)" />
       </div>
+      <div id="apps-list"><div class="empty-state"><div class="loader"></div></div></div>
     </div>
   </main>
 </div>
 
-<!-- Modal Crear (solo admin) -->
+<!-- Modal Crear -->
 <div class="modal-overlay" id="modal-create">
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Nueva Aplicacion</div><button class="modal-close" onclick="closeModal('modal-create')">✕</button></div>
     <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="new-app-name" class="form-control" placeholder="Mi Cheat v2" /></div>
     <div class="form-group"><label class="form-label">Version</label><input type="text" id="new-app-version" class="form-control" value="1.0" /></div>
+    <div class="form-group"><label class="form-label">Descripcion (opcional)</label><input type="text" id="new-app-desc" class="form-control" placeholder="Descripcion de la app" /></div>
     <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button><button class="btn btn-primary" onclick="createApp()">Crear</button></div>
   </div>
 </div>
 
-<!-- Modal Editar (solo admin) -->
-<div class="modal-overlay" id="modal-edit">
-  <div class="modal">
-    <div class="modal-header"><div class="modal-title">Editar App</div><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
-    <input type="hidden" id="edit-id" />
-    <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="edit-name" class="form-control" /></div>
-    <div class="form-group"><label class="form-label">Version</label><input type="text" id="edit-version" class="form-control" /></div>
-    <div class="form-group"><label class="form-label">Estado</label><select id="edit-status" class="form-control"><option value="1">Activa</option><option value="0">Desactivada</option></select></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button><button class="btn btn-primary" onclick="saveEdit()">Guardar</button></div>
+<!-- Modal Renombrar -->
+<div class="modal-overlay" id="modal-rename">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">Renombrar App</div><button class="modal-close" onclick="closeModal('modal-rename')">✕</button></div>
+    <input type="hidden" id="rename-id" />
+    <div class="form-group"><label class="form-label">Nuevo Nombre</label><input type="text" id="rename-name" class="form-control" /></div>
+    <div class="form-group"><label class="form-label">Version</label><input type="text" id="rename-version" class="form-control" /></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-rename')">Cancelar</button><button class="btn btn-primary" onclick="saveRename()">Guardar</button></div>
   </div>
 </div>
 
-<!-- Modal Credenciales (solo admin) -->
+<!-- Modal Editar Descripcion -->
+<div class="modal-overlay" id="modal-desc">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">Editar Descripcion</div><button class="modal-close" onclick="closeModal('modal-desc')">✕</button></div>
+    <input type="hidden" id="desc-id" />
+    <div class="form-group"><label class="form-label">Descripcion</label><textarea id="desc-text" class="form-control" rows="3" style="resize:vertical;"></textarea></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-desc')">Cancelar</button><button class="btn btn-primary" onclick="saveDesc()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- Modal Credenciales -->
 <div class="modal-overlay" id="modal-creds">
   <div class="modal" style="max-width:520px;">
     <div class="modal-header"><div class="modal-title">Credenciales C++</div><button class="modal-close" onclick="closeModal('modal-creds')">✕</button></div>
-    <p style="color:var(--text3);font-size:12px;margin-bottom:14px;">Copia estos datos para tu codigo C++.</p>
-    <div class="form-group"><label class="form-label">Nombre (name)</label><div class="code-block" id="cred-name"></div></div>
-    <div class="form-group"><label class="form-label">Owner ID</label><div class="code-block" id="cred-ownerid"></div></div>
-    <div class="form-group"><label class="form-label">Secret</label><div class="code-block" id="cred-secret"></div></div>
-    <div class="form-group"><label class="form-label">URL API</label><div class="code-block" id="cred-url"></div></div>
+    <p style="color:var(--text3);font-size:12px;margin-bottom:14px;">Copia estos datos para tu codigo C++. Click en cada campo para copiar.</p>
+    <div class="form-group"><label class="form-label">Name</label><div class="code-block" id="cred-name" style="cursor:pointer;" onclick="copyText(this.textContent,this)"></div></div>
+    <div class="form-group"><label class="form-label">Owner ID</label><div class="code-block" id="cred-ownerid" style="cursor:pointer;" onclick="copyText(this.textContent,this)"></div></div>
+    <div class="form-group"><label class="form-label">Secret</label><div class="code-block" id="cred-secret" style="cursor:pointer;" onclick="copyText(this.textContent,this)"></div></div>
+    <div class="form-group"><label class="form-label">URL</label><div class="code-block" id="cred-url" style="cursor:pointer;" onclick="copyText(this.textContent,this)"></div></div>
     <div class="form-group">
-      <label class="form-label">Codigo C++ listo</label>
+      <label class="form-label">Codigo C++ completo</label>
       <div class="code-block" style="font-size:11px;line-height:1.7;white-space:pre;padding-right:80px;" id="cred-cpp"></div>
       <button class="copy-btn" style="top:28px;" onclick="copyText(document.getElementById('cred-cpp').dataset.raw, this)">Copiar</button>
     </div>
@@ -95,108 +116,163 @@
 <script src="/admin/js/sidebar.js"></script>
 <script>
 var isPartner = false;
+var appsData = [];
 
 (async function() {
   injectSidebar('apps');
   var admin = await requireAuth();
   if (!admin) return;
   isPartner = admin.role === 'partner';
-
-  // Si es partner ocultar botón de crear y cambiar sub
   if (isPartner) {
     var actions = document.getElementById('admin-actions');
     if (actions) actions.style.display = 'none';
-    var sub = document.getElementById('topbar-sub');
-    if (sub) sub.textContent = 'Tus aplicaciones asignadas';
+    document.getElementById('topbar-sub').textContent = 'Tus aplicaciones asignadas';
   }
-
   loadApps();
-  filterTable('search-apps', 'apps-table');
 })();
 
 async function loadApps() {
-  const res = await apiFetch(API + '/apps');
-  const tbody = document.getElementById('apps-tbody');
-  if (!res || !res.success) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Error cargando apps</p></div></td></tr>'; return; }
-  if (!res.apps.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No hay apps disponibles</p></div></td></tr>'; return; }
+  var res = await apiFetch(API + '/apps');
+  var el = document.getElementById('apps-list');
+  if (!res || !res.success) { el.innerHTML = '<div class="empty-state"><p>Error cargando apps</p></div>'; return; }
+  if (!res.apps.length) { el.innerHTML = '<div class="empty-state"><p>Sin aplicaciones. Crea la primera.</p></div>'; return; }
+  appsData = res.apps;
+  renderApps(appsData);
+}
 
-  tbody.innerHTML = res.apps.map(function(a) {
-    // Botones para admin
+function renderApps(apps) {
+  var el = document.getElementById('apps-list');
+  if (!apps.length) { el.innerHTML = '<div class="empty-state"><p>Sin resultados</p></div>'; return; }
+  el.innerHTML = apps.map(function(a) {
+    var statusBadge = a.status
+      ? '<span class="app-card-status app-active">ACTIVE</span>'
+      : '<span class="app-card-status app-inactive">INACTIVE</span>';
+
+    var desc = a.description || a.desc || '';
+
     var adminBtns = isPartner ? '' :
-      '<button class="btn btn-secondary btn-sm" onclick="showCreds('+JSON.stringify(a).replace(/"/g,'&quot;')+')" title="Credenciales">' +
-        '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.5" y="6" width="10" height="6.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 6V4.5a3 3 0 016 0V6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
+      '<button class="app-btn" onclick="openRename(\''+a.id+'\',\''+esc(a.name)+'\',\''+esc(a.version)+'\')">' +
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 1.5l2.5 2.5-7 7H1v-2.5l7-7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>' +
+        'Rename' +
       '</button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="editApp('+JSON.stringify(a).replace(/"/g,'&quot;')+')" title="Editar">' +
-        '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 2l2 2-7 7H2v-2l7-7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>' +
+      '<button class="app-btn" onclick="openDesc(\''+a.id+'\',\''+esc(desc)+'\')">' +
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h8M2 9h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>' +
+        'Edit Description' +
       '</button>' +
-      '<button class="btn btn-danger btn-sm" onclick="deleteApp(\''+a.id+'\',\''+esc(a.name)+'\')" title="Eliminar">' +
-        '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M4 3.5l.5 7h4l.5-7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '<button class="app-btn" onclick="pauseApp(\''+a.id+'\',\''+esc(a.name)+'\','+(a.status ? 0 : 1)+')">' +
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">'+(a.status
+          ? '<rect x="2.5" y="1.5" width="2.5" height="9" rx="1" fill="currentColor"/><rect x="7" y="1.5" width="2.5" height="9" rx="1" fill="currentColor"/>'
+          : '<path d="M2.5 1.5l9 4.5-9 4.5V1.5z" fill="currentColor"/>'
+        )+'</svg>' +
+        (a.status ? 'Pause' : 'Resume') +
+      '</button>' +
+      '<button class="app-btn primary" onclick="showCreds('+JSON.stringify(a).replace(/"/g,'&quot;')+')">' +
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="5.5" width="9" height="6" rx="1.2" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 5.5V4a2.5 2.5 0 015 0v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
+        'Select' +
+      '</button>' +
+      '<button class="app-btn danger" onclick="deleteApp(\''+a.id+'\',\''+esc(a.name)+'\')">' +
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 3h9M4.5 3V2h3v1M3.5 3l.5 7h4l.5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        'Delete' +
       '</button>';
 
-    // Keys y users siempre visibles
-    var navBtns =
-      '<a href="/keys?app='+a.id+'" class="btn btn-secondary btn-sm" title="Keys" onclick="setSavedApp(\''+a.id+'\')">' +
-        '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="4.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M7 6.5H12M10 5v1.5M12 5v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
-      '</a>' +
-      '<a href="/users?app='+a.id+'" class="btn btn-secondary btn-sm" title="Usuarios" onclick="setSavedApp(\''+a.id+'\')">' +
-        '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M1 12c0-3 2.5-4.5 5.5-4.5s5.5 1.5 5.5 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
-      '</a>';
+    var partnerBtns = isPartner
+      ? '<a href="/keys?app='+a.id+'" class="app-btn primary" onclick="setSavedApp(\''+a.id+'\')">Keys ('+a.keyCount+')</a>' +
+        '<a href="/users?app='+a.id+'" class="app-btn" onclick="setSavedApp(\''+a.id+'\')">Usuarios ('+a.userCount+')</a>'
+      : '<a href="/keys?app='+a.id+'" class="app-btn" onclick="setSavedApp(\''+a.id+'\')">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="4" cy="6" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 6H11M9 5v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
+          'Keys' +
+        '</a>' +
+        '<a href="/users?app='+a.id+'" class="app-btn" onclick="setSavedApp(\''+a.id+'\')">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="4" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M1 11c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
+          'Usuarios' +
+        '</a>';
 
-    return '<tr>' +
-      '<td class="td-main">'+esc(a.name)+'</td>' +
-      '<td><span class="badge badge-yellow">v'+esc(a.version)+'</span></td>' +
-      '<td>'+a.userCount+'</td>' +
-      '<td>' + (a.key_limit > 0 ? a.keyCount + ' / ' + a.key_limit : a.keyCount) + '</td>' +
-      '<td>'+(a.status?'<span class="badge badge-green">Activa</span>':'<span class="badge badge-red">Inactiva</span>')+'</td>' +
-      '<td class="text-sm text-muted">'+fmtDateShort(a.created_at)+'</td>' +
-      '<td><div style="display:flex;gap:4px;">'+navBtns+adminBtns+'</div></td>' +
-    '</tr>';
+    return '<div class="app-card" data-name="'+esc(a.name).toLowerCase()+'">' +
+      '<div class="app-card-top">' +
+        '<div class="app-card-name">'+esc(a.name)+'</div>' +
+        statusBadge +
+      '</div>' +
+      '<div class="app-card-meta">' +
+        '<div class="app-meta-item"><div class="app-meta-label">App Version</div><div class="app-meta-value">'+esc(a.version)+'</div></div>' +
+        '<div class="app-meta-item"><div class="app-meta-label">Users</div><div class="app-meta-value">'+a.userCount+'</div></div>' +
+        '<div class="app-meta-item"><div class="app-meta-label">Keys</div><div class="app-meta-value">'+(a.key_limit>0?a.keyCount+'/'+a.key_limit:a.keyCount)+'</div></div>' +
+        (desc ? '<div class="app-card-desc"><div class="desc-label">Description</div>'+esc(desc)+'</div>' : '') +
+      '</div>' +
+      '<div class="app-card-actions">' + partnerBtns + adminBtns + '</div>' +
+    '</div>';
   }).join('');
 }
 
+function filterApps(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.app-card').forEach(function(card) {
+    card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+
 async function createApp() {
-  const name = document.getElementById('new-app-name').value.trim();
-  const version = document.getElementById('new-app-version').value.trim() || '1.0';
+  var name = document.getElementById('new-app-name').value.trim();
+  var version = document.getElementById('new-app-version').value.trim() || '1.0';
+  var description = document.getElementById('new-app-desc').value.trim();
   if (!name) { toast('Nombre requerido', 'error'); return; }
-  const res = await apiFetch(API + '/apps', { method:'POST', body:{name, version} });
+  var res = await apiFetch(API + '/apps', { method:'POST', body:{name, version, description} });
   if (!res) return;
-  if (res.success) { toast('App "'+name+'" creada!', 'success'); closeModal('modal-create'); document.getElementById('new-app-name').value=''; loadApps(); showCreds(res.app); }
+  if (res.success) { toast('App "'+name+'" creada', 'success'); closeModal('modal-create'); document.getElementById('new-app-name').value=''; document.getElementById('new-app-desc').value=''; loadApps(); showCreds(res.app); }
   else toast(res.message, 'error');
 }
 
-function editApp(app) {
-  document.getElementById('edit-id').value = app.id;
-  document.getElementById('edit-name').value = app.name;
-  document.getElementById('edit-version').value = app.version;
-  document.getElementById('edit-status').value = app.status;
-  openModal('modal-edit');
+function openRename(id, name, version) {
+  document.getElementById('rename-id').value = id;
+  document.getElementById('rename-name').value = name;
+  document.getElementById('rename-version').value = version;
+  openModal('modal-rename');
 }
-
-async function saveEdit() {
-  const id = document.getElementById('edit-id').value;
-  const name = document.getElementById('edit-name').value.trim();
-  const version = document.getElementById('edit-version').value.trim();
-  const status = parseInt(document.getElementById('edit-status').value);
-  const res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{name, version, status} });
-  if (res && res.success) { toast('Actualizada', 'success'); closeModal('modal-edit'); loadApps(); }
+async function saveRename() {
+  var id = document.getElementById('rename-id').value;
+  var name = document.getElementById('rename-name').value.trim();
+  var version = document.getElementById('rename-version').value.trim();
+  var res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{name, version} });
+  if (res && res.success) { toast('Renombrada', 'success'); closeModal('modal-rename'); loadApps(); }
   else if (res) toast(res.message, 'error');
 }
 
+function openDesc(id, desc) {
+  document.getElementById('desc-id').value = id;
+  document.getElementById('desc-text').value = desc;
+  openModal('modal-desc');
+}
+async function saveDesc() {
+  var id = document.getElementById('desc-id').value;
+  var description = document.getElementById('desc-text').value.trim();
+  var res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{description} });
+  if (res && res.success) { toast('Descripcion actualizada', 'success'); closeModal('modal-desc'); loadApps(); }
+  else if (res) toast(res.message, 'error');
+}
+
+async function pauseApp(id, name, newStatus) {
+  var msg = newStatus === 0 ? 'Pausar "'+name+'"?' : 'Reactivar "'+name+'"?';
+  confirmAction(msg, async function() {
+    var res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{status: newStatus} });
+    if (res && res.success) { toast(newStatus===0?'App pausada':'App reactivada', 'success'); loadApps(); }
+    else if (res) toast(res.message, 'error');
+  });
+}
+
 async function deleteApp(id, name) {
-  confirmAction('¿Eliminar "'+name+'"? Se borraran todos sus datos.', async function() {
-    const res = await apiFetch(API + '/apps/' + id, { method:'DELETE' });
+  confirmAction('Eliminar "'+name+'"? Se borraran todos sus datos.', async function() {
+    var res = await apiFetch(API + '/apps/' + id, { method:'DELETE' });
     if (res && res.success) { toast('App eliminada', 'success'); loadApps(); }
   });
 }
 
 function showCreds(app) {
-  const apiUrl = window.location.origin + '/api/1.2/';
-  document.getElementById('cred-name').textContent = app.name;
+  var apiUrl = window.location.origin + '/api/1.2/';
+  document.getElementById('cred-name').textContent    = app.name;
   document.getElementById('cred-ownerid').textContent = app.owner_id;
-  document.getElementById('cred-secret').textContent = app.secret;
-  document.getElementById('cred-url').textContent = apiUrl;
-  const cpp = 'std::string name    = XorStr("'+app.name+'").c_str();\nstd::string ownerid = XorStr("'+app.owner_id+'").c_str();\nstd::string secret  = XorStr("'+app.secret+'").c_str();\nstd::string version = XorStr("'+app.version+'").c_str();\nstd::string url     = XorStr("'+apiUrl+'").c_str();';
-  const el = document.getElementById('cred-cpp');
+  document.getElementById('cred-secret').textContent  = app.secret;
+  document.getElementById('cred-url').textContent     = apiUrl;
+  var cpp = 'std::string name    = XorStr("'+app.name+'").c_str();\nstd::string ownerid = XorStr("'+app.owner_id+'").c_str();\nstd::string secret  = XorStr("'+app.secret+'").c_str();\nstd::string version = XorStr("'+app.version+'").c_str();\nstd::string url     = XorStr("'+apiUrl+'").c_str();';
+  var el = document.getElementById('cred-cpp');
   el.textContent = cpp; el.dataset.raw = cpp;
   openModal('modal-creds');
 }

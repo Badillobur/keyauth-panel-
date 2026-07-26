@@ -61,6 +61,12 @@ async function requireAuth() {
   if (nameEl) nameEl.textContent = res.admin.username || 'Admin';
   if (roleEl) roleEl.textContent = res.admin.role || 'superadmin';
   if (avatarEl) avatarEl.textContent = (res.admin.username || 'L').charAt(0).toUpperCase();
+  // Actualizar sidebar con el rol real — esto oculta secciones adminOnly para partners
+  if (typeof updateSidebarRole === 'function') {
+    var activePage = document.querySelector('.nav-item.active');
+    var page = activePage ? activePage.dataset.page : '';
+    updateSidebarRole(res.admin.role || 'superadmin', page);
+  }
   return res.admin;
 }
 

@@ -165,7 +165,8 @@ router.put('/apps/:id', requireAdmin, adminOnly, async function(req, res) {
     const version   = req.body.version   !== undefined ? req.body.version   : app.version;
     const status    = req.body.status    !== undefined ? req.body.status    : app.status;
     const free_mode = req.body.free_mode !== undefined ? req.body.free_mode : app.free_mode;
-    await db.run('UPDATE apps SET name=?,version=?,status=?,free_mode=? WHERE id=?', [name, version, status, free_mode, app.id]);
+    const description = req.body.description !== undefined ? req.body.description : (app.description || '');
+    await db.run('UPDATE apps SET name=?,version=?,status=?,free_mode=?,description=? WHERE id=?', [name, version, status, free_mode, description, app.id]);
     res.json({ success: true, message: 'App actualizada' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -408,6 +409,7 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   try { await db.run('ALTER TABLE partners ADD COLUMN max_bots INTEGER DEFAULT 1'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_partners INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN owner_id TEXT DEFAULT NULL'); } catch(_) {}
+  try { await db.run("ALTER TABLE apps ADD COLUMN description TEXT DEFAULT ''"); } catch(_) {}
   // Tabla bots por partner
   await db.run(`CREATE TABLE IF NOT EXISTS partner_discord_bots (
     id           TEXT PRIMARY KEY,
