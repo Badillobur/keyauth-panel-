@@ -161,6 +161,20 @@ var isPartner = false;
 var appsData = [];
 var selectedAppId = null;
 
+// ── Utilidades ─────────────────────────────────────────────────────────────
+function esc(s) { 
+  if (!s) return ''; 
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); 
+}
+
+function setSavedApp(appId) {
+  localStorage.setItem('selected_app_id', appId);
+}
+
+function getSavedAppId() {
+  return localStorage.getItem('selected_app_id');
+}
+
 (async function() {
   injectSidebar('apps');
   var admin = await requireAuth();
@@ -432,13 +446,6 @@ async function deleteApp(id, name) {
     var res = await apiFetch(API + '/apps/' + id, { method:'DELETE' });
     if (res && res.success) { toast('App eliminada', 'success'); loadApps(); }
   });
-}
-
-function setSavedApp(appId) {
-  localStorage.setItem('selected_app_id', appId);
-}
-function getSavedAppId() {
-  return localStorage.getItem('selected_app_id');
 }
 </script>
 
