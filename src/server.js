@@ -56,6 +56,10 @@ app.use('/api/admin', require('./routes/admin'));
 const discordRouter = require('./routes/discord');
 app.use('/api/admin/discord', discordRouter);
 
+// Rutas Discord bot
+const discordRouter = require('./routes/discord');
+app.use('/api/admin/discord', discordRouter);
+
 // Ruta raiz -> redirigir al panel
 app.get('/', function(req, res) {
   res.redirect('/admin/login.html');
