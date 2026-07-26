@@ -14,6 +14,10 @@
       <div><div class="topbar-title">👥 Usuarios</div><div class="topbar-sub" id="topbar-sub">Gestiona usuarios de tus apps</div></div>
       <div class="topbar-actions">
         <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
+        <button class="btn btn-primary" id="btn-add-user" disabled onclick="openModal('modal-create-user')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="5" r="3" stroke="#000" stroke-width="1.5"/><path d="M1 13c0-2.8 2.2-4.5 5-4.5M10 8.5v5M7.5 11H13" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Crear Usuario
+        </button>
       </div>
     </div>
     <div class="content">
@@ -37,6 +41,22 @@
       </div>
     </div>
   </main>
+</div>
+
+<div class="modal-overlay" id="modal-create-user">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><div class="modal-title">Crear Usuario</div><button class="modal-close" onclick="closeModal('modal-create-user')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="cu-username" class="form-control" placeholder="username" /></div>
+      <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="cu-password" class="form-control" placeholder="contraseña" /></div>
+    </div>
+    <div class="form-group"><label class="form-label">Email (opcional)</label><input type="email" id="cu-email" class="form-control" placeholder="email@ejemplo.com" /></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Duracion (dias, 0=permanente)</label><input type="number" id="cu-days" class="form-control" value="30" min="0" /></div>
+      <div class="form-group"><label class="form-label">Nivel</label><select id="cu-level" class="form-control"><option value="1">Nivel 1 — Basic</option><option value="2">Nivel 2 — Premium</option><option value="3">Nivel 3 — VIP</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-create-user')">Cancelar</button><button class="btn btn-primary" onclick="createUser()">Crear Usuario</button></div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-extend">
@@ -82,6 +102,7 @@ async function loadSel() {
 function onAppChange() {
   const sel=document.getElementById('app-selector');
   currentAppId=sel.value||null;
+  document.getElementById('btn-add-user').disabled = !currentAppId;
   if (currentAppId) { document.getElementById('topbar-sub').textContent=sel.options[sel.selectedIndex].text; loadUsers(currentAppId); }
 }
 
@@ -119,6 +140,25 @@ async function loadUsers(appId) {
 }
 
 function openExtend(id,name){document.getElementById('ext-uid').value=id;document.getElementById('ext-uname').textContent=name;document.getElementById('ext-days').value=30;openModal('modal-extend');}
+
+async function createUser() {
+  if (!currentAppId) return;
+  const username = document.getElementById('cu-username').value.trim();
+  const password = document.getElementById('cu-password').value;
+  const email    = document.getElementById('cu-email').value.trim();
+  const days     = parseInt(document.getElementById('cu-days').value) || 0;
+  const level    = document.getElementById('cu-level').value;
+  if (!username || !password) { toast('Usuario y contraseña requeridos', 'error'); return; }
+  const res = await apiFetch(API + '/apps/' + currentAppId + '/users', { method: 'POST', body: { username, password, email, days, level } });
+  if (res && res.success) {
+    toast(res.message, 'success');
+    closeModal('modal-create-user');
+    document.getElementById('cu-username').value = '';
+    document.getElementById('cu-password').value = '';
+    document.getElementById('cu-email').value = '';
+    loadUsers(currentAppId);
+  } else if (res) toast(res.message, 'error');
+}
 async function doExtend(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+document.getElementById('ext-uid').value+'/extend',{method:'POST',body:{days:parseInt(document.getElementById('ext-days').value)}});if(r&&r.success){toast(r.message,'success');closeModal('modal-extend');loadUsers(currentAppId);}else if(r)toast(r.message,'error');}
 function openBan(id,name){document.getElementById('ban-uid').value=id;document.getElementById('ban-uname').textContent=name;document.getElementById('ban-reason').value='';openModal('modal-ban');}
 async function doBan(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+document.getElementById('ban-uid').value+'/ban',{method:'POST',body:{reason:document.getElementById('ban-reason').value}});if(r&&r.success){toast(r.message,'success');closeModal('modal-ban');loadUsers(currentAppId);}else if(r)toast(r.message,'error');}

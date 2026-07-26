@@ -106,7 +106,8 @@ router.post('/apps', requireAdmin, async function(req, res) {
     if (existing) return res.json({ success: false, message: 'Nombre de app ya existe' });
     const id = uuidv4();
     const secret = uuidv4().replace(/-/g, '');
-    await db.run('INSERT INTO apps (id,name,owner_id,secret,version) VALUES (?,?,?,?,?)', [id, name, req.admin.id, secret, version || '1.0']);
+    const ownerId = uuidv4().replace(/-/g, '').substring(0, 10); // owner_id unico de 10 chars por app
+    await db.run('INSERT INTO apps (id,name,owner_id,secret,version) VALUES (?,?,?,?,?)', [id, name, ownerId, secret, version || '1.0']);
     const app = await db.get('SELECT * FROM apps WHERE id=?', [id]);
     res.json({ success: true, message: 'App creada', app });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -181,6 +182,27 @@ router.post('/apps/:appId/keys/:keyId/reset', requireAdmin, async function(req, 
 });
 
 // ─── USUARIOS ─────────────────────────────────────────────────────────────────
+
+// CREAR USUARIO MANUAL
+router.post('/apps/:appId/users', requireAdmin, async function(req, res) {
+  try {
+    const { username, password, email, days, level } = req.body;
+    if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
+    const app = await db.get('SELECT id FROM apps WHERE id=?', [req.params.appId]);
+    if (!app) return res.json({ success: false, message: 'App no encontrada' });
+    const ex = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [req.params.appId, username]);
+    if (ex) return res.json({ success: false, message: 'El usuario ya existe' });
+    const now = Math.floor(Date.now() / 1000);
+    const hashed = await bcrypt.hash(password, 10);
+    const userId = uuidv4();
+    await db.run('INSERT INTO users (id,app_id,username,password,email,createdate) VALUES (?,?,?,?,?,?)',
+      [userId, req.params.appId, username, hashed, email || '', now]);
+    const expiry = days && parseInt(days) > 0 ? now + (parseInt(days) * 86400) : null;
+    await db.run('INSERT INTO subscriptions (id,user_id,app_id,name,expiry,level) VALUES (?,?,?,?,?,?)',
+      [uuidv4(), userId, req.params.appId, 'default', expiry, parseInt(level) || 1]);
+    res.json({ success: true, message: 'Usuario "' + username + '" creado correctamente' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
 
 router.get('/apps/:appId/users', requireAdmin, async function(req, res) {
   try {

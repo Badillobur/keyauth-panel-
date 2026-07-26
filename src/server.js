@@ -66,6 +66,15 @@ app.get('/health', function(req, res) {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Ver owner_id del admin actual (util para configurar el C++)
+app.get('/ownerid', async function(req, res) {
+  try {
+    const db = require('./db/database');
+    const admin = await db.get('SELECT id, username FROM admins LIMIT 1');
+    res.json({ ownerid: admin ? admin.id : 'no admin found', username: admin ? admin.username : '' });
+  } catch(e) { res.json({ error: e.message }); }
+});
+
 // Auto-ping para mantener el servidor activo en Render plan gratuito
 if (process.env.NODE_ENV === 'production') {
   const https = require('https');
