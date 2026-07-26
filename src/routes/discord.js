@@ -328,9 +328,11 @@ async function startBot(token, guildId) {
   }
 
   // Validar token básico antes de intentar conectar
-  if (!token || token.length < 20) {
-    return { ok: false, error: 'Token muy corto o invalido' };
+  const cleanToken = token.replace(/[\s\n\r\t\u0000-\u001F\u007F-\u009F]/g, '');
+  if (!cleanToken || cleanToken.length < 20) {
+    return { ok: false, error: 'Token invalido (longitud: ' + (cleanToken ? cleanToken.length : 0) + ')' };
   }
+  console.log('[Discord] Intentando conectar con token de ' + cleanToken.length + ' chars...');
 
   botClient = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
@@ -372,8 +374,8 @@ async function startBot(token, guildId) {
       console.log('[Discord] Error:', e.message);
     });
 
-    // Intentar login
-    botClient.login(token).catch(function(e) {
+    // Intentar login con token limpio
+    botClient.login(cleanToken).catch(function(e) {
       clearTimeout(timeout);
       let errorMsg = e.message;
       if (e.message.includes('TOKEN_INVALID') || e.message.includes('401')) {
