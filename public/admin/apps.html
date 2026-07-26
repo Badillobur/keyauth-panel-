@@ -199,34 +199,91 @@ async function loadApps() {
 }
 
 function selectApp(app) {
+  if (!app) return;
   selectedAppId = app.id;
-  // Actualizar UI de selección
+  setSavedApp(app.id);
+
+  // ── Botones Select: resetear todos, marcar el activo ─────────────────────
+  document.querySelectorAll('[id^="selbtn-"]').forEach(function(btn) {
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="5" width="9" height="6" rx="1.2" stroke="currentColor" stroke-width="1.2"/><path d="M3 5V3.5a2.5 2.5 0 015 0V5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Select';
+    btn.style.cssText = '';
+    btn.className = 'app-btn primary';
+  });
+  var selBtn = document.getElementById('selbtn-' + app.id);
+  if (selBtn) {
+    selBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5l3 3 6-6" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Selected';
+    selBtn.style.background = 'var(--accent)';
+    selBtn.style.borderColor = 'var(--accent)';
+    selBtn.style.color = '#000';
+    selBtn.style.fontWeight = '800';
+  }
+
+  // ── Borde de cards ────────────────────────────────────────────────────────
   document.querySelectorAll('.app-card').forEach(function(c){ c.classList.remove('selected'); });
   var card = document.querySelector('.app-card[data-id="'+app.id+'"]');
   if (card) card.classList.add('selected');
-  // Mostrar credenciales
+
+  // ── Credenciales ──────────────────────────────────────────────────────────
   var apiUrl = window.location.origin + '/api/1.2/';
+
+  var cppKaflow =
+    'std::string name    = LMAx27("'+app.name+'").c_str();\n' +
+    'std::string ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
+    'std::string secret  = LMAx27("'+app.secret+'").c_str();\n' +
+    'std::string version = LMAx27("'+app.version+'").c_str();\n' +
+    'std::string url     = LMAx27("'+apiUrl+'").c_str();\n\n' +
+    'api KeyAuthApp(name, ownerid, secret, version, url);';
+
+  var cppWinMain =
+    'name    = LMAx27("'+app.name+'").c_str();\n' +
+    'ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
+    'secret  = LMAx27("'+app.secret+'").c_str();\n' +
+    'version = LMAx27("'+app.version+'").c_str();\n' +
+    'url     = LMAx27("'+apiUrl+'").c_str();\n' +
+    'KeyAuthApp.init();';
+
   function credRow(label, val, raw) {
+    var safeVal = (raw || val || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     return '<div class="cred-field">' +
-      '<div class="cred-field-label">'+label+'</div>' +
+      '<div class="cred-field-label">' + label + '</div>' +
       '<div class="cred-field-val">' +
-        '<span id="cf-'+label.replace(/ /g,'')+'">'+esc(val)+'</span>' +
-        '<button class="cred-copy-btn" onclick="copyText(\''+esc(raw||val)+'\',this)" title="Copiar">' +
+        '<span>' + esc(val) + '</span>' +
+        '<button class="cred-copy-btn" onclick="copyText(\'' + safeVal + '\',this)" title="Copiar">' +
           '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.2" stroke="currentColor" stroke-width="1.2"/><path d="M3 9H2a1 1 0 01-1-1V2a1 1 0 011-1h6a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
         '</button>' +
       '</div>' +
     '</div>';
   }
-  var masked = function(s){ return s ? s.substring(0,3)+'••••••••••'+s.slice(-3) : '—'; };
+  var masked = function(s) { return s ? s.substring(0,3) + '••••••••••' + s.slice(-3) : '—'; };
+
+  var safeCppKaflow  = cppKaflow.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  var safeCppWinMain = cppWinMain.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
   document.getElementById('creds-content').innerHTML =
+    '<div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px;">' +
+      '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 5.5l3 3 5.5-5.5" stroke="#f5c518" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      esc(app.name) +
+    '</div>' +
     credRow('APPLICATION NAME', app.name) +
     credRow('ACCOUNT OWNER ID', masked(app.owner_id), app.owner_id) +
     credRow('APPLICATION SECRET', masked(app.secret), app.secret) +
     credRow('APPLICATION VERSION', app.version) +
-    '<button class="btn btn-secondary btn-sm cred-refresh-btn" onclick="showFullCreds(currentSelectedApp())">' +
-      '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 2a5 5 0 10.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 2v3h-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-      ' Refresh Application Secret / Ver completo' +
-    '</button>';
+
+    '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">' +
+        '<span style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;">Kaflow.hpp</span>' +
+        '<button class="cred-copy-btn" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;" onclick="copyText(\'' + safeCppKaflow + '\',this)">Copiar</button>' +
+      '</div>' +
+      '<pre style="margin:0;font-size:10px;line-height:1.65;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;">' + esc(cppKaflow) + '</pre>' +
+    '</div>' +
+
+    '<div style="margin-top:8px;">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">' +
+        '<span style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;">WinMain.hpp</span>' +
+        '<button class="cred-copy-btn" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;" onclick="copyText(\'' + safeCppWinMain + '\',this)">Copiar</button>' +
+      '</div>' +
+      '<pre style="margin:0;font-size:10px;line-height:1.65;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;">' + esc(cppWinMain) + '</pre>' +
+    '</div>';
 }
 
 function currentSelectedApp() {
@@ -265,7 +322,7 @@ function renderApps(apps) {
           ? '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="2" y="1.5" width="2.5" height="8" rx=".8" fill="currentColor"/><rect x="6.5" y="1.5" width="2.5" height="8" rx=".8" fill="currentColor"/></svg>Pause'
           : '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 1.5l8 4-8 4V1.5z" fill="currentColor"/></svg>Resume') +
       '</button>' +
-      '<button class="app-btn primary" onclick="event.stopPropagation();selectApp(appsData.find(function(x){return x.id===\''+a.id+'\'}))">' +
+      '<button class="app-btn primary" id="selbtn-'+a.id+'" onclick="event.stopPropagation();selectApp(appsData.find(function(x){return x.id===\''+a.id+'\'}))">' +
         '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="5" width="9" height="6" rx="1.2" stroke="currentColor" stroke-width="1.2"/><path d="M3 5V3.5a2.5 2.5 0 015 0V5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Select</button>' +
       '<button class="app-btn danger" onclick="event.stopPropagation();deleteApp(\''+a.id+'\',\''+esc(a.name)+'\')">' +
         '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 3h8M4 3V2h3v1M3 3l.5 6.5h4L8 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Delete</button>';
@@ -291,10 +348,18 @@ function renderApps(apps) {
       '<div class="app-card-actions">' + navBtns + adminBtns + '</div>' +
     '</div>';
   }).join('');
-  // Re-seleccionar si ya había uno
+  // Re-seleccionar si ya había uno seleccionado
   if (selectedAppId) {
     var card = document.querySelector('.app-card[data-id="'+selectedAppId+'"]');
     if (card) card.classList.add('selected');
+    var btn = document.getElementById('selbtn-' + selectedAppId);
+    if (btn) {
+      btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5l3 3 6-6" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Selected';
+      btn.style.background = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.color = '#000';
+      btn.style.fontWeight = '800';
+    }
   }
 }
 

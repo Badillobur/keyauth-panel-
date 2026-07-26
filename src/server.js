@@ -49,6 +49,34 @@ app.use('/api/admin', adminLimiter);
 // Rutas API publica (compatible KeyAuth)
 app.use('/api', require('./routes/api'));
 
+// SDK download — publico, sin auth, para que clientes descarguen LMAx27Auth.hpp
+app.get('/sdk/LMAx27Auth.hpp', function(req, res) {
+  var p = require('path').join(__dirname, '../public/sdk/LMAx27Auth.hpp');
+  res.setHeader('Content-Disposition', 'attachment; filename="LMAx27Auth.hpp"');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.sendFile(p);
+});
+// Headers del SDK (para quienes compraron la lib)
+app.get('/sdk/LMAx27Auth.h', function(req, res) {
+  var p = require('path').join(__dirname, '../public/sdk/LMAx27Auth.h');
+  res.setHeader('Content-Disposition', 'attachment; filename="LMAx27Auth.h"');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.sendFile(p);
+});
+app.get('/sdk/LMAx27Enc.h', function(req, res) {
+  var p = require('path').join(__dirname, '../public/sdk/LMAx27Enc.h');
+  res.setHeader('Content-Disposition', 'attachment; filename="LMAx27Enc.h"');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.sendFile(p);
+});
+// También accesible desde el panel admin
+app.get('/api/admin/sdk/download', function(req, res) {
+  var p = require('path').join(__dirname, '../public/sdk/LMAx27Auth.h');
+  res.setHeader('Content-Disposition', 'attachment; filename="LMAx27Auth.h"');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.sendFile(p);
+});
+
 // Rutas API del panel admin
 app.use('/api/admin', require('./routes/admin'));
 
