@@ -519,5 +519,203 @@ router.post('/send', requireAdmin, async function(req, res) {
   } catch(e) { res.json({success:false, message:e.message}); }
 });
 
+// ─── BOTS POR PARTNER ─────────────────────────────────────────────────────────
+// Cada partner/owner puede tener su propio bot solo para su app asignada
+// Admin controla: max_bots por partner (default 1)
+
+// Mapa de clientes de bot activos por partner_id
+var partnerBots = {};
+
+async function startPartnerBot(botId, token, guildId, appId, partnerId) {
+  // Destruir si ya existe
+  if (partnerBots[botId]) {
+    try { partnerBots[botId].client.destroy(); } catch(_) {}
+    delete partnerBots[botId];
+  }
+  const cleanToken = token.replace(/[\s\n\r\t\u0000-\u001F\u007F-\u009F]/g, '');
+  if (!cleanToken || cleanToken.length < 20) return { ok: false, error: 'Token invalido' };
+
+  const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+  return new Promise(function(resolve) {
+    const timeout = setTimeout(function() { resolve({ ok: false, error: 'Timeout de conexion (30s)' }); }, 30000);
+    client.once('ready', async function() {
+      clearTimeout(timeout);
+      partnerBots[botId] = { client, appId, partnerId, ready: true };
+      console.log('[PartnerBot] Bot conectado:', client.user.tag, 'para partner', partnerId);
+      // Registrar comandos limitados para partner
+      if (guildId) {
+        try {
+          const cmds = [
+            new SlashCommandBuilder().setName('ping').setDescription('Latencia del bot'),
+            new SlashCommandBuilder().setName('stats').setDescription('Stats de tu app'),
+            new SlashCommandBuilder().setName('keys').setDescription('Generar keys')
+              .addIntegerOption(function(o){return o.setName('cantidad').setDescription('Cuantas keys').setRequired(true).setMinValue(1).setMaxValue(50);})
+              .addIntegerOption(function(o){return o.setName('dias').setDescription('Dias (0=permanente)').setRequired(false).setMinValue(0);}),
+          ].map(function(c){return c.toJSON();});
+          const rest = new REST({version:'10'}).setToken(cleanToken);
+          await rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: cmds });
+        } catch(e) { console.log('[PartnerBot] Error registrando commands:', e.message); }
+      }
+      // RPC simple
+      try { client.user.setPresence({ status: 'online', activities: [{ name: 'LMAx27 Panel', type: ActivityType.Watching }] }); } catch(_) {}
+
+      client.on('interactionCreate', async function(interaction) {
+        if (!interaction.isChatInputCommand()) return;
+        const cmd = interaction.commandName;
+        if (cmd === 'ping') return interaction.reply({ content: 'Pong! WS: **' + client.ws.ping + 'ms**', ephemeral: true });
+        await interaction.deferReply({ ephemeral: true });
+        if (cmd === 'stats') {
+          const now = Math.floor(Date.now()/1000);
+          const [users, keys, online] = await Promise.all([
+            db.get('SELECT COUNT(*) as c FROM users WHERE app_id=?', [appId]).then(function(r){return r?r.c:0;}),
+            db.get('SELECT COUNT(*) as c FROM licenses WHERE app_id=?', [appId]).then(function(r){return r?r.c:0;}),
+            db.get('SELECT COUNT(*) as c FROM sessions WHERE expires_at>? AND app_id=?', [now,appId]).then(function(r){return r?r.c:0;})
+          ]);
+          const app = await db.get('SELECT name FROM apps WHERE id=?', [appId]);
+          const embed = goldEmbed('Stats — '+(app?app.name:'App'), '')
+            .addFields({name:'Usuarios',value:'`'+users+'`',inline:true},{name:'Keys',value:'`'+keys+'`',inline:true},{name:'Online',value:'`'+online+'`',inline:true});
+          return interaction.editReply({ embeds: [embed] });
+        }
+        if (cmd === 'keys') {
+          // Verificar permiso
+          const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [partnerId, appId]);
+          if (!pa || !pa.can_genkeys) return interaction.editReply({ content: 'Sin permiso para generar keys' });
+          const amount = interaction.options.getInteger('cantidad') || 1;
+          const dias = interaction.options.getInteger('dias');
+          // Verificar limite
+          if (pa.key_limit > 0) {
+            const left = pa.key_limit - (pa.keys_used || 0);
+            if (left <= 0) return interaction.editReply({ content: 'Limite de keys alcanzado (' + pa.keys_used + '/' + pa.key_limit + ')' });
+            if (amount > left) return interaction.editReply({ content: 'Solo puedes generar ' + left + ' key(s) mas. Limite: ' + pa.key_limit });
+          }
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+          const seg = function(n){ let s=''; for(let i=0;i<n;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; };
+          const created = [];
+          for (let i = 0; i < amount; i++) {
+            const kv = 'KEY-'+seg(5)+'-'+seg(5)+'-'+seg(5)+'-'+seg(5);
+            await db.run('INSERT INTO licenses (id,app_id,key_value,note,duration,level,max_uses) VALUES (?,?,?,?,?,?,?)',
+              [uuidv4(), appId, kv, 'Bot Discord partner', dias||null, 1, 1]);
+            created.push(kv);
+          }
+          if (pa.key_limit > 0) await db.run('UPDATE partner_apps SET keys_used=keys_used+? WHERE partner_id=? AND app_id=?', [amount, partnerId, appId]);
+          const embed = goldEmbed(amount + ' Key(s) Generada(s)', '```\n' + created.join('\n') + '\n```');
+          return interaction.editReply({ embeds: [embed] });
+        }
+      });
+      resolve({ ok: true, tag: client.user.tag });
+    });
+    client.on('error', function(e) { console.log('[PartnerBot] Error:', e.message); });
+    client.login(cleanToken).catch(function(e) {
+      clearTimeout(timeout);
+      resolve({ ok: false, error: e.message.includes('TOKEN_INVALID') ? 'Token invalido' : e.message });
+    });
+  });
+}
+
+// Auto-iniciar bots de partners al arrancar
+setTimeout(async function() {
+  try {
+    const bots = await db.all('SELECT * FROM partner_discord_bots WHERE active=1 AND bot_token != ""');
+    for (const bot of bots) {
+      if (bot.bot_token) {
+        const r = await startPartnerBot(bot.id, bot.bot_token, bot.guild_id, bot.app_id, bot.partner_id);
+        console.log('[PartnerBot] Auto-init', bot.id, r.ok ? 'OK: '+r.tag : 'ERR: '+r.error);
+      }
+    }
+  } catch(e) { console.log('[PartnerBot] Error auto-init:', e.message); }
+}, 5000);
+
+// GET /discord/partner-bots — ver bots del partner (o del admin: ver todos)
+router.get('/partner-bots', requireAdmin, async function(req, res) {
+  try {
+    let bots;
+    if (req.admin.role === 'partner') {
+      bots = await db.all(
+        'SELECT pb.*, a.name as app_name FROM partner_discord_bots pb JOIN apps a ON a.id=pb.app_id WHERE pb.partner_id=? ORDER BY pb.created_at DESC',
+        [req.admin.id]
+      );
+    } else {
+      bots = await db.all(
+        'SELECT pb.*, a.name as app_name, p.username as partner_username FROM partner_discord_bots pb JOIN apps a ON a.id=pb.app_id JOIN partners p ON p.id=pb.partner_id ORDER BY pb.created_at DESC'
+      );
+    }
+    // Enriquecer con estado online
+    const result = bots.map(function(b) {
+      return Object.assign({}, b, {
+        bot_token: b.bot_token ? b.bot_token.substring(0,6)+'...'+b.bot_token.slice(-4) : '',
+        online: !!(partnerBots[b.id] && partnerBots[b.id].ready)
+      });
+    });
+    res.json({ success: true, bots: result });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// POST /discord/partner-bots — crear/conectar bot (partner solo puede crear 1 o su max_bots)
+router.post('/partner-bots', requireAdmin, async function(req, res) {
+  try {
+    const { bot_token, app_id, guild_id, log_channel_id, chan_online_id, chan_users_id, chan_keys_id } = req.body;
+    if (!bot_token || !app_id) return res.json({ success: false, message: 'Token y app_id requeridos' });
+
+    if (req.admin.role === 'partner') {
+      // Verificar que tiene acceso a esa app
+      const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, app_id]);
+      if (!pa) return res.status(403).json({ success: false, message: 'No tienes acceso a esa app' });
+      // Verificar limite de bots
+      const me = await db.get('SELECT max_bots FROM partners WHERE id=?', [req.admin.id]);
+      const maxBots = (me && me.max_bots) || 1;
+      const existing = await db.get('SELECT COUNT(*) as c FROM partner_discord_bots WHERE partner_id=?', [req.admin.id]);
+      const count = (existing && existing.c) || 0;
+      if (count >= maxBots) return res.json({ success: false, message: 'Limite de bots alcanzado (' + count + '/' + maxBots + '). El admin puede aumentar tu limite.' });
+    }
+
+    const id = uuidv4();
+    const cleanToken = bot_token.replace(/[\s\n\r\t\u0000-\u001F\u007F-\u009F]/g, '');
+    const partnerId = req.admin.role === 'partner' ? req.admin.id : req.body.partner_id || req.admin.id;
+    await db.run('INSERT INTO partner_discord_bots (id,partner_id,app_id,bot_token,guild_id,log_channel_id,chan_online_id,chan_users_id,chan_keys_id) VALUES (?,?,?,?,?,?,?,?,?)',
+      [id, partnerId, app_id, cleanToken, guild_id||'', log_channel_id||'', chan_online_id||'', chan_users_id||'', chan_keys_id||'']);
+
+    const r = await startPartnerBot(id, cleanToken, guild_id, app_id, partnerId);
+    if (r.ok) {
+      await db.run('UPDATE partner_discord_bots SET bot_name=?,active=1 WHERE id=?', [r.tag, id]);
+      return res.json({ success: true, message: 'Bot conectado: ' + r.tag, bot_id: id });
+    } else {
+      await db.run('DELETE FROM partner_discord_bots WHERE id=?', [id]);
+      return res.json({ success: false, message: 'Error al conectar: ' + r.error });
+    }
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// DELETE /discord/partner-bots/:id — desconectar y eliminar bot
+router.delete('/partner-bots/:id', requireAdmin, async function(req, res) {
+  try {
+    const bot = req.admin.role === 'partner'
+      ? await db.get('SELECT * FROM partner_discord_bots WHERE id=? AND partner_id=?', [req.params.id, req.admin.id])
+      : await db.get('SELECT * FROM partner_discord_bots WHERE id=?', [req.params.id]);
+    if (!bot) return res.json({ success: false, message: 'Bot no encontrado' });
+    if (partnerBots[bot.id]) {
+      try { partnerBots[bot.id].client.destroy(); } catch(_) {}
+      delete partnerBots[bot.id];
+    }
+    await db.run('DELETE FROM partner_discord_bots WHERE id=?', [bot.id]);
+    res.json({ success: true, message: 'Bot desconectado y eliminado' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// POST /discord/partner-bots/:id/reconnect
+router.post('/partner-bots/:id/reconnect', requireAdmin, async function(req, res) {
+  try {
+    const bot = req.admin.role === 'partner'
+      ? await db.get('SELECT * FROM partner_discord_bots WHERE id=? AND partner_id=?', [req.params.id, req.admin.id])
+      : await db.get('SELECT * FROM partner_discord_bots WHERE id=?', [req.params.id]);
+    if (!bot) return res.json({ success: false, message: 'Bot no encontrado' });
+    const r = await startPartnerBot(bot.id, bot.bot_token, bot.guild_id, bot.app_id, bot.partner_id);
+    if (r.ok) {
+      await db.run('UPDATE partner_discord_bots SET bot_name=?,active=1 WHERE id=?', [r.tag, bot.id]);
+      return res.json({ success: true, message: 'Bot reconectado: ' + r.tag });
+    }
+    return res.json({ success: false, message: 'Error: ' + r.error });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
 module.exports = router;
 module.exports.notifyDiscord = notifyDiscord;

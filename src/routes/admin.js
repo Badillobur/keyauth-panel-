@@ -405,6 +405,26 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN key_limit INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN keys_used INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run("ALTER TABLE partners ADD COLUMN role TEXT DEFAULT 'partner'"); } catch(_) {}
+  try { await db.run('ALTER TABLE partners ADD COLUMN max_bots INTEGER DEFAULT 1'); } catch(_) {}
+  try { await db.run('ALTER TABLE partners ADD COLUMN max_partners INTEGER DEFAULT 0'); } catch(_) {}
+  try { await db.run('ALTER TABLE partners ADD COLUMN owner_id TEXT DEFAULT NULL'); } catch(_) {}
+  // Tabla bots por partner
+  await db.run(`CREATE TABLE IF NOT EXISTS partner_discord_bots (
+    id           TEXT PRIMARY KEY,
+    partner_id   TEXT NOT NULL,
+    app_id       TEXT NOT NULL,
+    bot_token    TEXT NOT NULL DEFAULT '',
+    guild_id     TEXT DEFAULT '',
+    log_channel_id TEXT DEFAULT '',
+    chan_online_id TEXT DEFAULT '',
+    chan_users_id  TEXT DEFAULT '',
+    chan_keys_id   TEXT DEFAULT '',
+    active       INTEGER DEFAULT 1,
+    bot_name     TEXT DEFAULT '',
+    created_at   INTEGER DEFAULT (strftime('%s','now')),
+    FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE,
+    FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE
+  )`);
 })();
 
 // Ver límite de keys de un partner
@@ -449,8 +469,7 @@ router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
         'SELECT a.id, a.name, pa.can_genkeys, pa.can_users, pa.can_logs, pa.key_limit, pa.keys_used FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
         [p.id]
       );
-      result.push(Object.assign({}, p, { password: undefined, apps }));
-    }
+      result.push(Object.assign({}, p, { password: undefined, apps }));    }
     res.json({ success: true, partners: result });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -487,7 +506,7 @@ router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
 // Actualizar partner — SOLO ADMIN
 router.put('/partners/:id', requireAdmin, adminOnly, async function(req, res) {
   try {
-    const { display_name, email, active, password, role, app_ids, permissions } = req.body;
+    const { display_name, email, active, password, role, max_bots, max_partners, app_ids, permissions } = req.body;
     const p = await db.get('SELECT * FROM partners WHERE id=?', [req.params.id]);
     if (!p) return res.json({ success: false, message: 'Partner no encontrado' });
     if (password) {
@@ -495,9 +514,10 @@ router.put('/partners/:id', requireAdmin, adminOnly, async function(req, res) {
       await db.run('UPDATE partners SET password=? WHERE id=?', [hashed, p.id]);
     }
     const partnerRole = role === 'owner' ? 'owner' : role === 'partner' ? 'partner' : p.role;
-    await db.run('UPDATE partners SET display_name=?,email=?,active=?,role=? WHERE id=?',
-      [display_name ?? p.display_name, email ?? p.email, active ?? p.active, partnerRole, p.id]);
-    // Actualizar apps con permisos y límites — BUG FIX: guardar can_genkeys/can_users/can_logs/key_limit correctamente
+    const newMaxBots     = max_bots     !== undefined ? parseInt(max_bots)     : p.max_bots;
+    const newMaxPartners = max_partners !== undefined ? parseInt(max_partners) : p.max_partners;
+    await db.run('UPDATE partners SET display_name=?,email=?,active=?,role=?,max_bots=?,max_partners=? WHERE id=?',
+      [display_name ?? p.display_name, email ?? p.email, active ?? p.active, partnerRole, newMaxBots, newMaxPartners, p.id]);    // Actualizar apps con permisos y límites — BUG FIX: guardar can_genkeys/can_users/can_logs/key_limit correctamente
     if (app_ids !== undefined) {
       await db.run('DELETE FROM partner_apps WHERE partner_id=?', [p.id]);
       for (const appId of (app_ids || [])) {
@@ -537,6 +557,108 @@ router.get('/partner-apps', async function(req, res) {
     );
     res.json({ success: true, apps, role: 'partner', username: decoded.username });
   } catch (e) { res.json({ success: false, apps: [] }); }
+});
+
+
+// ─── OWNER: crear sub-partners (solo si role=owner y dentro de su limite) ─────
+
+router.post('/owner/partners', requireAdmin, async function(req, res) {
+  try {
+    if (req.admin.role !== 'partner') return res.status(403).json({ success: false, message: 'Solo partners con rol owner pueden hacer esto' });
+    // Verificar que es owner
+    const me = await db.get('SELECT * FROM partners WHERE id=?', [req.admin.id]);
+    if (!me || me.role !== 'owner') return res.status(403).json({ success: false, message: 'Solo owners pueden crear sub-partners' });
+
+    // Verificar limite
+    const maxPartners = me.max_partners || 0;
+    if (maxPartners === 0) return res.status(403).json({ success: false, message: 'No tienes permiso para crear partners. Contacta al admin.' });
+    const existingCount = await db.get('SELECT COUNT(*) as c FROM partners WHERE owner_id=?', [me.id]);
+    const count = (existingCount && existingCount.c) || 0;
+    if (count >= maxPartners) return res.json({ success: false, message: 'Limite alcanzado: puedes crear maximo ' + maxPartners + ' partner(s). Tienes ' + count + '.' });
+
+    const { username, password, display_name, app_ids, permissions } = req.body;
+    if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
+    const ex = await db.get('SELECT id FROM partners WHERE username=?', [username]);
+    if (ex) return res.json({ success: false, message: 'Username ya existe' });
+
+    // Solo puede asignar apps que EL MISMO tiene asignadas
+    const myApps = await db.all('SELECT app_id FROM partner_apps WHERE partner_id=?', [me.id]);
+    const myAppIds = myApps.map(function(a) { return a.app_id; });
+    const filteredAppIds = (app_ids || []).filter(function(id) { return myAppIds.includes(id); });
+
+    const id = uuidv4();
+    const hashed = await bcrypt.hash(password, 10);
+    await db.run('INSERT INTO partners (id,username,password,display_name,role,owner_id) VALUES (?,?,?,?,?,?)',
+      [id, username, hashed, display_name || username, 'partner', me.id]);
+
+    for (const appId of filteredAppIds) {
+      const perm = (permissions && permissions[appId]) || {};
+      // Sub-partner solo puede tener permisos que el owner tiene
+      const myPerm = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [me.id, appId]);
+      const can_genkeys = myPerm && myPerm.can_genkeys ? (perm.can_genkeys !== undefined ? (perm.can_genkeys ? 1 : 0) : 1) : 0;
+      const can_users   = myPerm && myPerm.can_users   ? (perm.can_users   !== undefined ? (perm.can_users   ? 1 : 0) : 1) : 0;
+      const can_logs    = myPerm && myPerm.can_logs    ? (perm.can_logs    !== undefined ? (perm.can_logs    ? 1 : 0) : 1) : 0;
+      // key_limit del sub-partner no puede superar el restante del owner
+      const ownerLimit  = myPerm ? (myPerm.key_limit || 0) : 0;
+      const ownerUsed   = myPerm ? (myPerm.keys_used || 0) : 0;
+      const ownerLeft   = ownerLimit > 0 ? Math.max(0, ownerLimit - ownerUsed) : 0;
+      const reqLimit    = parseInt(perm.key_limit) || 0;
+      const key_limit   = ownerLimit > 0 ? Math.min(reqLimit || ownerLeft, ownerLeft) : reqLimit;
+      await db.run('INSERT OR REPLACE INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,?,?,?,?,0)',
+        [id, appId, can_genkeys, can_users, can_logs, key_limit]);
+    }
+    res.json({ success: true, message: 'Sub-partner "' + username + '" creado (' + (count+1) + '/' + maxPartners + ')' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Listar sub-partners creados por este owner
+router.get('/owner/partners', requireAdmin, async function(req, res) {
+  try {
+    if (req.admin.role !== 'partner') return res.status(403).json({ success: false, message: 'Solo partners' });
+    const me = await db.get('SELECT * FROM partners WHERE id=?', [req.admin.id]);
+    if (!me || me.role !== 'owner') return res.status(403).json({ success: false, message: 'Solo owners' });
+
+    const partners = await db.all('SELECT id,username,display_name,role,active,last_login,created_at FROM partners WHERE owner_id=? ORDER BY created_at DESC', [me.id]);
+    const result = [];
+    for (const p of partners) {
+      const apps = await db.all(
+        'SELECT a.id, a.name, pa.can_genkeys, pa.can_users, pa.can_logs, pa.key_limit, pa.keys_used FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
+        [p.id]
+      );
+      result.push(Object.assign({}, p, { apps }));
+    }
+    const maxPartners = me.max_partners || 0;
+    res.json({ success: true, partners: result, used: result.length, max: maxPartners });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Eliminar sub-partner (owner solo puede eliminar los suyos)
+router.delete('/owner/partners/:id', requireAdmin, async function(req, res) {
+  try {
+    if (req.admin.role !== 'partner') return res.status(403).json({ success: false, message: 'Solo partners' });
+    const me = await db.get('SELECT * FROM partners WHERE id=?', [req.admin.id]);
+    if (!me || me.role !== 'owner') return res.status(403).json({ success: false, message: 'Solo owners' });
+    const target = await db.get('SELECT * FROM partners WHERE id=? AND owner_id=?', [req.params.id, me.id]);
+    if (!target) return res.json({ success: false, message: 'Partner no encontrado o no te pertenece' });
+    await db.run('DELETE FROM partners WHERE id=?', [req.params.id]);
+    res.json({ success: true, message: 'Sub-partner eliminado' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Ver mis apps (como owner/partner) con info de permisos y limites
+router.get('/owner/me', requireAdmin, async function(req, res) {
+  try {
+    if (req.admin.role !== 'partner') return res.status(403).json({ success: false, message: 'Solo partners' });
+    const me = await db.get('SELECT id,username,display_name,role,max_bots,max_partners,active FROM partners WHERE id=?', [req.admin.id]);
+    if (!me) return res.status(403).json({ success: false, message: 'Partner no encontrado' });
+    const apps = await db.all(
+      'SELECT a.id, a.name, a.version, pa.can_genkeys, pa.can_users, pa.can_logs, pa.key_limit, pa.keys_used FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
+      [me.id]
+    );
+    // Contar bots activos
+    const botCount = await db.get('SELECT COUNT(*) as c FROM partner_discord_bots WHERE partner_id=? AND active=1', [me.id]);
+    res.json({ success: true, me: Object.assign({}, me, { apps, bot_count: (botCount && botCount.c) || 0 }) });
+  } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
 module.exports = router;

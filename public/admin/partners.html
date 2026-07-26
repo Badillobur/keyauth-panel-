@@ -68,13 +68,14 @@
                 <th>Partner</th>
                 <th>Rol</th>
                 <th>Apps Asignadas</th>
+                <th>Limites Admin</th>
                 <th>Estado</th>
                 <th>Ultimo Acceso</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="partners-tbody">
-              <tr><td colspan="6"><div class="empty-state"><div class="loader"></div></div></td></tr>
+              <tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -223,7 +224,19 @@ async function loadPartners() {
     return '<tr>'
       + '<td><div class="pname">'+esc(p.display_name||p.username)+'</div><div class="pmeta">@'+esc(p.username)+'</div></td>'
       + '<td>'+roleBadge+'</td>'
-      + '<td style="max-width:280px;">'+appTags+'</td>'
+      + '<td style="max-width:240px;">'+appTags+'</td>'
+      + '<td>'
+        + '<div style="display:flex;flex-direction:column;gap:6px;min-width:160px;">'
+          + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;">'
+            + '<span style="color:var(--text3);min-width:80px;">Bots max:</span>'
+            + '<input type="number" class="key-limit-input" value="'+(p.max_bots||1)+'" min="0" max="99" style="width:50px;" onchange="saveLimit(\''+p.id+'\',\'max_bots\',this.value,this)" />'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;">'
+            + '<span style="color:var(--text3);min-width:80px;">Partners max:</span>'
+            + '<input type="number" class="key-limit-input" value="'+(p.max_partners||0)+'" min="0" max="99" style="width:50px;" onchange="saveLimit(\''+p.id+'\',\'max_partners\',this.value,this)" />'
+          + '</div>'
+        + '</div>'
+      + '</td>'
       + '<td>'+statusBadge+'</td>'
       + '<td class="text-sm" style="color:var(--text3);">'+(p.last_login ? relTime(p.last_login) : 'Nunca')+'</td>'
       + '<td><div style="display:flex;gap:4px;">'
@@ -406,6 +419,21 @@ async function resetLimit(partnerId, appId, btn) {
 }
 
 function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function saveLimit(partnerId, field, value, inputEl) {
+  var val = parseInt(value);
+  if (isNaN(val) || val < 0) { toast('Valor invalido', 'error'); return; }
+  var body = {};
+  body[field] = val;
+  var res = await apiFetch(API + '/partners/' + partnerId, { method: 'PUT', body });
+  if (res && res.success) {
+    inputEl.style.borderColor = 'var(--green)';
+    setTimeout(function() { inputEl.style.borderColor = ''; }, 1200);
+    toast(field === 'max_bots' ? 'Limite de bots actualizado' : 'Limite de partners actualizado', 'success');
+  } else if (res) {
+    toast(res.message, 'error');
+  }
+}
 </script>
 </body>
 </html>
