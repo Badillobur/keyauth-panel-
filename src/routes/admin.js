@@ -50,9 +50,15 @@ router.post('/login', async function(req, res) {
       const valid = await bcrypt.compare(password, partner.password);
       if (!valid) return res.json({ success: false, message: 'Contrasena incorrecta' });
       await db.run('UPDATE partners SET last_login=? WHERE id=?', [Math.floor(Date.now()/1000), partner.id]);
-      const token = jwt.sign({ id: partner.id, username: partner.username, role: 'partner', partner_role: partner.role || 'partner', partner_id: partner.id }, SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ 
+        id: partner.id, 
+        username: partner.username, 
+        role: 'partner', 
+        partner_role: partner.role || 'partner', 
+        partner_id: partner.id 
+      }, SECRET, { expiresIn: '24h' });
       res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
-      return res.json({ success: true, message: 'Login exitoso', token, role: 'partner' });
+      return res.json({ success: true, message: 'Login exitoso', token, role: 'partner', partner_role: partner.role || 'partner' });
     }
 
     return res.json({ success: false, message: 'Credenciales incorrectas' });
@@ -67,9 +73,17 @@ router.post('/logout', function(req, res) {
 router.get('/me', requireAdmin, async function(req, res) {
   try {
     if (req.admin.role === 'partner') {
-      const p = await db.get('SELECT role FROM partners WHERE id=?', [req.admin.id]);
-      const partnerRole = (p && p.role) ? p.role : 'partner';
-      return res.json({ success: true, admin: Object.assign({}, req.admin, { partner_role: partnerRole }) });
+      const p = await db.get('SELECT * FROM partners WHERE id=?', [req.admin.id]);
+      if (!p) return res.json({ success: true, admin: req.admin });
+      const partnerRole = p.role || 'partner';
+      return res.json({ 
+        success: true, 
+        admin: Object.assign({}, req.admin, { 
+          partner_role: partnerRole,
+          display_name: p.display_name,
+          email: p.email
+        }) 
+      });
     }
     res.json({ success: true, admin: req.admin });
   } catch(e) {
@@ -475,12 +489,26 @@ router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
     const partners = await db.all('SELECT * FROM partners ORDER BY created_at DESC');
     const result = [];
     for (const p of partners) {
-      // BUG FIX: incluir key_limit y keys_used
       const apps = await db.all(
         'SELECT a.id, a.name, pa.can_genkeys, pa.can_users, pa.can_logs, pa.key_limit, pa.keys_used FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
         [p.id]
       );
-      result.push(Object.assign({}, p, { password: undefined, apps }));    }
+      const partnerData = {
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name || p.username,
+        email: p.email || '',
+        role: p.role || 'partner',
+        active: p.active,
+        max_bots: p.max_bots || 1,
+        max_partners: p.max_partners || 0,
+        owner_id: p.owner_id,
+        last_login: p.last_login,
+        created_at: p.created_at,
+        apps: apps
+      };
+      result.push(partnerData);
+    }
     res.json({ success: true, partners: result });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
