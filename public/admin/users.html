@@ -88,7 +88,7 @@ var currentAppId = null, usersData = [];
 (async function() {
   injectSidebar('users');
   await requireAuth();
-  var savedApp = getSavedApp();
+  var savedApp = getSavedAppId();
   if (savedApp) {
     currentAppId = savedApp;
     document.getElementById('btn-add-user').disabled = false;
@@ -102,6 +102,10 @@ var currentAppId = null, usersData = [];
     document.getElementById('users-tbody').innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>Sin app seleccionada. Ve a <a href="/apps" style="color:var(--accent);">Aplicaciones</a> y selecciona una.</p></div></td></tr>';
   }
   filterTable('search-users','users-table');
+
+function getSavedAppId() {
+  return localStorage.getItem('selected_app_id');
+}
 })();
 
 async function loadUsers(appId) {

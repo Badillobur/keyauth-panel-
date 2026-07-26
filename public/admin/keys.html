@@ -83,7 +83,7 @@ var currentAppId = null, keysData = [];
   injectSidebar('keys');
   await requireAuth();
   // Usar la app guardada en localStorage (seleccionada desde Apps)
-  var savedApp = getSavedApp();
+  var savedApp = getSavedAppId();
   if (savedApp) {
     currentAppId = savedApp;
     document.getElementById('btn-gen').disabled = false;
@@ -100,6 +100,10 @@ var currentAppId = null, keysData = [];
     document.getElementById('keys-tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Sin app seleccionada. Ve a <a href="/apps" style="color:var(--accent);">Aplicaciones</a> y selecciona una.</p></div></td></tr>';
   }
   filterTable('search-keys','keys-table');
+
+function getSavedAppId() {
+  return localStorage.getItem('selected_app_id');
+}
 })();
 
 async function loadKeys(appId) {
