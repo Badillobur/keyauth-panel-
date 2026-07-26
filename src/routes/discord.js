@@ -492,6 +492,19 @@ router.post('/update-stats', requireAdmin, async function(req, res) {
   catch(e) { res.json({success:false, message:e.message}); }
 });
 
+// Reconectar bot con el token ya guardado en DB
+router.post('/reconnect', requireAdmin, async function(req, res) {
+  try {
+    const config = await getConfig();
+    if (!config || !config.bot_token) {
+      return res.json({success:false, message:'No hay token guardado. Pega el token primero.'});
+    }
+    const r = await startBot(config.bot_token, config.guild_id);
+    if (r.ok) return res.json({success:true, message:'Bot reconectado: ' + r.tag});
+    return res.json({success:false, message:'Error al reconectar: ' + r.error});
+  } catch(e) { res.json({success:false, message:e.message}); }
+});
+
 router.post('/send', requireAdmin, async function(req, res) {
   try {
     if (!botClient || !botReady) return res.json({success:false, message:'Bot no iniciado'});

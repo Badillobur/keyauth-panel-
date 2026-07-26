@@ -128,7 +128,8 @@
                 <input type="text" id="chan-apps" class="form-control" placeholder="ID canal de voz" />
               </div>
             </div>
-            <button class="btn btn-primary" style="width:100%;" onclick="saveConfig()">💾 Guardar y Conectar</button>
+            <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="saveConfig()">Guardar y Conectar</button>
+            <button class="btn btn-secondary" style="width:100%;" onclick="reconnectBot()">Reconectar Bot (usar token guardado)</button>
           </div>
         </div>
 
@@ -281,7 +282,6 @@ async function loadStatus() {
 }
 
 async function saveConfig() {
-  // Limpiar token: quitar espacios, saltos de linea y caracteres invisibles
   const rawToken = document.getElementById('bot-token').value;
   const token = rawToken.replace(/[\s\n\r\t]/g, '').trim();
   const body = {
@@ -315,6 +315,16 @@ async function inviteBot() {
     window.open(res.link, '_blank');
     toast('Abriendo link de invitacion...', 'info');
   } else if (res) toast(res.message, 'error');
+}
+
+async function reconnectBot() {
+  const res = await apiFetch(API + '/discord/reconnect', { method: 'POST' });
+  if (res && res.success) {
+    toast(res.message, 'success');
+    setTimeout(loadStatus, 3000);
+  } else if (res) {
+    toast(res.message, 'error');
+  }
 }
 
 async function sendAnnouncement() {
