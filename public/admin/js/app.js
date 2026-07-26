@@ -1,6 +1,6 @@
 const API = '/api/admin';
 
-const API = '/api/admin';
+var API = '/api/admin';
 
 // ─── Token ────────────────────────────────────────────────────────────────────
 function getToken() { return localStorage.getItem('lmax_token') || ''; }
