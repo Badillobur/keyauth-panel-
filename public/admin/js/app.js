@@ -20,6 +20,15 @@ async function apiFetch(url, options) {
   try {
     var res = await fetch(url, options);
     var data = await res.json();
+    // Si la sesion fue invalidada (partner desactivado, token expirado etc) redirigir al login
+    if (res.status === 401 || res.status === 403) {
+      if (data && data.message) toast(data.message, 'error');
+      setTimeout(function() {
+        clearToken();
+        window.location.href = '/login';
+      }, 1500);
+      return null;
+    }
     return data;
   } catch(e) {
     toast('Error de conexion', 'error');

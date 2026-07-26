@@ -95,12 +95,30 @@ router.get('/stats', requireAdmin, adminOnly, async function(req, res) {
 
 router.get('/apps', requireAdmin, async function(req, res) {
   try {
+    // Si es partner, solo mostrar SUS apps asignadas
+    if (req.admin.role === 'partner') {
+      const partnerApps = await db.all(
+        'SELECT a.*, pa.can_genkeys, pa.can_users, pa.can_logs, pa.key_limit, pa.keys_used FROM apps a ' +
+        'JOIN partner_apps pa ON pa.app_id=a.id WHERE pa.partner_id=? ORDER BY a.created_at DESC',
+        [req.admin.id]
+      );
+      const result = [];
+      for (const a of partnerApps) {
+        result.push(Object.assign({}, a, {
+          userCount: (await db.get('SELECT COUNT(*) as c FROM users WHERE app_id=?', [a.id])).c || 0,
+          keyCount:  (await db.get('SELECT COUNT(*) as c FROM licenses WHERE app_id=?', [a.id])).c || 0,
+        }));
+      }
+      return res.json({ success: true, apps: result });
+    }
+    // Admin: ver todas
     const apps = await db.all('SELECT * FROM apps ORDER BY created_at DESC');
     const result = [];
     for (const a of apps) {
-      const uCount = ((await db.get('SELECT COUNT(*) as c FROM users WHERE app_id=?', [a.id])) || {}).c || 0;
-      const kCount = ((await db.get('SELECT COUNT(*) as c FROM licenses WHERE app_id=?', [a.id])) || {}).c || 0;
-      result.push(Object.assign({}, a, { userCount: uCount, keyCount: kCount }));
+      result.push(Object.assign({}, a, {
+        userCount: (await db.get('SELECT COUNT(*) as c FROM users WHERE app_id=?', [a.id])).c || 0,
+        keyCount:  (await db.get('SELECT COUNT(*) as c FROM licenses WHERE app_id=?', [a.id])).c || 0,
+      }));
     }
     res.json({ success: true, apps: result });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -146,6 +164,11 @@ router.delete('/apps/:id', requireAdmin, adminOnly, async function(req, res) {
 
 router.get('/apps/:appId/keys', requireAdmin, async function(req, res) {
   try {
+    // Verificar permiso de partner
+    if (req.admin.role === 'partner') {
+      const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, req.params.appId]);
+      if (!pa) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+    }
     const keys = await db.all('SELECT * FROM licenses WHERE app_id=? ORDER BY created_at DESC', [req.params.appId]);
     res.json({ success: true, keys });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -157,7 +180,24 @@ router.post('/apps/:appId/keys', requireAdmin, async function(req, res) {
     const app = await db.get('SELECT id FROM apps WHERE id=?', [appId]);
     if (!app) return res.json({ success: false, message: 'App no encontrada' });
 
-    const amount   = Math.min(parseInt(req.body.amount) || 1, 500);
+    const amount = Math.min(parseInt(req.body.amount) || 1, 500);
+
+    // Verificar permisos de partner
+    if (req.admin.role === 'partner') {
+      const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, appId]);
+      if (!pa) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+      if (!pa.can_genkeys) return res.status(403).json({ success: false, message: 'No tienes permiso para generar keys' });
+      // Verificar limite de keys
+      if (pa.key_limit > 0) {
+        const used = pa.keys_used || 0;
+        if (used + amount > pa.key_limit) {
+          return res.json({ success: false, message: 'Limite de keys alcanzado (' + used + '/' + pa.key_limit + '). Contacta a +51928140884 para aumentar tu limite.' });
+        }
+        // Incrementar contador de keys usadas
+        await db.run('UPDATE partner_apps SET keys_used=keys_used+? WHERE partner_id=? AND app_id=?', [amount, req.admin.id, appId]);
+      }
+    }
+
     const duration = req.body.duration ? parseInt(req.body.duration) : null;
     const level    = parseInt(req.body.level) || 1;
     const note     = req.body.note || '';
@@ -215,6 +255,11 @@ router.post('/apps/:appId/users', requireAdmin, async function(req, res) {
 
 router.get('/apps/:appId/users', requireAdmin, async function(req, res) {
   try {
+    if (req.admin.role === 'partner') {
+      const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, req.params.appId]);
+      if (!pa) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+      if (!pa.can_users) return res.status(403).json({ success: false, message: 'No tienes permiso para ver usuarios' });
+    }
     const users = await db.all(
       'SELECT u.*, (SELECT name FROM subscriptions WHERE user_id=u.id LIMIT 1) as sub_name, ' +
       '(SELECT expiry FROM subscriptions WHERE user_id=u.id LIMIT 1) as sub_expiry ' +
@@ -268,6 +313,11 @@ router.post('/apps/:appId/users/:userId/extend', requireAdmin, async function(re
 
 router.get('/apps/:appId/logs', requireAdmin, async function(req, res) {
   try {
+    if (req.admin.role === 'partner') {
+      const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, req.params.appId]);
+      if (!pa) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+      if (!pa.can_logs) return res.status(403).json({ success: false, message: 'No tienes permiso para ver logs' });
+    }
     const limit = Math.min(parseInt(req.query.limit) || 100, 500);
     const logs = await db.all('SELECT * FROM logs WHERE app_id=? ORDER BY created_at DESC LIMIT ?', [req.params.appId, limit]);
     res.json({ success: true, logs });
