@@ -74,15 +74,20 @@ document.getElementById('login-form').addEventListener('submit', async function(
   errEl.classList.remove('show');
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
-  const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({username, password}) });
-  const data = await res.json();
-  btn.disabled = false; btnText.style.display = 'block'; btnLoader.style.display = 'none';
-  if (data.success) {
-    setToken(data.token);
-    toast('Login exitoso!', 'success');
-    setTimeout(function() { window.location.href = '/admin/index.html'; }, 600);
-  } else {
-    document.getElementById('err-text').textContent = data.message || 'Credenciales invalidas';
+  try {
+    const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({username, password}) });
+    const data = await res.json();
+    btn.disabled = false; btnText.style.display = 'block'; btnLoader.style.display = 'none';
+    if (data.success) {
+      localStorage.setItem('lmax_token', data.token);
+      setTimeout(function() { window.location.href = '/admin/index.html'; }, 300);
+    } else {
+      document.getElementById('err-text').textContent = data.message || 'Credenciales invalidas';
+      errEl.classList.add('show');
+    }
+  } catch(err) {
+    btn.disabled = false; btnText.style.display = 'block'; btnLoader.style.display = 'none';
+    document.getElementById('err-text').textContent = 'Error de conexion con el servidor';
     errEl.classList.add('show');
   }
 });

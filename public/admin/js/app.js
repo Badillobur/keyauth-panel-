@@ -1,6 +1,7 @@
 const API = '/api/admin';
 
-var API = '/api/admin';
+// API base — se puede sobreescribir por página
+if (typeof API === 'undefined') { var API = '/api/admin'; }
 
 // ─── Token ────────────────────────────────────────────────────────────────────
 function getToken() { return localStorage.getItem('lmax_token') || ''; }
