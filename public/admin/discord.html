@@ -64,6 +64,7 @@
       </div>
       <div class="topbar-actions">
         <button class="btn btn-secondary btn-sm" onclick="loadStatus()">🔄 Actualizar</button>
+        <button class="btn btn-discord btn-sm" id="btn-invite" onclick="inviteBot()" style="display:none;">+ Invitar Bot al Servidor</button>
         <button class="btn btn-success btn-sm" id="btn-test" onclick="testBot()" disabled>📨 Test</button>
         <button class="btn btn-primary btn-sm" onclick="openModal('modal-send')">📢 Anuncio</button>
       </div>
@@ -247,6 +248,8 @@ async function loadStatus() {
   if (!res) return;
 
   document.getElementById('btn-test').disabled = !res.online;
+  const inviteBtn = document.getElementById('btn-invite');
+  if (inviteBtn) inviteBtn.style.display = res.online ? 'inline-flex' : 'none';
 
   const offlineBanner = document.getElementById('offline-banner');
   const wrap = document.getElementById('bot-status-wrap');
@@ -303,6 +306,14 @@ async function testBot() {
   const res = await apiFetch(API + '/discord/test', { method: 'POST' });
   if (res && res.success) toast(res.message, 'success');
   else if (res) toast(res.message, 'error');
+}
+
+async function inviteBot() {
+  const res = await apiFetch(API + '/discord/invite');
+  if (res && res.success) {
+    window.open(res.link, '_blank');
+    toast('Abriendo link de invitacion...', 'info');
+  } else if (res) toast(res.message, 'error');
 }
 
 async function sendAnnouncement() {

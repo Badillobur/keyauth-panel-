@@ -346,7 +346,17 @@ async function notifyDiscord(type, data) {
   } catch (_) {}
 }
 
-// ─── ROUTES ───────────────────────────────────────────────────────────────────
+// Obtener link de invitacion del bot
+router.get('/invite', requireAdmin, async function(req, res) {
+  try {
+    if (!botClient || !botReady) return res.json({ success: false, message: 'Bot no iniciado' });
+    const clientId = botClient.user.id;
+    const perms = '8'; // Administrator - simplifica todo
+    const link = 'https://discord.com/api/oauth2/authorize?client_id=' + clientId +
+      '&permissions=' + perms + '&scope=bot%20applications.commands';
+    res.json({ success: true, link, clientId });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
 
 // Obtener config
 router.get('/config', requireAdmin, async function(req, res) {
