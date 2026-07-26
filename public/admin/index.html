@@ -3,60 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — KeyAuth Panel</title>
+  <title>LMAx27 — Dashboard</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
 </head>
 <body>
+<div id="particles"></div>
 <div class="layout">
-
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🔐</div>
-      <div>
-        <div class="logo-text">KeyAuth</div>
-        <div class="logo-version">Panel v1.0</div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-title">General</div>
-      <a href="/admin/index.html" class="nav-item active" data-page="dashboard">
-        <span class="nav-icon">📊</span> Dashboard
-      </a>
-      <a href="/admin/apps.html" class="nav-item" data-page="apps">
-        <span class="nav-icon">📦</span> Aplicaciones
-      </a>
-      <div class="nav-section-title">Gestión</div>
-      <a href="/admin/keys.html" class="nav-item" data-page="keys">
-        <span class="nav-icon">🔑</span> Licencias / Keys
-      </a>
-      <a href="/admin/users.html" class="nav-item" data-page="users">
-        <span class="nav-icon">👥</span> Usuarios
-      </a>
-      <a href="/admin/logs.html" class="nav-item" data-page="logs">
-        <span class="nav-icon">📋</span> Logs
-      </a>
-      <div class="nav-section-title">Config</div>
-      <a href="/admin/vars.html" class="nav-item" data-page="vars">
-        <span class="nav-icon">⚙️</span> Variables
-      </a>
-      <a href="/admin/api-docs.html" class="nav-item" data-page="docs">
-        <span class="nav-icon">📖</span> API Docs
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="admin-avatar">A</div>
-        <div>
-          <div class="user-name" id="admin-name">Admin</div>
-          <div class="user-role" id="admin-role">superadmin</div>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
-    </div>
-  </aside>
-
-  <!-- Main -->
+  <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
       <div>
@@ -64,146 +17,111 @@
         <div class="topbar-sub">Resumen general del sistema</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="loadStats()">🔄 Actualizar</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadAll()">🔄 Actualizar</button>
         <a href="/admin/apps.html" class="btn btn-primary btn-sm">+ Nueva App</a>
       </div>
     </div>
-
     <div class="content">
-
-      <!-- Stats Grid -->
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon purple">📦</div>
-          <div>
-            <div class="stat-value" id="s-apps">—</div>
-            <div class="stat-label">Aplicaciones</div>
-          </div>
+      <div class="stats-grid">
+        <div class="stat-card" style="animation-delay:.05s">
+          <div class="stat-icon">📦</div>
+          <div><div class="stat-value" id="s-apps">0</div><div class="stat-label">Aplicaciones</div></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon blue">👥</div>
-          <div>
-            <div class="stat-value" id="s-users">—</div>
-            <div class="stat-label">Usuarios Totales</div>
-          </div>
+        <div class="stat-card" style="animation-delay:.1s">
+          <div class="stat-icon">👥</div>
+          <div><div class="stat-value" id="s-users">0</div><div class="stat-label">Usuarios</div></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon green">🟢</div>
-          <div>
-            <div class="stat-value" id="s-online">—</div>
-            <div class="stat-label">Usuarios Online</div>
-          </div>
+        <div class="stat-card" style="animation-delay:.15s">
+          <div class="stat-icon">🟢</div>
+          <div><div class="stat-value" id="s-online">0</div><div class="stat-label">Online Ahora</div></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon yellow">🔑</div>
-          <div>
-            <div class="stat-value" id="s-keys">—</div>
-            <div class="stat-label">Keys Totales</div>
-          </div>
+        <div class="stat-card" style="animation-delay:.2s">
+          <div class="stat-icon">🔑</div>
+          <div><div class="stat-value" id="s-keys">0</div><div class="stat-label">Keys Totales</div></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon red">✅</div>
-          <div>
-            <div class="stat-value" id="s-used">—</div>
-            <div class="stat-label">Keys Usadas</div>
-          </div>
+        <div class="stat-card" style="animation-delay:.25s">
+          <div class="stat-icon">✅</div>
+          <div><div class="stat-value" id="s-used">0</div><div class="stat-label">Keys Usadas</div></div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-
-        <!-- Apps recientes -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
         <div class="card">
           <div class="card-header">
             <div class="card-title">📦 Aplicaciones</div>
-            <a href="/admin/apps.html" class="btn btn-secondary btn-sm">Ver todas</a>
+            <a href="/admin/apps.html" class="btn btn-secondary btn-sm">Ver todas →</a>
           </div>
-          <div id="apps-list">
-            <div class="empty-state"><div class="loader"></div></div>
-          </div>
+          <div id="apps-list"><div class="empty-state"><div class="loader"></div></div></div>
         </div>
-
-        <!-- Logs recientes -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">📋 Actividad Reciente</div>
-            <a href="/admin/logs.html" class="btn btn-secondary btn-sm">Ver todos</a>
+            <div class="card-title">⚡ Actividad Reciente</div>
+            <a href="/admin/logs.html" class="btn btn-secondary btn-sm">Ver todos →</a>
           </div>
-          <div id="logs-list">
-            <div class="empty-state"><div class="loader"></div></div>
-          </div>
+          <div id="logs-list"><div class="empty-state"><div class="loader"></div></div></div>
         </div>
-
       </div>
 
     </div>
   </main>
 </div>
-
 <div id="toast-container"></div>
 <script src="/admin/js/app.js"></script>
+<script src="/admin/js/sidebar.js"></script>
 <script>
 (async function() {
+  injectSidebar('dashboard');
   await requireAuth();
-  loadStats();
-  loadApps();
+  loadAll();
 })();
 
-async function loadStats() {
+async function loadAll() {
   const res = await apiFetch(API + '/stats');
   if (!res || !res.success) return;
   const s = res.stats;
-  document.getElementById('s-apps').textContent   = s.totalApps;
-  document.getElementById('s-users').textContent  = s.totalUsers;
-  document.getElementById('s-online').textContent = s.onlineUsers;
-  document.getElementById('s-keys').textContent   = s.totalKeys;
-  document.getElementById('s-used').textContent   = s.usedKeys;
+  animateCount(document.getElementById('s-apps'),   s.totalApps, 800);
+  animateCount(document.getElementById('s-users'),  s.totalUsers, 800);
+  animateCount(document.getElementById('s-online'), s.onlineUsers, 800);
+  animateCount(document.getElementById('s-keys'),   s.totalKeys, 800);
+  animateCount(document.getElementById('s-used'),   s.usedKeys, 800);
 
-  // Logs recientes
+  // Logs
   const logsEl = document.getElementById('logs-list');
-  if (!s.recentLogs || s.recentLogs.length === 0) {
+  if (!s.recentLogs || !s.recentLogs.length) {
     logsEl.innerHTML = '<div class="empty-state"><p>Sin actividad reciente</p></div>';
-    return;
+  } else {
+    logsEl.innerHTML = s.recentLogs.map(function(l) {
+      const action = (l.action || '').toLowerCase();
+      let color = 'var(--text3)';
+      if (action.includes('login')) color = 'var(--green)';
+      else if (action.includes('ban') || action.includes('bloquead')) color = 'var(--red)';
+      else if (action.includes('registro')) color = 'var(--accent)';
+      else if (action.includes('key') || action.includes('licencia')) color = '#f59e0b';
+      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">' +
+        '<div style="width:6px;height:6px;border-radius:50%;background:'+color+';margin-top:5px;flex-shrink:0;box-shadow:0 0 6px '+color+'40;"></div>' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(l.action) + '</div>' +
+        '<div style="font-size:10px;color:var(--text3);">' + esc(l.username) + ' · ' + relTime(l.created_at) + '</div></div></div>';
+    }).join('');
   }
-  logsEl.innerHTML = s.recentLogs.map(function(l) {
-    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">' +
-      '<div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;"></div>' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(l.action) + '</div>' +
-        '<div style="font-size:11px;color:var(--text3);">' + escHtml(l.username) + ' · ' + relTime(l.created_at) + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+
+  // Apps
+  const appsEl = document.getElementById('apps-list');
+  const ar = await apiFetch(API + '/apps');
+  if (!ar || !ar.success || !ar.apps.length) {
+    appsEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>No hay apps creadas aun</p></div>';
+  } else {
+    appsEl.innerHTML = ar.apps.slice(0, 5).map(function(a) {
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">' +
+        '<div><div style="font-size:13px;font-weight:700;color:var(--text);">' + esc(a.name) + '</div>' +
+        '<div style="font-size:10px;color:var(--text3);">v'+esc(a.version)+' · '+a.userCount+' users · '+a.keyCount+' keys</div></div>' +
+        '<div style="display:flex;gap:6px;align-items:center;">' +
+        (a.status ? '<span class="badge badge-green">Activa</span>' : '<span class="badge badge-red">Off</span>') +
+        '<a href="/admin/apps.html?id='+a.id+'" class="btn btn-secondary btn-sm">Gestionar</a></div></div>';
+    }).join('');
+  }
 }
 
-async function loadApps() {
-  const res = await apiFetch(API + '/apps');
-  const el = document.getElementById('apps-list');
-  if (!res || !res.success || res.apps.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>No hay apps creadas aun</p></div>';
-    return;
-  }
-  el.innerHTML = res.apps.slice(0, 6).map(function(a) {
-    const statusBadge = a.status
-      ? '<span class="badge badge-green">Activa</span>'
-      : '<span class="badge badge-red">Desactivada</span>';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">' +
-      '<div>' +
-        '<div style="font-size:13px;font-weight:600;color:var(--text);">' + escHtml(a.name) + '</div>' +
-        '<div style="font-size:11px;color:var(--text3);">v' + escHtml(a.version) + ' · ' + a.userCount + ' users · ' + a.keyCount + ' keys</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:8px;">' +
-        statusBadge +
-        '<a href="/admin/apps.html?id=' + a.id + '" class="btn btn-secondary btn-sm">Gestionar</a>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
 </html>

@@ -1,92 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Licencias — KeyAuth Panel</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Keys</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
 </head>
 <body>
+<div id="particles"></div>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🔐</div>
-      <div><div class="logo-text">KeyAuth</div><div class="logo-version">Panel v1.0</div></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-title">General</div>
-      <a href="/admin/index.html" class="nav-item" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</a>
-      <a href="/admin/apps.html" class="nav-item" data-page="apps"><span class="nav-icon">📦</span> Aplicaciones</a>
-      <div class="nav-section-title">Gestión</div>
-      <a href="/admin/keys.html" class="nav-item active" data-page="keys"><span class="nav-icon">🔑</span> Licencias / Keys</a>
-      <a href="/admin/users.html" class="nav-item" data-page="users"><span class="nav-icon">👥</span> Usuarios</a>
-      <a href="/admin/logs.html" class="nav-item" data-page="logs"><span class="nav-icon">📋</span> Logs</a>
-      <div class="nav-section-title">Config</div>
-      <a href="/admin/vars.html" class="nav-item" data-page="vars"><span class="nav-icon">⚙️</span> Variables</a>
-      <a href="/admin/api-docs.html" class="nav-item" data-page="docs"><span class="nav-icon">📖</span> API Docs</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="admin-avatar">A</div>
-        <div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div>
-      </div>
-      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
-    </div>
-  </aside>
-
+  <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div>
-        <div class="topbar-title">Licencias / Keys</div>
-        <div class="topbar-sub" id="topbar-sub">Gestiona las licencias de tus aplicaciones</div>
-      </div>
+      <div><div class="topbar-title">🔑 Licencias / Keys</div><div class="topbar-sub" id="topbar-sub">Gestiona las licencias de tus apps</div></div>
       <div class="topbar-actions">
-        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()">
-          <option value="">Seleccionar App...</option>
-        </select>
-        <button class="btn btn-primary" onclick="openModal('modal-gen')" id="btn-gen" disabled>+ Generar Keys</button>
+        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
+        <button class="btn btn-primary" id="btn-gen" disabled onclick="openModal('modal-gen')">+ Generar Keys</button>
       </div>
     </div>
-
     <div class="content">
-      <!-- Stats rápidas -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;" id="key-stats" style="display:none;">
-        <div class="stat-card"><div class="stat-icon yellow">🔑</div><div><div class="stat-value" id="ks-total">0</div><div class="stat-label">Total Keys</div></div></div>
-        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value" id="ks-used">0</div><div class="stat-label">Usadas</div></div></div>
-        <div class="stat-card"><div class="stat-icon blue">🆓</div><div><div class="stat-value" id="ks-free">0</div><div class="stat-label">Disponibles</div></div></div>
-        <div class="stat-card"><div class="stat-icon red">⏰</div><div><div class="stat-value" id="ks-exp">0</div><div class="stat-label">Expiradas</div></div></div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card"><div class="stat-icon">🔑</div><div><div class="stat-value" id="ks-total">0</div><div class="stat-label">Total</div></div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-value" id="ks-used">0</div><div class="stat-label">Usadas</div></div></div>
+        <div class="stat-card"><div class="stat-icon">🆓</div><div><div class="stat-value" id="ks-free">0</div><div class="stat-label">Disponibles</div></div></div>
+        <div class="stat-card"><div class="stat-icon">⏰</div><div><div class="stat-value" id="ks-exp">0</div><div class="stat-label">Expiradas</div></div></div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <div class="card-title">🔑 Lista de Keys</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <div class="search-wrap">
-              <span class="search-icon">🔍</span>
-              <input type="text" class="search-input" id="search-keys" placeholder="Buscar key..." />
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="exportKeys()" id="btn-export" disabled>📥 Exportar</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteAllUsed()" id="btn-del-used" disabled>🗑️ Borrar Usadas</button>
+          <div style="display:flex;gap:8px;">
+            <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-keys" placeholder="Buscar key..." /></div>
+            <button class="btn btn-secondary btn-sm" id="btn-export" disabled onclick="exportKeys()">📥 Exportar</button>
+            <button class="btn btn-danger btn-sm" id="btn-del-used" disabled onclick="deleteAllUsed()">🗑️ Borrar Usadas</button>
           </div>
         </div>
         <div class="table-wrap">
           <table id="keys-table">
-            <thead>
-              <tr>
-                <th>Key</th>
-                <th>Estado</th>
-                <th>Usada Por</th>
-                <th>Nivel</th>
-                <th>Duracion</th>
-                <th>Expiracion</th>
-                <th>Nota</th>
-                <th>Creada</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="keys-tbody">
-              <tr><td colspan="9"><div class="empty-state"><p>Selecciona una aplicacion para ver sus keys</p></div></td></tr>
-            </tbody>
+            <thead><tr><th>Key</th><th>Estado</th><th>Usada Por</th><th>Nivel</th><th>Duracion</th><th>Expira</th><th>Nota</th><th>Acciones</th></tr></thead>
+            <tbody id="keys-tbody"><tr><td colspan="8"><div class="empty-state"><p>Selecciona una app</p></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -94,250 +44,112 @@
   </main>
 </div>
 
-<!-- Modal Generar Keys -->
 <div class="modal-overlay" id="modal-gen">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-header">
-      <div class="modal-title">🔑 Generar Licencias</div>
-      <button class="modal-close" onclick="closeModal('modal-gen')">✕</button>
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><div class="modal-title">🔑 Generar Licencias</div><button class="modal-close" onclick="closeModal('modal-gen')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cantidad (max 500)</label><input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" /></div>
+      <div class="form-group"><label class="form-label">Prefijo</label><input type="text" id="gen-prefix" class="form-control" value="KEY" maxlength="10" /></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Cantidad (max 500)</label>
-        <input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Prefijo</label>
-        <input type="text" id="gen-prefix" class="form-control" value="KEY" placeholder="KEY" maxlength="10" />
-      </div>
+      <div class="form-group"><label class="form-label">Duracion (dias, 0=permanente)</label><input type="number" id="gen-duration" class="form-control" value="30" min="0" /></div>
+      <div class="form-group"><label class="form-label">Nivel</label><select id="gen-level" class="form-control"><option value="1">Nivel 1 — Basic</option><option value="2">Nivel 2 — Premium</option><option value="3">Nivel 3 — VIP</option></select></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Duracion (dias, 0 = permanente)</label>
-        <input type="number" id="gen-duration" class="form-control" value="30" min="0" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Nivel</label>
-        <select id="gen-level" class="form-control">
-          <option value="1">Nivel 1 (Basic)</option>
-          <option value="2">Nivel 2 (Premium)</option>
-          <option value="3">Nivel 3 (VIP)</option>
-        </select>
-      </div>
+      <div class="form-group"><label class="form-label">Max usos</label><input type="number" id="gen-maxuses" class="form-control" value="1" min="1" /></div>
+      <div class="form-group"><label class="form-label">Expira en fecha (opcional)</label><input type="date" id="gen-expiry" class="form-control" /></div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Max usos por key</label>
-        <input type="number" id="gen-maxuses" class="form-control" value="1" min="1" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Fecha de expiracion (opcional)</label>
-        <input type="date" id="gen-expiry" class="form-control" />
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nota interna</label>
-      <input type="text" id="gen-note" class="form-control" placeholder="Ej: Batch enero 2025" />
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-gen')">Cancelar</button>
-      <button class="btn btn-primary" onclick="generateKeys()">Generar</button>
-    </div>
+    <div class="form-group"><label class="form-label">Nota interna</label><input type="text" id="gen-note" class="form-control" placeholder="Batch enero 2025..." /></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-gen')">Cancelar</button><button class="btn btn-primary" onclick="generateKeys()">Generar</button></div>
   </div>
 </div>
 
-<!-- Modal resultado de keys generadas -->
 <div class="modal-overlay" id="modal-result">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-header">
-      <div class="modal-title">✅ Keys Generadas</div>
-      <button class="modal-close" onclick="closeModal('modal-result')">✕</button>
-    </div>
-    <p style="color:var(--text3);font-size:13px;margin-bottom:12px;">Copia las keys antes de cerrar.</p>
-    <div class="code-block" style="max-height:300px;overflow-y:auto;white-space:pre-wrap;padding-right:80px;" id="result-keys"></div>
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header"><div class="modal-title">✅ Keys Generadas</div><button class="modal-close" onclick="closeModal('modal-result')">✕</button></div>
+    <div class="code-block" style="max-height:280px;overflow-y:auto;white-space:pre-wrap;padding-right:80px;" id="result-keys"></div>
     <button class="copy-btn" style="top:56px;" onclick="copyText(document.getElementById('result-keys').textContent, this)">Copiar</button>
-    <div class="modal-footer">
-      <button class="btn btn-secondary btn-sm" onclick="downloadKeys()">📥 Descargar .txt</button>
-      <button class="btn btn-primary" onclick="closeModal('modal-result')">Cerrar</button>
-    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" onclick="dlKeys()">📥 .txt</button><button class="btn btn-primary" onclick="closeModal('modal-result')">Cerrar</button></div>
   </div>
 </div>
 
 <div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
+<script src="/admin/js/app.js"></script><script src="/admin/js/sidebar.js"></script>
 <script>
-var currentAppId = null;
-var keysData = [];
-
+var currentAppId = null, keysData = [];
 (async function() {
+  injectSidebar('keys');
   await requireAuth();
-  await loadAppSelector();
-  filterTable('search-keys', 'keys-table');
-
-  // Si viene con ?app= preseleccionar
-  const appId = getParam('app');
-  if (appId) {
-    document.getElementById('app-selector').value = appId;
-    onAppChange();
-  }
+  await loadSel();
+  filterTable('search-keys','keys-table');
+  const a = getParam('app');
+  if (a) { document.getElementById('app-selector').value = a; onAppChange(); }
 })();
 
-async function loadAppSelector() {
-  const res = await apiFetch(API + '/apps');
-  if (!res || !res.success) return;
+async function loadSel() {
+  const r = await apiFetch(API+'/apps');
+  if (!r||!r.success) return;
   const sel = document.getElementById('app-selector');
-  res.apps.forEach(function(a) {
-    const opt = document.createElement('option');
-    opt.value = a.id;
-    opt.textContent = a.name + ' (' + a.keyCount + ' keys)';
-    sel.appendChild(opt);
-  });
+  r.apps.forEach(function(a) { const o=document.createElement('option'); o.value=a.id; o.textContent=a.name+' ('+a.keyCount+')'; sel.appendChild(o); });
 }
 
 function onAppChange() {
   const sel = document.getElementById('app-selector');
   currentAppId = sel.value || null;
-  document.getElementById('btn-gen').disabled = !currentAppId;
-  document.getElementById('btn-export').disabled = !currentAppId;
-  document.getElementById('btn-del-used').disabled = !currentAppId;
-  if (currentAppId) {
-    document.getElementById('topbar-sub').textContent = 'App: ' + sel.options[sel.selectedIndex].text;
-    loadKeys(currentAppId);
-  }
+  const ok2 = !!currentAppId;
+  document.getElementById('btn-gen').disabled = !ok2;
+  document.getElementById('btn-export').disabled = !ok2;
+  document.getElementById('btn-del-used').disabled = !ok2;
+  if (currentAppId) { document.getElementById('topbar-sub').textContent = sel.options[sel.selectedIndex].text; loadKeys(currentAppId); }
 }
 
 async function loadKeys(appId) {
-  const res = await apiFetch(API + '/apps/' + appId + '/keys');
+  const r = await apiFetch(API+'/apps/'+appId+'/keys');
   const tbody = document.getElementById('keys-tbody');
-  if (!res || !res.success) {
-    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>Error cargando keys</p></div></td></tr>';
-    return;
-  }
-  keysData = res.keys;
-
-  // Stats
-  const now = Math.floor(Date.now() / 1000);
-  const total = keysData.length;
-  const used = keysData.filter(function(k) { return k.used > 0; }).length;
-  const free = keysData.filter(function(k) { return k.used < k.max_uses; }).length;
-  const exp = keysData.filter(function(k) { return k.expiry && k.expiry < now; }).length;
-  document.getElementById('ks-total').textContent = total;
-  document.getElementById('ks-used').textContent = used;
-  document.getElementById('ks-free').textContent = free;
-  document.getElementById('ks-exp').textContent = exp;
-
-  if (keysData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🔑</div><p>Sin keys. Genera las primeras!</p></div></td></tr>';
-    return;
-  }
-
+  if (!r||!r.success) { tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><p>Error</p></div></td></tr>'; return; }
+  keysData = r.keys;
+  const now = Math.floor(Date.now()/1000);
+  document.getElementById('ks-total').textContent = keysData.length;
+  document.getElementById('ks-used').textContent  = keysData.filter(function(k){return k.used>0;}).length;
+  document.getElementById('ks-free').textContent  = keysData.filter(function(k){return k.used<k.max_uses;}).length;
+  document.getElementById('ks-exp').textContent   = keysData.filter(function(k){return k.expiry&&k.expiry<now;}).length;
+  if (!keysData.length) { tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🔑</div><p>Sin keys. Genera las primeras!</p></div></td></tr>'; return; }
   tbody.innerHTML = keysData.map(function(k) {
-    const expired = k.expiry && k.expiry < now;
-    const fullyUsed = k.used >= k.max_uses;
-    let statusBadge;
-    if (expired) statusBadge = '<span class="badge badge-red">Expirada</span>';
-    else if (fullyUsed) statusBadge = '<span class="badge badge-yellow">Usada</span>';
-    else statusBadge = '<span class="badge badge-green">Disponible</span>';
-
-    const levelColors = { 1: 'badge-blue', 2: 'badge-purple', 3: 'badge-yellow' };
-
-    return '<tr>' +
-      '<td><span class="font-mono text-sm" style="color:var(--accent);">' + esc(k.key_value) + '</span></td>' +
-      '<td>' + statusBadge + '</td>' +
-      '<td class="text-muted text-sm">' + (k.used_by ? esc(k.used_by) : '—') + '</td>' +
-      '<td><span class="badge ' + (levelColors[k.level] || 'badge-gray') + '">Nv.' + k.level + '</span></td>' +
-      '<td class="text-muted text-sm">' + (k.duration ? k.duration + ' dias' : '∞ Perm.') + '</td>' +
-      '<td class="text-sm ' + (expired ? 'text-danger' : 'text-muted') + '">' + (k.expiry ? fmtDateShort(k.expiry) : '—') + '</td>' +
-      '<td class="text-muted text-sm">' + esc(k.note || '—') + '</td>' +
-      '<td class="text-muted text-sm">' + fmtDateShort(k.created_at) + '</td>' +
-      '<td><div style="display:flex;gap:4px;">' +
-        '<button class="btn btn-secondary btn-sm" title="Copiar" onclick="copyText(\'' + esc(k.key_value) + '\', this)">📋</button>' +
-        '<button class="btn btn-success btn-sm" title="Resetear" onclick="resetKey(\'' + k.id + '\')">🔄</button>' +
-        '<button class="btn btn-danger btn-sm" title="Eliminar" onclick="deleteKey(\'' + k.id + '\')">🗑️</button>' +
-      '</div></td>' +
-    '</tr>';
+    const exp = k.expiry&&k.expiry<now;
+    const full = k.used>=k.max_uses;
+    const badge = exp?'<span class="badge badge-red">Expirada</span>':full?'<span class="badge badge-yellow">Usada</span>':'<span class="badge badge-green">OK</span>';
+    return '<tr><td class="font-mono text-accent" style="font-size:11px;">'+esc(k.key_value)+'</td><td>'+badge+'</td>'+
+      '<td class="text-sm text-muted">'+esc(k.used_by||'—')+'</td>'+
+      '<td><span class="badge badge-yellow">Nv.'+k.level+'</span></td>'+
+      '<td class="text-sm text-muted">'+(k.duration?k.duration+'d':'∞')+'</td>'+
+      '<td class="text-sm '+(exp?'text-danger':'text-muted')+'">'+fmtDateShort(k.expiry)+'</td>'+
+      '<td class="text-sm text-muted">'+esc(k.note||'—')+'</td>'+
+      '<td><div style="display:flex;gap:4px;">'+
+        '<button class="btn btn-secondary btn-sm" onclick="copyText(\''+esc(k.key_value)+'\',this)">📋</button>'+
+        '<button class="btn btn-success btn-sm" onclick="resetKey(\''+k.id+'\')">🔄</button>'+
+        '<button class="btn btn-danger btn-sm" onclick="delKey(\''+k.id+'\')">🗑️</button>'+
+      '</div></td></tr>';
   }).join('');
 }
 
 async function generateKeys() {
   if (!currentAppId) return;
-  const amount = parseInt(document.getElementById('gen-amount').value) || 1;
-  const prefix = document.getElementById('gen-prefix').value.trim() || 'KEY';
-  const duration = parseInt(document.getElementById('gen-duration').value) || 0;
-  const level = parseInt(document.getElementById('gen-level').value) || 1;
-  const max_uses = parseInt(document.getElementById('gen-maxuses').value) || 1;
-  const note = document.getElementById('gen-note').value.trim();
-  const expiry_date = document.getElementById('gen-expiry').value || null;
-
-  const body = { amount, prefix, level, max_uses, note };
-  if (duration > 0) body.duration = duration;
-  if (expiry_date) body.expiry_date = expiry_date;
-
-  const res = await apiFetch(API + '/apps/' + currentAppId + '/keys', { method: 'POST', body });
-  if (!res) return;
-  if (res.success) {
-    toast(res.message, 'success');
-    closeModal('modal-gen');
-    document.getElementById('result-keys').textContent = res.keys.join('\n');
-    openModal('modal-result');
-    loadKeys(currentAppId);
-  } else {
-    toast(res.message, 'error');
-  }
+  const dur = parseInt(document.getElementById('gen-duration').value)||0;
+  const body = { amount:parseInt(document.getElementById('gen-amount').value)||1, prefix:document.getElementById('gen-prefix').value||'KEY', level:parseInt(document.getElementById('gen-level').value)||1, max_uses:parseInt(document.getElementById('gen-maxuses').value)||1, note:document.getElementById('gen-note').value };
+  if (dur>0) body.duration=dur;
+  const exp = document.getElementById('gen-expiry').value;
+  if (exp) body.expiry_date=exp;
+  const r = await apiFetch(API+'/apps/'+currentAppId+'/keys',{method:'POST',body});
+  if (r&&r.success) { toast(r.message,'success'); closeModal('modal-gen'); document.getElementById('result-keys').textContent=r.keys.join('\n'); openModal('modal-result'); loadKeys(currentAppId); }
+  else if (r) toast(r.message,'error');
 }
 
-async function resetKey(keyId) {
-  const res = await apiFetch(API + '/apps/' + currentAppId + '/keys/' + keyId + '/reset', { method: 'POST' });
-  if (res && res.success) { toast('Key reseteada', 'success'); loadKeys(currentAppId); }
-}
-
-async function deleteKey(keyId) {
-  confirmAction('¿Eliminar esta key?', async function() {
-    const res = await apiFetch(API + '/apps/' + currentAppId + '/keys/' + keyId, { method: 'DELETE' });
-    if (res && res.success) { toast('Key eliminada', 'success'); loadKeys(currentAppId); }
-  });
-}
-
-async function deleteAllUsed() {
-  if (!currentAppId) return;
-  confirmAction('¿Eliminar TODAS las keys ya usadas?', async function() {
-    const used = keysData.filter(function(k) { return k.used >= k.max_uses; });
-    let count = 0;
-    for (const k of used) {
-      const res = await apiFetch(API + '/apps/' + currentAppId + '/keys/' + k.id, { method: 'DELETE' });
-      if (res && res.success) count++;
-    }
-    toast(count + ' keys eliminadas', 'success');
-    loadKeys(currentAppId);
-  });
-}
-
-function exportKeys() {
-  if (keysData.length === 0) { toast('Sin keys para exportar', 'warning'); return; }
-  const lines = keysData.map(function(k) {
-    return k.key_value + '\t' + (k.used >= k.max_uses ? 'USADA' : 'DISPONIBLE') + '\t' + (k.used_by || '') + '\tNv.' + k.level;
-  });
-  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'keys-export.txt';
-  a.click();
-  toast('Keys exportadas', 'success');
-}
-
-function downloadKeys() {
-  const text = document.getElementById('result-keys').textContent;
-  const blob = new Blob([text], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'keys-nuevas.txt';
-  a.click();
-}
-
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
-}
+async function resetKey(id) { const r=await apiFetch(API+'/apps/'+currentAppId+'/keys/'+id+'/reset',{method:'POST'}); if(r&&r.success){toast('Reseteada','success');loadKeys(currentAppId);} }
+async function delKey(id) { confirmAction('¿Eliminar key?',async function(){const r=await apiFetch(API+'/apps/'+currentAppId+'/keys/'+id,{method:'DELETE'});if(r&&r.success){toast('Eliminada','success');loadKeys(currentAppId);}});}
+async function deleteAllUsed() { confirmAction('¿Borrar TODAS las keys usadas?',async function(){const used=keysData.filter(function(k){return k.used>=k.max_uses;});for(const k of used)await apiFetch(API+'/apps/'+currentAppId+'/keys/'+k.id,{method:'DELETE'});toast('Listo','success');loadKeys(currentAppId);});}
+function exportKeys() { if(!keysData.length)return; const b=new Blob([keysData.map(function(k){return k.key_value+'\t'+(k.used>=k.max_uses?'USADA':'OK');}).join('\n')],{type:'text/plain'}); const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='keys.txt';a.click(); }
+function dlKeys() { const t=document.getElementById('result-keys').textContent; const b=new Blob([t],{type:'text/plain'}); const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='keys-nuevas.txt';a.click(); }
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');}
 </script>
 </body>
 </html>

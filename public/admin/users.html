@@ -1,90 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usuarios — KeyAuth Panel</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Usuarios</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
 </head>
 <body>
+<div id="particles"></div>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🔐</div>
-      <div><div class="logo-text">KeyAuth</div><div class="logo-version">Panel v1.0</div></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-title">General</div>
-      <a href="/admin/index.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
-      <a href="/admin/apps.html" class="nav-item"><span class="nav-icon">📦</span> Aplicaciones</a>
-      <div class="nav-section-title">Gestión</div>
-      <a href="/admin/keys.html" class="nav-item"><span class="nav-icon">🔑</span> Licencias / Keys</a>
-      <a href="/admin/users.html" class="nav-item active"><span class="nav-icon">👥</span> Usuarios</a>
-      <a href="/admin/logs.html" class="nav-item"><span class="nav-icon">📋</span> Logs</a>
-      <div class="nav-section-title">Config</div>
-      <a href="/admin/vars.html" class="nav-item"><span class="nav-icon">⚙️</span> Variables</a>
-      <a href="/admin/api-docs.html" class="nav-item"><span class="nav-icon">📖</span> API Docs</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="admin-avatar">A</div>
-        <div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div>
-      </div>
-      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
-    </div>
-  </aside>
-
+  <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div>
-        <div class="topbar-title">Usuarios</div>
-        <div class="topbar-sub" id="topbar-sub">Gestiona los usuarios de tus apps</div>
-      </div>
+      <div><div class="topbar-title">👥 Usuarios</div><div class="topbar-sub" id="topbar-sub">Gestiona usuarios de tus apps</div></div>
       <div class="topbar-actions">
-        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()">
-          <option value="">Seleccionar App...</option>
-        </select>
+        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
       </div>
     </div>
-
     <div class="content">
-      <!-- Stats -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
-        <div class="stat-card"><div class="stat-icon blue">👥</div><div><div class="stat-value" id="us-total">0</div><div class="stat-label">Total Usuarios</div></div></div>
-        <div class="stat-card"><div class="stat-icon green">🟢</div><div><div class="stat-value" id="us-active">0</div><div class="stat-label">Con Sub Activa</div></div></div>
-        <div class="stat-card"><div class="stat-icon red">🚫</div><div><div class="stat-value" id="us-banned">0</div><div class="stat-label">Baneados</div></div></div>
-        <div class="stat-card"><div class="stat-icon yellow">⏰</div><div><div class="stat-value" id="us-exp">0</div><div class="stat-label">Sub Expirada</div></div></div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card"><div class="stat-icon">👥</div><div><div class="stat-value" id="us-total">0</div><div class="stat-label">Total</div></div></div>
+        <div class="stat-card"><div class="stat-icon">🟢</div><div><div class="stat-value" id="us-active">0</div><div class="stat-label">Sub Activa</div></div></div>
+        <div class="stat-card"><div class="stat-icon">🚫</div><div><div class="stat-value" id="us-banned">0</div><div class="stat-label">Baneados</div></div></div>
+        <div class="stat-card"><div class="stat-icon">⏰</div><div><div class="stat-value" id="us-exp">0</div><div class="stat-label">Expirados</div></div></div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <div class="card-title">👥 Lista de Usuarios</div>
-          <div style="display:flex;gap:8px;">
-            <div class="search-wrap">
-              <span class="search-icon">🔍</span>
-              <input type="text" class="search-input" id="search-users" placeholder="Buscar usuario..." />
-            </div>
-          </div>
+          <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-users" placeholder="Buscar usuario..." /></div>
         </div>
         <div class="table-wrap">
           <table id="users-table">
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Email</th>
-                <th>IP</th>
-                <th>HWID</th>
-                <th>Suscripcion</th>
-                <th>Expira</th>
-                <th>Estado</th>
-                <th>Registro</th>
-                <th>Ultimo Login</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="users-tbody">
-              <tr><td colspan="10"><div class="empty-state"><p>Selecciona una aplicacion</p></div></td></tr>
-            </tbody>
+            <thead><tr><th>Usuario</th><th>Email</th><th>IP</th><th>HWID</th><th>Suscripcion</th><th>Expira</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="9"><div class="empty-state"><p>Selecciona una app</p></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -92,206 +39,93 @@
   </main>
 </div>
 
-<!-- Modal Extender Sub -->
 <div class="modal-overlay" id="modal-extend">
-  <div class="modal" style="max-width:380px;">
-    <div class="modal-header">
-      <div class="modal-title">⏳ Extender Suscripcion</div>
-      <button class="modal-close" onclick="closeModal('modal-extend')">✕</button>
-    </div>
-    <input type="hidden" id="extend-user-id" />
-    <p style="color:var(--text3);font-size:13px;margin-bottom:16px;">Usuario: <strong id="extend-username" style="color:var(--text);"></strong></p>
-    <div class="form-group">
-      <label class="form-label">Dias a agregar</label>
-      <input type="number" id="extend-days" class="form-control" value="30" min="1" />
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-extend')">Cancelar</button>
-      <button class="btn btn-primary" onclick="doExtend()">Extender</button>
-    </div>
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header"><div class="modal-title">⏳ Extender Suscripcion</div><button class="modal-close" onclick="closeModal('modal-extend')">✕</button></div>
+    <input type="hidden" id="ext-uid" />
+    <p style="color:var(--text3);font-size:12px;margin-bottom:14px;">Usuario: <strong id="ext-uname" style="color:var(--accent);"></strong></p>
+    <div class="form-group"><label class="form-label">Dias a agregar</label><input type="number" id="ext-days" class="form-control" value="30" min="1" /></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-extend')">Cancelar</button><button class="btn btn-primary" onclick="doExtend()">Extender</button></div>
   </div>
 </div>
 
-<!-- Modal Ban -->
 <div class="modal-overlay" id="modal-ban">
-  <div class="modal" style="max-width:380px;">
-    <div class="modal-header">
-      <div class="modal-title">🚫 Banear Usuario</div>
-      <button class="modal-close" onclick="closeModal('modal-ban')">✕</button>
-    </div>
-    <input type="hidden" id="ban-user-id" />
-    <p style="color:var(--text3);font-size:13px;margin-bottom:16px;">Usuario: <strong id="ban-username" style="color:var(--text);"></strong></p>
-    <div class="form-group">
-      <label class="form-label">Razon del ban</label>
-      <input type="text" id="ban-reason" class="form-control" placeholder="Trampa, multi-cuenta..." />
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-ban')">Cancelar</button>
-      <button class="btn btn-danger" onclick="doBan()">Banear</button>
-    </div>
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header"><div class="modal-title">🚫 Banear Usuario</div><button class="modal-close" onclick="closeModal('modal-ban')">✕</button></div>
+    <input type="hidden" id="ban-uid" />
+    <p style="color:var(--text3);font-size:12px;margin-bottom:14px;">Usuario: <strong id="ban-uname" style="color:var(--accent);"></strong></p>
+    <div class="form-group"><label class="form-label">Razon</label><input type="text" id="ban-reason" class="form-control" placeholder="Trampa, multi-cuenta..." /></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-ban')">Cancelar</button><button class="btn btn-danger" onclick="doBan()">Banear</button></div>
   </div>
 </div>
 
 <div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
+<script src="/admin/js/app.js"></script><script src="/admin/js/sidebar.js"></script>
 <script>
-var currentAppId = null;
-var usersData = [];
-
+var currentAppId = null, usersData = [];
 (async function() {
+  injectSidebar('users');
   await requireAuth();
-  await loadAppSelector();
-  filterTable('search-users', 'users-table');
-
-  const appId = getParam('app');
-  if (appId) {
-    document.getElementById('app-selector').value = appId;
-    onAppChange();
-  }
+  await loadSel();
+  filterTable('search-users','users-table');
+  const a = getParam('app');
+  if (a) { document.getElementById('app-selector').value=a; onAppChange(); }
 })();
 
-async function loadAppSelector() {
-  const res = await apiFetch(API + '/apps');
-  if (!res || !res.success) return;
+async function loadSel() {
+  const r = await apiFetch(API+'/apps');
+  if (!r||!r.success) return;
   const sel = document.getElementById('app-selector');
-  res.apps.forEach(function(a) {
-    const opt = document.createElement('option');
-    opt.value = a.id;
-    opt.textContent = a.name + ' (' + a.userCount + ' users)';
-    sel.appendChild(opt);
-  });
+  r.apps.forEach(function(a){const o=document.createElement('option');o.value=a.id;o.textContent=a.name+' ('+a.userCount+')';sel.appendChild(o);});
 }
 
 function onAppChange() {
-  const sel = document.getElementById('app-selector');
-  currentAppId = sel.value || null;
-  if (currentAppId) {
-    document.getElementById('topbar-sub').textContent = 'App: ' + sel.options[sel.selectedIndex].text;
-    loadUsers(currentAppId);
-  }
+  const sel=document.getElementById('app-selector');
+  currentAppId=sel.value||null;
+  if (currentAppId) { document.getElementById('topbar-sub').textContent=sel.options[sel.selectedIndex].text; loadUsers(currentAppId); }
 }
 
 async function loadUsers(appId) {
-  const res = await apiFetch(API + '/apps/' + appId + '/users');
+  const r = await apiFetch(API+'/apps/'+appId+'/users');
   const tbody = document.getElementById('users-tbody');
-  if (!res || !res.success) {
-    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>Error cargando usuarios</p></div></td></tr>';
-    return;
-  }
-  usersData = res.users;
-
-  const now = Math.floor(Date.now() / 1000);
-  const total = usersData.length;
-  const banned = usersData.filter(function(u) { return u.banned; }).length;
-  const active = usersData.filter(function(u) { return !u.banned && u.sub_expiry && u.sub_expiry > now; }).length;
-  const expd = usersData.filter(function(u) { return !u.banned && u.sub_expiry && u.sub_expiry < now; }).length;
-  document.getElementById('us-total').textContent = total;
-  document.getElementById('us-banned').textContent = banned;
-  document.getElementById('us-active').textContent = active;
-  document.getElementById('us-exp').textContent = expd;
-
-  if (usersData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">👥</div><p>Sin usuarios registrados aun</p></div></td></tr>';
-    return;
-  }
-
+  if (!r||!r.success) { tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><p>Error</p></div></td></tr>'; return; }
+  usersData=r.users;
+  const now=Math.floor(Date.now()/1000);
+  document.getElementById('us-total').textContent  = usersData.length;
+  document.getElementById('us-banned').textContent = usersData.filter(function(u){return u.banned;}).length;
+  document.getElementById('us-active').textContent = usersData.filter(function(u){return !u.banned&&u.sub_expiry&&u.sub_expiry>now;}).length;
+  document.getElementById('us-exp').textContent    = usersData.filter(function(u){return !u.banned&&u.sub_expiry&&u.sub_expiry<now;}).length;
+  if (!usersData.length) { tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">👥</div><p>Sin usuarios</p></div></td></tr>'; return; }
   tbody.innerHTML = usersData.map(function(u) {
-    const subExp = u.sub_expiry;
-    const expired = subExp && subExp < now;
-    let subBadge;
-    if (u.banned) subBadge = '—';
-    else if (!subExp) subBadge = '<span class="badge badge-blue">Permanente</span>';
-    else if (expired) subBadge = '<span class="badge badge-red">Expirada</span>';
-    else subBadge = '<span class="badge badge-green">Activa</span>';
-
-    const statusBadge = u.banned
-      ? '<span class="badge badge-red">Baneado</span>'
-      : '<span class="badge badge-green">OK</span>';
-
-    const hwid = u.hwid && u.hwid !== '' ? u.hwid.substring(0, 12) + '...' : '—';
-
-    return '<tr>' +
-      '<td class="td-main">' + esc(u.username) + '</td>' +
-      '<td class="text-muted text-sm">' + esc(u.email || '—') + '</td>' +
-      '<td class="font-mono text-sm text-muted">' + esc(u.ip || '—') + '</td>' +
-      '<td class="font-mono text-sm text-muted" title="' + esc(u.hwid || '') + '">' + esc(hwid) + '</td>' +
-      '<td>' + subBadge + '</td>' +
-      '<td class="text-sm ' + (expired ? 'text-danger' : 'text-muted') + '">' + (subExp ? fmtDateShort(subExp) : '—') + '</td>' +
-      '<td>' + statusBadge + '</td>' +
-      '<td class="text-muted text-sm">' + fmtDateShort(u.createdate) + '</td>' +
-      '<td class="text-muted text-sm">' + (u.lastlogin ? relTime(u.lastlogin) : '—') + '</td>' +
-      '<td><div style="display:flex;gap:4px;flex-wrap:wrap;">' +
-        '<button class="btn btn-success btn-sm" title="Extender sub" onclick="openExtend(\'' + u.id + '\',\'' + esc(u.username) + '\')">⏳</button>' +
-        '<button class="btn btn-secondary btn-sm" title="Reset HWID" onclick="resetHwid(\'' + u.id + '\',\'' + esc(u.username) + '\')">🖥️</button>' +
-        '<button class="btn btn-' + (u.banned ? 'success' : 'danger') + ' btn-sm" title="' + (u.banned ? 'Desbanear' : 'Banear') + '" onclick="' + (u.banned ? 'unbanUser' : 'openBan') + '(\'' + u.id + '\',\'' + esc(u.username) + '\')">' + (u.banned ? '✅' : '🚫') + '</button>' +
-        '<button class="btn btn-danger btn-sm" title="Eliminar" onclick="deleteUser(\'' + u.id + '\',\'' + esc(u.username) + '\')">🗑️</button>' +
-      '</div></td>' +
-    '</tr>';
+    const exp=u.sub_expiry&&u.sub_expiry<now;
+    const subBadge=u.banned?'—':!u.sub_expiry?'<span class="badge badge-blue">∞ Perm</span>':exp?'<span class="badge badge-red">Expirada</span>':'<span class="badge badge-green">Activa</span>';
+    const stBadge=u.banned?'<span class="badge badge-red">Baneado</span>':'<span class="badge badge-green">OK</span>';
+    const hwid=u.hwid&&u.hwid!==''?u.hwid.substring(0,10)+'...':'—';
+    return '<tr><td class="td-main">'+esc(u.username)+'</td>'+
+      '<td class="text-sm text-muted">'+esc(u.email||'—')+'</td>'+
+      '<td class="font-mono text-sm text-muted">'+esc(u.ip||'—')+'</td>'+
+      '<td class="font-mono text-sm text-muted" title="'+esc(u.hwid||'')+'">'+esc(hwid)+'</td>'+
+      '<td>'+subBadge+'</td>'+
+      '<td class="text-sm '+(exp?'text-danger':'text-muted')+'">'+fmtDateShort(u.sub_expiry)+'</td>'+
+      '<td>'+stBadge+'</td>'+
+      '<td class="text-sm text-muted">'+fmtDateShort(u.createdate)+'</td>'+
+      '<td><div style="display:flex;gap:4px;">'+
+        '<button class="btn btn-success btn-sm" title="Extender" onclick="openExtend(\''+u.id+'\',\''+esc(u.username)+'\')">⏳</button>'+
+        '<button class="btn btn-secondary btn-sm" title="Reset HWID" onclick="resetHwid(\''+u.id+'\',\''+esc(u.username)+'\')">🖥️</button>'+
+        '<button class="btn btn-'+(u.banned?'success':'danger')+' btn-sm" title="'+(u.banned?'Desbanear':'Banear')+'" onclick="'+(u.banned?'unban':'openBan')+'(\''+u.id+'\',\''+esc(u.username)+'\')">'+(u.banned?'✅':'🚫')+'</button>'+
+        '<button class="btn btn-danger btn-sm" title="Eliminar" onclick="delUser(\''+u.id+'\',\''+esc(u.username)+'\')">🗑️</button>'+
+      '</div></td></tr>';
   }).join('');
 }
 
-function openExtend(userId, username) {
-  document.getElementById('extend-user-id').value = userId;
-  document.getElementById('extend-username').textContent = username;
-  document.getElementById('extend-days').value = 30;
-  openModal('modal-extend');
-}
-
-async function doExtend() {
-  const userId = document.getElementById('extend-user-id').value;
-  const days = parseInt(document.getElementById('extend-days').value);
-  if (!days || days < 1) { toast('Dias invalidos', 'error'); return; }
-  const res = await apiFetch(API + '/apps/' + currentAppId + '/users/' + userId + '/extend', { method: 'POST', body: { days } });
-  if (res && res.success) {
-    toast(res.message, 'success');
-    closeModal('modal-extend');
-    loadUsers(currentAppId);
-  } else if (res) toast(res.message, 'error');
-}
-
-function openBan(userId, username) {
-  document.getElementById('ban-user-id').value = userId;
-  document.getElementById('ban-username').textContent = username;
-  document.getElementById('ban-reason').value = '';
-  openModal('modal-ban');
-}
-
-async function doBan() {
-  const userId = document.getElementById('ban-user-id').value;
-  const reason = document.getElementById('ban-reason').value.trim();
-  const res = await apiFetch(API + '/apps/' + currentAppId + '/users/' + userId + '/ban', { method: 'POST', body: { reason } });
-  if (res && res.success) {
-    toast(res.message, 'success');
-    closeModal('modal-ban');
-    loadUsers(currentAppId);
-  } else if (res) toast(res.message, 'error');
-}
-
-async function unbanUser(userId, username) {
-  confirmAction('¿Desbanear a ' + username + '?', async function() {
-    const res = await apiFetch(API + '/apps/' + currentAppId + '/users/' + userId + '/ban', { method: 'POST', body: {} });
-    if (res && res.success) { toast(res.message, 'success'); loadUsers(currentAppId); }
-  });
-}
-
-async function resetHwid(userId, username) {
-  confirmAction('¿Resetear HWID de ' + username + '?', async function() {
-    const res = await apiFetch(API + '/apps/' + currentAppId + '/users/' + userId + '/reset-hwid', { method: 'POST' });
-    if (res && res.success) { toast('HWID reseteado', 'success'); loadUsers(currentAppId); }
-  });
-}
-
-async function deleteUser(userId, username) {
-  confirmAction('¿Eliminar usuario "' + username + '"? Esto no se puede deshacer.', async function() {
-    const res = await apiFetch(API + '/apps/' + currentAppId + '/users/' + userId, { method: 'DELETE' });
-    if (res && res.success) { toast('Usuario eliminado', 'success'); loadUsers(currentAppId); }
-  });
-}
-
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
-}
+function openExtend(id,name){document.getElementById('ext-uid').value=id;document.getElementById('ext-uname').textContent=name;document.getElementById('ext-days').value=30;openModal('modal-extend');}
+async function doExtend(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+document.getElementById('ext-uid').value+'/extend',{method:'POST',body:{days:parseInt(document.getElementById('ext-days').value)}});if(r&&r.success){toast(r.message,'success');closeModal('modal-extend');loadUsers(currentAppId);}else if(r)toast(r.message,'error');}
+function openBan(id,name){document.getElementById('ban-uid').value=id;document.getElementById('ban-uname').textContent=name;document.getElementById('ban-reason').value='';openModal('modal-ban');}
+async function doBan(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+document.getElementById('ban-uid').value+'/ban',{method:'POST',body:{reason:document.getElementById('ban-reason').value}});if(r&&r.success){toast(r.message,'success');closeModal('modal-ban');loadUsers(currentAppId);}else if(r)toast(r.message,'error');}
+async function unban(id,name){confirmAction('¿Desbanear a '+name+'?',async function(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+id+'/ban',{method:'POST',body:{}});if(r&&r.success){toast(r.message,'success');loadUsers(currentAppId);}});}
+async function resetHwid(id,name){confirmAction('¿Resetear HWID de '+name+'?',async function(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+id+'/reset-hwid',{method:'POST'});if(r&&r.success){toast('HWID reseteado','success');loadUsers(currentAppId);}});}
+async function delUser(id,name){confirmAction('¿Eliminar usuario "'+name+'"?',async function(){const r=await apiFetch(API+'/apps/'+currentAppId+'/users/'+id,{method:'DELETE'});if(r&&r.success){toast('Eliminado','success');loadUsers(currentAppId);}});}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');}
 </script>
 </body>
 </html>

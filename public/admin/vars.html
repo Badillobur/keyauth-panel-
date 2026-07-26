@@ -1,83 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Variables — KeyAuth Panel</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Variables</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
 </head>
 <body>
+<div id="particles"></div>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🔐</div>
-      <div><div class="logo-text">KeyAuth</div><div class="logo-version">Panel v1.0</div></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-title">General</div>
-      <a href="/admin/index.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
-      <a href="/admin/apps.html" class="nav-item"><span class="nav-icon">📦</span> Aplicaciones</a>
-      <div class="nav-section-title">Gestión</div>
-      <a href="/admin/keys.html" class="nav-item"><span class="nav-icon">🔑</span> Licencias / Keys</a>
-      <a href="/admin/users.html" class="nav-item"><span class="nav-icon">👥</span> Usuarios</a>
-      <a href="/admin/logs.html" class="nav-item"><span class="nav-icon">📋</span> Logs</a>
-      <div class="nav-section-title">Config</div>
-      <a href="/admin/vars.html" class="nav-item active"><span class="nav-icon">⚙️</span> Variables</a>
-      <a href="/admin/api-docs.html" class="nav-item"><span class="nav-icon">📖</span> API Docs</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="admin-avatar">A</div>
-        <div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div>
-      </div>
-      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
-    </div>
-  </aside>
-
+  <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div>
-        <div class="topbar-title">Variables de App</div>
-        <div class="topbar-sub">Almacena configuracion remota para tu aplicacion</div>
-      </div>
+      <div><div class="topbar-title">⚙️ Variables de App</div><div class="topbar-sub">Configuracion remota para tu software</div></div>
       <div class="topbar-actions">
-        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()">
-          <option value="">Seleccionar App...</option>
-        </select>
-        <button class="btn btn-primary" id="btn-new" disabled onclick="openModal('modal-var')">+ Nueva Variable</button>
+        <select id="app-selector" class="form-control" style="min-width:180px;" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
+        <button class="btn btn-primary" id="btn-new" disabled onclick="openNew()">+ Nueva Variable</button>
       </div>
     </div>
-
     <div class="content">
-      <div class="card" style="margin-bottom:16px;background:rgba(108,99,255,0.05);border-color:rgba(108,99,255,0.2);">
-        <div style="font-size:13px;color:var(--text2);">
-          💡 <strong style="color:var(--text);">¿Para qué sirven?</strong>
-          Las variables de app permiten enviar configuracion remota a tu software sin recompilarlo.
-          Por ejemplo: offsets, URLs, mensajes, flags de features. Tu C++ las obtiene con <code style="color:#a29dff;background:var(--bg3);padding:1px 6px;border-radius:4px;">KeyAuthApp.var("nombre")</code>
-        </div>
+      <div class="card" style="background:rgba(245,197,24,0.04);border-color:rgba(245,197,24,0.15);margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--text2);">⚡ <strong style="color:var(--accent);">¿Para qué sirven?</strong> Envía configuracion remota a tu software sin recompilar. Tu C++ las obtiene con <code style="color:var(--accent);background:var(--bg3);padding:1px 6px;border-radius:4px;">KeyAuthApp.var("nombre")</code></div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <div class="card-title">⚙️ Variables</div>
-          <div class="search-wrap">
-            <span class="search-icon">🔍</span>
-            <input type="text" class="search-input" id="search-vars" placeholder="Buscar variable..." />
-          </div>
+          <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-vars" placeholder="Buscar variable..." /></div>
         </div>
         <div class="table-wrap">
           <table id="vars-table">
-            <thead>
-              <tr>
-                <th>Nombre (key)</th>
-                <th>Valor</th>
-                <th>Creada</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="vars-tbody">
-              <tr><td colspan="4"><div class="empty-state"><p>Selecciona una aplicacion</p></div></td></tr>
-            </tbody>
+            <thead><tr><th>Nombre (key)</th><th>Valor</th><th>Creada</th><th>Acciones</th></tr></thead>
+            <tbody id="vars-tbody"><tr><td colspan="4"><div class="empty-state"><p>Selecciona una app</p></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -85,143 +37,29 @@
   </main>
 </div>
 
-<!-- Modal Nueva/Editar Variable -->
 <div class="modal-overlay" id="modal-var">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <div class="modal-title" id="var-modal-title">Nueva Variable</div>
-      <button class="modal-close" onclick="closeModal('modal-var')">✕</button>
-    </div>
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><div class="modal-title" id="var-modal-title">Nueva Variable</div><button class="modal-close" onclick="closeModal('modal-var')">✕</button></div>
     <input type="hidden" id="var-edit-key" />
-    <div class="form-group">
-      <label class="form-label">Nombre de la variable (key)</label>
-      <input type="text" id="var-key" class="form-control" placeholder="config_url, offset_hp, message_ban..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Valor</label>
-      <textarea id="var-value" class="form-control" rows="3" placeholder="El valor que recibira tu app..." style="resize:vertical;"></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-var')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveVar()">Guardar</button>
-    </div>
+    <div class="form-group"><label class="form-label">Nombre (key)</label><input type="text" id="var-key" class="form-control" placeholder="config_url, offset_hp..." /></div>
+    <div class="form-group"><label class="form-label">Valor</label><textarea id="var-value" class="form-control" rows="3" style="resize:vertical;" placeholder="El valor que recibira tu app..."></textarea></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-var')">Cancelar</button><button class="btn btn-primary" onclick="saveVar()">Guardar</button></div>
   </div>
 </div>
 
 <div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
+<script src="/admin/js/app.js"></script><script src="/admin/js/sidebar.js"></script>
 <script>
-var currentAppId = null;
-
-(async function() {
-  await requireAuth();
-  await loadAppSelector();
-  filterTable('search-vars', 'vars-table');
-
-  const appId = getParam('app');
-  if (appId) {
-    document.getElementById('app-selector').value = appId;
-    onAppChange();
-  }
-})();
-
-async function loadAppSelector() {
-  const res = await apiFetch(API + '/apps');
-  if (!res || !res.success) return;
-  const sel = document.getElementById('app-selector');
-  res.apps.forEach(function(a) {
-    const opt = document.createElement('option');
-    opt.value = a.id;
-    opt.textContent = a.name;
-    sel.appendChild(opt);
-  });
-}
-
-function onAppChange() {
-  const sel = document.getElementById('app-selector');
-  currentAppId = sel.value || null;
-  document.getElementById('btn-new').disabled = !currentAppId;
-  if (currentAppId) loadVars(currentAppId);
-}
-
-async function loadVars(appId) {
-  const res = await apiFetch(API + '/apps/' + appId + '/vars');
-  const tbody = document.getElementById('vars-tbody');
-  if (!res || !res.success) {
-    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>Error cargando variables</p></div></td></tr>';
-    return;
-  }
-
-  if (res.vars.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">⚙️</div><p>Sin variables aun. Crea la primera!</p></div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = res.vars.map(function(v) {
-    const valDisplay = v.var_value.length > 60 ? v.var_value.substring(0, 60) + '...' : v.var_value;
-    return '<tr>' +
-      '<td class="td-main font-mono">' + esc(v.var_key) + '</td>' +
-      '<td style="max-width:300px;"><span class="font-mono text-sm" style="color:var(--green);" title="' + esc(v.var_value) + '">' + esc(valDisplay) + '</span></td>' +
-      '<td class="text-muted text-sm">' + fmtDateShort(v.created_at) + '</td>' +
-      '<td><div style="display:flex;gap:6px;">' +
-        '<button class="btn btn-secondary btn-sm" onclick="editVar(\'' + esc(v.var_key) + '\',\'' + esc(v.var_value).replace(/'/g,"&#39;") + '\')">✏️ Editar</button>' +
-        '<button class="btn btn-secondary btn-sm" onclick="copyText(\'' + esc(v.var_value).replace(/'/g,"&#39;") + '\', this)">📋</button>' +
-        '<button class="btn btn-danger btn-sm" onclick="deleteVar(\'' + v.id + '\',\'' + esc(v.var_key) + '\')">🗑️</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
-}
-
-function editVar(key, value) {
-  document.getElementById('var-modal-title').textContent = 'Editar Variable';
-  document.getElementById('var-edit-key').value = key;
-  document.getElementById('var-key').value = key;
-  document.getElementById('var-key').readOnly = true;
-  document.getElementById('var-value').value = value;
-  openModal('modal-var');
-}
-
-document.getElementById('modal-var').addEventListener('click', function(e) {
-  if (e.target === this) {
-    resetVarForm();
-  }
-});
-
-function resetVarForm() {
-  document.getElementById('var-modal-title').textContent = 'Nueva Variable';
-  document.getElementById('var-edit-key').value = '';
-  document.getElementById('var-key').value = '';
-  document.getElementById('var-key').readOnly = false;
-  document.getElementById('var-value').value = '';
-}
-
-document.querySelector('[onclick="openModal(\'modal-var\')"]') && document.querySelector('[onclick="openModal(\'modal-var\')"]').addEventListener('click', resetVarForm);
-
-async function saveVar() {
-  const key = document.getElementById('var-key').value.trim();
-  const value = document.getElementById('var-value').value;
-  if (!key) { toast('Nombre de variable requerido', 'error'); return; }
-
-  const res = await apiFetch(API + '/apps/' + currentAppId + '/vars', { method: 'POST', body: { key, value } });
-  if (res && res.success) {
-    toast('Variable guardada', 'success');
-    closeModal('modal-var');
-    resetVarForm();
-    loadVars(currentAppId);
-  } else if (res) toast(res.message, 'error');
-}
-
-async function deleteVar(id, key) {
-  confirmAction('¿Eliminar la variable "' + key + '"?', async function() {
-    const res = await apiFetch(API + '/apps/' + currentAppId + '/vars/' + id, { method: 'DELETE' });
-    if (res && res.success) { toast('Variable eliminada', 'success'); loadVars(currentAppId); }
-  });
-}
-
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
-}
+var currentAppId=null;
+(async function(){injectSidebar('vars');await requireAuth();await loadSel();filterTable('search-vars','vars-table');const a=getParam('app');if(a){document.getElementById('app-selector').value=a;onAppChange();}})();
+async function loadSel(){const r=await apiFetch(API+'/apps');if(!r||!r.success)return;const sel=document.getElementById('app-selector');r.apps.forEach(function(a){const o=document.createElement('option');o.value=a.id;o.textContent=a.name;sel.appendChild(o);});}
+function onAppChange(){const sel=document.getElementById('app-selector');currentAppId=sel.value||null;document.getElementById('btn-new').disabled=!currentAppId;if(currentAppId)loadVars(currentAppId);}
+async function loadVars(appId){const r=await apiFetch(API+'/apps/'+appId+'/vars');const tbody=document.getElementById('vars-tbody');if(!r||!r.success){tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><p>Error</p></div></td></tr>';return;}if(!r.vars.length){tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">⚙️</div><p>Sin variables. Crea la primera!</p></div></td></tr>';return;}tbody.innerHTML=r.vars.map(function(v){const disp=v.var_value.length>50?v.var_value.substring(0,50)+'...':v.var_value;return'<tr><td class="td-main font-mono">'+esc(v.var_key)+'</td><td class="font-mono text-sm" style="color:var(--green);" title="'+esc(v.var_value)+'">'+esc(disp)+'</td><td class="text-sm text-muted">'+fmtDateShort(v.created_at)+'</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm" onclick="editVar(\''+esc(v.var_key)+'\',\''+esc(v.var_value).replace(/\'/g,'&#39;')+'\')">✏️</button><button class="btn btn-secondary btn-sm" onclick="copyText(\''+esc(v.var_value).replace(/\'/g,'&#39;')+'\',this)">📋</button><button class="btn btn-danger btn-sm" onclick="delVar(\''+v.id+'\',\''+esc(v.var_key)+'\')">🗑️</button></div></td></tr>';}).join('');}
+function openNew(){document.getElementById('var-modal-title').textContent='Nueva Variable';document.getElementById('var-edit-key').value='';document.getElementById('var-key').value='';document.getElementById('var-key').readOnly=false;document.getElementById('var-value').value='';openModal('modal-var');}
+function editVar(key,value){document.getElementById('var-modal-title').textContent='Editar Variable';document.getElementById('var-edit-key').value=key;document.getElementById('var-key').value=key;document.getElementById('var-key').readOnly=true;document.getElementById('var-value').value=value;openModal('modal-var');}
+async function saveVar(){const key=document.getElementById('var-key').value.trim();const value=document.getElementById('var-value').value;if(!key){toast('Nombre requerido','error');return;}const r=await apiFetch(API+'/apps/'+currentAppId+'/vars',{method:'POST',body:{key,value}});if(r&&r.success){toast('Variable guardada','success');closeModal('modal-var');loadVars(currentAppId);}else if(r)toast(r.message,'error');}
+async function delVar(id,key){confirmAction('¿Eliminar "'+key+'"?',async function(){const r=await apiFetch(API+'/apps/'+currentAppId+'/vars/'+id,{method:'DELETE'});if(r&&r.success){toast('Eliminada','success');loadVars(currentAppId);}});}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');}
 </script>
 </body>
 </html>

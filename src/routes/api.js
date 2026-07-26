@@ -8,6 +8,10 @@ const db = require('../db/database');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
+// Notificaciones Discord
+let notifyDiscord = function() {};
+try { notifyDiscord = require('./discord').notifyDiscord; } catch(_) {}
+
 function getIP(req) {
   return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
     req.headers['x-real-ip'] || req.socket.remoteAddress || '0.0.0.0';
@@ -101,6 +105,17 @@ router.post('/1.2/', async function(req, res) {
       await db.run('UPDATE sessions SET user_id=?,hwid=? WHERE session_key=?', [user.id, hwid || '', sessionid]);
       await addLog(app.id, username, 'Login exitoso', ip);
 
+      // Notificar Discord
+      notifyDiscord('login', {
+        title: 'Login Exitoso',
+        description: '**' + username + '** inicio sesion',
+        fields: [
+          { name: 'App', value: app.name, inline: true },
+          { name: 'IP', value: ip, inline: true }
+        ],
+        app: app.name
+      });
+
       const subs = (await db.all('SELECT name,expiry FROM subscriptions WHERE user_id=? AND app_id=?', [user.id, app.id]))
         .map(function(s) { return { name: s.name, expiry: s.expiry ? String(s.expiry) : '0' }; });
 
@@ -138,6 +153,17 @@ router.post('/1.2/', async function(req, res) {
       await db.run('UPDATE licenses SET used=used+1,used_by=?,used_at=? WHERE id=?', [username, now, license.id]);
       await db.run('UPDATE sessions SET user_id=?,hwid=? WHERE session_key=?', [userId, hwid || '', sessionid]);
       await addLog(app.id, username, 'Registro exitoso', ip);
+
+      notifyDiscord('register', {
+        title: 'Nuevo Registro',
+        description: '**' + username + '** se registro en la app',
+        fields: [
+          { name: 'App', value: app.name, inline: true },
+          { name: 'Key usada', value: key.substring(0,10)+'...', inline: true },
+          { name: 'IP', value: ip, inline: true }
+        ],
+        app: app.name
+      });
 
       return ok(res, 'Registro exitoso', {
         info: { username, ip, hwid: hwid || '', createdate: String(now), lastlogin: String(now),

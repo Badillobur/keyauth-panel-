@@ -1,241 +1,134 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API Docs — KeyAuth Panel</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — API Docs</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    .endpoint { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
-    .endpoint-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .method { padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; font-family: monospace; }
-    .method.post { background: rgba(34,197,94,0.15); color: var(--green); }
-    .method.get  { background: rgba(59,130,246,0.15); color: var(--blue); }
-    .endpoint-path { font-family: monospace; font-size: 13px; color: #a29dff; }
-    .endpoint-desc { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
-    .params-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .params-table th { color: var(--text3); font-weight: 600; text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--border); }
-    .params-table td { padding: 5px 8px; color: var(--text2); border-bottom: 1px solid rgba(37,42,56,0.4); vertical-align: top; }
-    .param-name { color: var(--accent); font-family: monospace; }
-    .param-req  { color: var(--red); font-size: 10px; font-weight: 700; }
-    .param-opt  { color: var(--text3); font-size: 10px; }
-    .section-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-    pre { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; font-size: 12px; color: #a29dff; overflow-x: auto; line-height: 1.6; }
+    .ep{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+    .ep-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+    .method{padding:2px 8px;border-radius:5px;font-size:10px;font-weight:800;font-family:monospace;}
+    .method.post{background:rgba(34,197,94,0.15);color:var(--green);}
+    .ep-path{font-family:monospace;font-size:12px;color:var(--accent);}
+    .ep-desc{font-size:12px;color:var(--text2);margin-bottom:8px;}
+    .params{width:100%;border-collapse:collapse;font-size:11px;}
+    .params th{color:var(--text3);font-weight:700;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);}
+    .params td{padding:4px 8px;color:var(--text2);border-bottom:1px solid rgba(42,42,42,0.4);}
+    .pname{color:var(--accent);font-family:monospace;}
+    .req{color:var(--red);font-size:9px;font-weight:800;}
+    .opt{color:var(--text3);font-size:9px;}
+    pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:11px;color:var(--accent);overflow-x:auto;line-height:1.7;margin-top:8px;}
+    .sec{font-size:16px;font-weight:800;color:var(--accent);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(245,197,24,0.15);text-shadow:0 0 20px var(--accent-glow);}
   </style>
 </head>
 <body>
+<div id="particles"></div>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🔐</div>
-      <div><div class="logo-text">KeyAuth</div><div class="logo-version">Panel v1.0</div></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-title">General</div>
-      <a href="/admin/index.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
-      <a href="/admin/apps.html" class="nav-item"><span class="nav-icon">📦</span> Aplicaciones</a>
-      <div class="nav-section-title">Gestión</div>
-      <a href="/admin/keys.html" class="nav-item"><span class="nav-icon">🔑</span> Licencias / Keys</a>
-      <a href="/admin/users.html" class="nav-item"><span class="nav-icon">👥</span> Usuarios</a>
-      <a href="/admin/logs.html" class="nav-item"><span class="nav-icon">📋</span> Logs</a>
-      <div class="nav-section-title">Config</div>
-      <a href="/admin/vars.html" class="nav-item"><span class="nav-icon">⚙️</span> Variables</a>
-      <a href="/admin/api-docs.html" class="nav-item active"><span class="nav-icon">📖</span> API Docs</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="admin-avatar">A</div>
-        <div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div>
-      </div>
-      <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesion</button>
-    </div>
-  </aside>
-
+  <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div>
-        <div class="topbar-title">Documentación de la API</div>
-        <div class="topbar-sub">Referencia completa para integrar tu software C++</div>
-      </div>
+      <div><div class="topbar-title">📖 API Docs</div><div class="topbar-sub">Referencia para integrar tu software C++</div></div>
     </div>
+    <div class="content" style="max-width:860px;">
 
-    <div class="content" style="max-width:900px;">
-
-      <!-- Intro -->
       <div class="card">
-        <div class="card-title" style="margin-bottom:12px;">📡 Endpoint Base</div>
+        <div class="card-title" style="margin-bottom:10px;">📡 Endpoint Base</div>
         <div class="code-block" id="base-url" style="font-size:14px;"></div>
-        <p style="color:var(--text3);font-size:13px;margin-top:12px;">
-          Todos los requests son <strong style="color:var(--text);">POST</strong> con <code style="color:#a29dff;">Content-Type: application/x-www-form-urlencoded</code> o JSON.
-          El campo <code style="color:#a29dff;">type</code> determina la accion a ejecutar.
-        </p>
+        <p style="color:var(--text3);font-size:12px;margin-top:10px;">Todos los requests son <strong style="color:var(--text);">POST</strong> con <code style="color:var(--accent);">Content-Type: application/x-www-form-urlencoded</code>. El campo <code style="color:var(--accent);">type</code> determina la accion.</p>
       </div>
 
-      <!-- Respuesta estándar -->
-      <div class="section-title">📦 Formato de Respuesta</div>
-      <pre>{
-  "success": true | false,
-  "message": "descripcion del resultado",
-  // datos adicionales segun el endpoint
-}</pre>
+      <div class="sec">📦 Formato de Respuesta</div>
+      <pre>{"success": true | false, "message": "descripcion", ...datos}</pre>
 
-      <!-- Init -->
-      <div class="section-title">🚀 Endpoints Disponibles</div>
+      <div class="sec">⚡ Endpoints</div>
 
-      <div class="endpoint">
-        <div class="endpoint-header">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/1.2/ ?type=init</span>
-        </div>
-        <div class="endpoint-desc">Inicializa la sesion y verifica la version de la app. Siempre debe llamarse primero.</div>
-        <table class="params-table">
-          <tr><th>Campo</th><th>Tipo</th><th></th><th>Descripcion</th></tr>
-          <tr><td class="param-name">name</td><td>string</td><td><span class="param-req">REQ</span></td><td>Nombre de la app</td></tr>
-          <tr><td class="param-name">ownerid</td><td>string</td><td><span class="param-req">REQ</span></td><td>ID del owner (admin)</td></tr>
-          <tr><td class="param-name">ver</td><td>string</td><td><span class="param-req">REQ</span></td><td>Version actual del cliente</td></tr>
-        </table>
-        <pre style="margin-top:10px;">// Respuesta exitosa
-{
-  "success": true,
-  "sessionid": "AbCdEf...",
-  "appinfo": { "numUsers": "42", "numOnlineUsers": "3", "numKeys": "100", "version": "1.0" }
-}</pre>
+      <div class="ep">
+        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=init</span></div>
+        <div class="ep-desc">Inicializar sesion. Siempre llamar primero.</div>
+        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
+        <tr><td class="pname">name</td><td><span class="req">REQ</span></td><td>Nombre de la app</td></tr>
+        <tr><td class="pname">ownerid</td><td><span class="req">REQ</span></td><td>Owner ID</td></tr>
+        <tr><td class="pname">ver</td><td><span class="req">REQ</span></td><td>Version del cliente</td></tr></table>
       </div>
 
-      <div class="endpoint">
-        <div class="endpoint-header">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/1.2/ ?type=login</span>
-        </div>
-        <div class="endpoint-desc">Autentica un usuario con usuario y contraseña. Requiere sesion inicializada.</div>
-        <table class="params-table">
-          <tr><th>Campo</th><th>Tipo</th><th></th><th>Descripcion</th></tr>
-          <tr><td class="param-name">sessionid</td><td>string</td><td><span class="param-req">REQ</span></td><td>ID de sesion del init</td></tr>
-          <tr><td class="param-name">username</td><td>string</td><td><span class="param-req">REQ</span></td><td>Nombre de usuario</td></tr>
-          <tr><td class="param-name">pass</td><td>string</td><td><span class="param-req">REQ</span></td><td>Contraseña</td></tr>
-          <tr><td class="param-name">hwid</td><td>string</td><td><span class="param-opt">OPT</span></td><td>Hardware ID del equipo</td></tr>
-          <tr><td class="param-name">name</td><td>string</td><td><span class="param-req">REQ</span></td><td>Nombre de la app</td></tr>
-          <tr><td class="param-name">ownerid</td><td>string</td><td><span class="param-req">REQ</span></td><td>Owner ID</td></tr>
-        </table>
+      <div class="ep">
+        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=login</span></div>
+        <div class="ep-desc">Login con usuario y contraseña.</div>
+        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
+        <tr><td class="pname">sessionid</td><td><span class="req">REQ</span></td><td>ID de sesion del init</td></tr>
+        <tr><td class="pname">username</td><td><span class="req">REQ</span></td><td>Nombre de usuario</td></tr>
+        <tr><td class="pname">pass</td><td><span class="req">REQ</span></td><td>Contraseña</td></tr>
+        <tr><td class="pname">hwid</td><td><span class="opt">OPT</span></td><td>Hardware ID</td></tr></table>
       </div>
 
-      <div class="endpoint">
-        <div class="endpoint-header">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/1.2/ ?type=register</span>
-        </div>
-        <div class="endpoint-desc">Registra un nuevo usuario usando una licencia/key.</div>
-        <table class="params-table">
-          <tr><th>Campo</th><th>Tipo</th><th></th><th>Descripcion</th></tr>
-          <tr><td class="param-name">sessionid</td><td>string</td><td><span class="param-req">REQ</span></td><td>ID de sesion</td></tr>
-          <tr><td class="param-name">username</td><td>string</td><td><span class="param-req">REQ</span></td><td>Usuario a crear</td></tr>
-          <tr><td class="param-name">pass</td><td>string</td><td><span class="param-req">REQ</span></td><td>Contraseña</td></tr>
-          <tr><td class="param-name">key</td><td>string</td><td><span class="param-req">REQ</span></td><td>Licencia de activacion</td></tr>
-          <tr><td class="param-name">email</td><td>string</td><td><span class="param-opt">OPT</span></td><td>Email</td></tr>
-          <tr><td class="param-name">hwid</td><td>string</td><td><span class="param-opt">OPT</span></td><td>Hardware ID</td></tr>
-        </table>
+      <div class="ep">
+        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=register</span></div>
+        <div class="ep-desc">Registro de nuevo usuario con key.</div>
+        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
+        <tr><td class="pname">sessionid</td><td><span class="req">REQ</span></td><td>ID sesion</td></tr>
+        <tr><td class="pname">username</td><td><span class="req">REQ</span></td><td>Usuario</td></tr>
+        <tr><td class="pname">pass</td><td><span class="req">REQ</span></td><td>Contraseña</td></tr>
+        <tr><td class="pname">key</td><td><span class="req">REQ</span></td><td>Licencia de activacion</td></tr>
+        <tr><td class="pname">email</td><td><span class="opt">OPT</span></td><td>Email</td></tr></table>
       </div>
 
-      <div class="endpoint">
-        <div class="endpoint-header">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/1.2/ ?type=license</span>
-        </div>
-        <div class="endpoint-desc">Activa acceso usando solo una key (sin usuario/contraseña).</div>
-        <table class="params-table">
-          <tr><th>Campo</th><th>Tipo</th><th></th><th>Descripcion</th></tr>
-          <tr><td class="param-name">sessionid</td><td>string</td><td><span class="param-req">REQ</span></td><td>ID de sesion</td></tr>
-          <tr><td class="param-name">key</td><td>string</td><td><span class="param-req">REQ</span></td><td>Licencia</td></tr>
-          <tr><td class="param-name">hwid</td><td>string</td><td><span class="param-opt">OPT</span></td><td>Hardware ID</td></tr>
-        </table>
+      <div class="ep">
+        <div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=license</span></div>
+        <div class="ep-desc">Activar acceso solo con key (sin usuario).</div>
+        <table class="params"><tr><th>Campo</th><th></th><th>Descripcion</th></tr>
+        <tr><td class="pname">sessionid</td><td><span class="req">REQ</span></td><td>ID sesion</td></tr>
+        <tr><td class="pname">key</td><td><span class="req">REQ</span></td><td>Licencia</td></tr></table>
       </div>
 
-      <div class="endpoint">
-        <div class="endpoint-header">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/1.2/ ?type=check</span>
-        </div>
-        <div class="endpoint-desc">Verifica que la sesion actual sigue siendo valida.</div>
-      </div>
+      <div class="ep"><div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=check</span></div><div class="ep-desc">Verificar que la sesion sigue activa.</div></div>
+      <div class="ep"><div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=var &amp;varid=nombre</span></div><div class="ep-desc">Obtener valor de variable remota.</div></div>
+      <div class="ep"><div class="ep-head"><span class="method post">POST</span><span class="ep-path">?type=log &amp;message=texto</span></div><div class="ep-desc">Guardar log desde el cliente.</div></div>
 
-      <div class="endpoint">
-        <div class="endpoint-header">
-          <span class="method post">POST</span>
-          <span class="endpoint-path">/api/1.2/ ?type=var</span>
-        </div>
-        <div class="endpoint-desc">Obtiene el valor de una variable de la aplicacion.</div>
-        <table class="params-table">
-          <tr><th>Campo</th><th></th><th>Descripcion</th></tr>
-          <tr><td class="param-name">varid</td><td><span class="param-req">REQ</span></td><td>Nombre de la variable</td></tr>
-        </table>
-      </div>
-
-      <!-- Codigo C++ de ejemplo -->
-      <div class="section-title">💻 Codigo C++ de Ejemplo</div>
+      <div class="sec">💻 Código C++ de Ejemplo</div>
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Integracion completa</div>
-          <button class="btn btn-secondary btn-sm" onclick="copyText(document.getElementById('cpp-example').textContent, this)">📋 Copiar</button>
+          <div class="card-title">Integracion completa con LMAx27</div>
+          <button class="btn btn-secondary btn-sm" onclick="copyText(document.getElementById('cpp-ex').textContent, this)">📋 Copiar</button>
         </div>
-        <pre id="cpp-example">#include "Auth/Auth.hpp"
-#include "Auth/Encrypter.hpp"
+        <pre id="cpp-ex">// En Kaflow.hpp:
+std::string name    = XorStr("TuAppName").c_str();
+std::string ownerid = XorStr("TuOwnerId").c_str();
+std::string secret  = XorStr("TuSecret").c_str();
+std::string version = XorStr("1.0").c_str();
+std::string url     = XorStr("https://tu-servidor.onrender.com/api/1.2/").c_str();
+api KeyAuthApp(name, ownerid, secret, version, url);
 
-// Inicializa con tus credenciales del panel
-KeyAuth::api KeyAuthApp(
-    XorStr("NombreDeTuApp"),
-    XorStr("tu-owner-id"),
-    XorStr("tu-secret"),
-    XorStr("1.0"),
-    XorStr("http://tu-servidor.com/api/1.2/")
-);
+// En WinMain.hpp - antes del init:
+name    = XorStr("TuAppName").c_str();
+ownerid = XorStr("TuOwnerId").c_str();
+secret  = XorStr("TuSecret").c_str();
+version = XorStr("1.0").c_str();
+url     = XorStr("https://tu-servidor.onrender.com/api/1.2/").c_str();
+KeyAuthApp.init();
 
-int main() {
-    // 1. Inicializar - siempre primero
-    KeyAuthApp.init();
-    if (!KeyAuthApp.response.success) {
-        MessageBoxA(0, KeyAuthApp.response.message.c_str(), "Error", MB_ICONERROR);
-        exit(1);
+// Login:
+KeyAuthApp.login(username, password);
+if (KeyAuthApp.response.success) {
+    // acceso concedido
+    std::string user = KeyAuthApp.user_data.username;
+    // Iterar suscripciones:
+    for (const auto&amp; sub : KeyAuthApp.user_data.subscriptions) {
+        if (sub.name == "Supreme" || sub.name == "default") { /* menu completo */ }
+        if (sub.name == "Basico")  { /* menu basico */ }
     }
+}
 
-    // 2. Login con usuario y contraseña
-    std::string user, pass;
-    std::cout &lt;&lt; "Usuario: "; std::cin &gt;&gt; user;
-    std::cout &lt;&lt; "Password: "; std::cin &gt;&gt; pass;
-
-    KeyAuthApp.login(user, pass);
-    if (!KeyAuthApp.response.success) {
-        MessageBoxA(0, KeyAuthApp.response.message.c_str(), "Login Failed", MB_ICONERROR);
-        exit(1);
-    }
-
-    // ----- O solo con key (sin registro) -----
-    // KeyAuthApp.license("KEY-XXXXX-XXXXX-XXXXX-XXXXX");
-
-    // 3. Verificar sesion periodicamente
-    KeyAuthApp.check();
-
-    // 4. Obtener variable remota
-    std::string config = KeyAuthApp.var("mi_variable");
-
-    // 5. Info del usuario
-    std::string username = KeyAuthApp.user_data.username;
-    std::string hwid     = KeyAuthApp.user_data.hwid;
-
-    return 0;
-}</pre>
+// Obtener variable remota:
+std::string config = KeyAuthApp.var("mi_variable");</pre>
       </div>
 
     </div>
   </main>
 </div>
-
 <div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
+<script src="/admin/js/app.js"></script><script src="/admin/js/sidebar.js"></script>
 <script>
-(async function() {
-  await requireAuth();
-  document.getElementById('base-url').textContent = window.location.origin + '/api/1.2/';
-})();
+(async function(){injectSidebar('docs');await requireAuth();document.getElementById('base-url').textContent=window.location.origin+'/api/1.2/';})();
 </script>
 </body>
 </html>

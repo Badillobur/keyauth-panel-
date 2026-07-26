@@ -1,14 +1,16 @@
-/* ─── Global Utilities ──────────────────────────────────────────────────────── */
-
 const API = '/api/admin';
 
-function getToken() { return 'no-auth'; }
-function setToken(t) {}
-function clearToken() {}
+// ─── Token ────────────────────────────────────────────────────────────────────
+function getToken() { return localStorage.getItem('lmax_token') || ''; }
+function setToken(t) { localStorage.setItem('lmax_token', t); }
+function clearToken() { localStorage.removeItem('lmax_token'); }
 
+// ─── Fetch ────────────────────────────────────────────────────────────────────
 async function apiFetch(url, options) {
   options = options || {};
   options.headers = options.headers || {};
+  const token = getToken();
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
   options.credentials = 'include';
   if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
     options.headers['Content-Type'] = 'application/json';
@@ -23,74 +25,48 @@ async function apiFetch(url, options) {
   }
 }
 
+// ─── Toast ────────────────────────────────────────────────────────────────────
 function toast(msg, type) {
   type = type || 'info';
-  let container = document.getElementById('toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toast-container';
-    document.body.appendChild(container);
-  }
-  const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+  let c = document.getElementById('toast-container');
+  if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
+  const icons = { success: '✓', error: '✕', info: '★', warning: '⚠' };
   const el = document.createElement('div');
   el.className = 'toast ' + type;
-  el.innerHTML = '<span>' + (icons[type] || '•') + '</span><span>' + msg + '</span>';
-  container.appendChild(el);
+  el.innerHTML = '<span style="font-size:14px;">' + (icons[type]||'•') + '</span><span>' + msg + '</span>';
+  c.appendChild(el);
   setTimeout(function() {
-    el.style.opacity = '0';
-    el.style.transform = 'translateX(20px)';
-    el.style.transition = '0.3s ease';
+    el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = '0.3s';
     setTimeout(function() { el.remove(); }, 300);
   }, 3500);
 }
 
-function openModal(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.add('open');
-}
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function openModal(id) { const el = document.getElementById(id); if (el) el.classList.add('open'); }
+function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.remove('open'); }
+document.addEventListener('click', function(e) { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open'); });
 
-function closeModal(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.remove('open');
-}
-
-document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('modal-overlay')) {
-    e.target.classList.remove('open');
-  }
-});
-
+// ─── Copy ─────────────────────────────────────────────────────────────────────
 function copyText(text, btn) {
   navigator.clipboard.writeText(text).then(function() {
-    if (btn) {
-      const orig = btn.textContent;
-      btn.textContent = 'Copiado!';
-      setTimeout(function() { btn.textContent = orig; }, 1500);
-    }
+    if (btn) { const o = btn.textContent; btn.textContent = '✓ Copiado'; setTimeout(function() { btn.textContent = o; }, 1500); }
     toast('Copiado al portapapeles', 'success');
   });
 }
 
+// ─── Date ─────────────────────────────────────────────────────────────────────
 function fmtDate(ts) {
   if (!ts) return '—';
   const d = new Date(typeof ts === 'number' && ts < 9999999999 ? ts * 1000 : ts);
   if (isNaN(d)) return '—';
   return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
-
 function fmtDateShort(ts) {
   if (!ts) return '—';
   const d = new Date(typeof ts === 'number' && ts < 9999999999 ? ts * 1000 : ts);
   if (isNaN(d)) return '—';
   return d.toLocaleDateString();
 }
-
-function isExpired(ts) {
-  if (!ts) return false;
-  const t = typeof ts === 'number' && ts < 9999999999 ? ts * 1000 : ts;
-  return Date.now() > t;
-}
-
 function relTime(ts) {
   if (!ts) return '—';
   const t = typeof ts === 'number' && ts < 9999999999 ? ts * 1000 : ts;
@@ -104,32 +80,27 @@ function relTime(ts) {
   return 'hace ' + Math.floor(h / 24) + 'd';
 }
 
-function confirmAction(msg, cb) {
-  if (confirm(msg)) cb();
-}
+// ─── Confirm ──────────────────────────────────────────────────────────────────
+function confirmAction(msg, cb) { if (confirm(msg)) cb(); }
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 function logout() {
-  window.location.href = '/admin/index.html';
+  apiFetch(API + '/logout', { method: 'POST' });
+  clearToken();
+  window.location.href = '/admin/login.html';
 }
 
-// Sin auth - devuelve admin falso directo
 async function requireAuth() {
   const nameEl = document.getElementById('admin-name');
   const roleEl = document.getElementById('admin-role');
   const avatarEl = document.getElementById('admin-avatar');
   if (nameEl) nameEl.textContent = 'Admin';
   if (roleEl) roleEl.textContent = 'superadmin';
-  if (avatarEl) avatarEl.textContent = 'A';
+  if (avatarEl) avatarEl.textContent = 'L';
   return { id: 'admin', username: 'admin', role: 'superadmin' };
 }
 
-function setActiveNav(page) {
-  document.querySelectorAll('.nav-item').forEach(function(el) {
-    el.classList.remove('active');
-    if (el.dataset.page === page) el.classList.add('active');
-  });
-}
-
+// ─── Search filter ────────────────────────────────────────────────────────────
 function filterTable(inputId, tableId) {
   const input = document.getElementById(inputId);
   const table = document.getElementById(tableId);
@@ -142,6 +113,41 @@ function filterTable(inputId, tableId) {
   });
 }
 
-function getParam(name) {
-  return new URLSearchParams(window.location.search).get(name);
+// ─── URL param ────────────────────────────────────────────────────────────────
+function getParam(name) { return new URLSearchParams(window.location.search).get(name); }
+
+// ─── Particles ───────────────────────────────────────────────────────────────
+function initParticles() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  const count = 25;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = [
+      'left:' + Math.random() * 100 + '%',
+      'width:' + (Math.random() * 2 + 1) + 'px',
+      'height:' + (Math.random() * 2 + 1) + 'px',
+      'animation-duration:' + (Math.random() * 15 + 10) + 's',
+      'animation-delay:' + (Math.random() * 10) + 's',
+      'opacity:' + (Math.random() * 0.5 + 0.1)
+    ].join(';');
+    container.appendChild(p);
+  }
 }
+
+// ─── Number counter animation ─────────────────────────────────────────────────
+function animateCount(el, target, duration) {
+  if (!el) return;
+  const start = 0;
+  const step = target / (duration / 16);
+  let current = start;
+  const timer = setInterval(function() {
+    current += step;
+    if (current >= target) { current = target; clearInterval(timer); }
+    el.textContent = Math.floor(current);
+  }, 16);
+}
+
+// Iniciar partículas al cargar
+document.addEventListener('DOMContentLoaded', initParticles);

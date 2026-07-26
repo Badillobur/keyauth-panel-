@@ -52,6 +52,10 @@ app.use('/api', require('./routes/api'));
 // Rutas API del panel admin
 app.use('/api/admin', require('./routes/admin'));
 
+// Rutas Discord bot
+const discordRouter = require('./routes/discord');
+app.use('/api/admin/discord', discordRouter);
+
 // Ruta raiz -> redirigir al panel
 app.get('/', function(req, res) {
   res.redirect('/admin/login.html');
@@ -86,13 +90,12 @@ app.use(function(err, req, res, next) {
 
 app.listen(PORT, '0.0.0.0', function() {
   console.log('');
-  console.log('  KeyAuth Panel v1.0 - Sistema de Licenciamiento');
+  console.log('  LMAx27 Panel v2.0 - Sistema de Licenciamiento');
   console.log('  Entorno : ' + (isProd ? 'PRODUCCION' : 'desarrollo'));
   console.log('  Puerto  : ' + PORT);
   if (!isProd) {
     console.log('  Panel   : http://localhost:' + PORT + '/admin/login.html');
     console.log('  API     : http://localhost:' + PORT + '/api/1.2/');
-    console.log('  Usuario : ' + (process.env.ADMIN_USERNAME || 'admin'));
   }
   console.log('');
 });
