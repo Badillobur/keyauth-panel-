@@ -20,29 +20,38 @@ router.post('/login', async function(req, res) {
     const { username, password } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
 
-    const envUser = process.env.ADMIN_USERNAME || 'admin';
-    const envPass = process.env.ADMIN_PASSWORD || 'admin123';
+    const envUser = process.env.ADMIN_USERNAME || 'daniel';
+    const envPass = process.env.ADMIN_PASSWORD || 'daniel';
 
-    // Validar directo contra variables de entorno (sin depender de la DB)
-    if (username !== envUser || password !== envPass) {
-      return res.json({ success: false, message: 'Contrasena incorrecta' });
+    // ── Admin principal (directo contra env vars) ──────────────────────────
+    if (username === envUser && password === envPass) {
+      let admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
+      if (!admin) {
+        const id = uuidv4();
+        const hashed = await bcrypt.hash(envPass, 10);
+        await db.run('INSERT INTO admins (id,username,password,role) VALUES (?,?,?,?)', [id, username, hashed, 'superadmin']);
+        admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
+      }
+      // Actualizar username/pass en DB si cambió en env
+      await db.run('UPDATE admins SET username=?,password=? WHERE id=?', [envUser, await bcrypt.hash(envPass, 10), admin.id]);
+      admin.username = envUser;
+      const token = jwt.sign({ id: admin.id, username: envUser, role: 'superadmin' }, SECRET, { expiresIn: '24h' });
+      res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
+      return res.json({ success: true, message: 'Login exitoso', token, role: 'superadmin' });
     }
 
-    // Asegurar que el admin existe en DB (para foreign keys, etc.)
-    let admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
-    if (!admin) {
-      const hashed = await bcrypt.hash(envPass, 10);
-      const id = uuidv4();
-      await db.run('INSERT INTO admins (id,username,password,role) VALUES (?,?,?,?)', [id, username, hashed, 'superadmin']);
-      admin = await db.get('SELECT * FROM admins WHERE username=?', [username]);
+    // ── Partner (buscar en tabla partners) ────────────────────────────────
+    const partner = await db.get('SELECT * FROM partners WHERE username=? AND active=1', [username]);
+    if (partner) {
+      const valid = await bcrypt.compare(password, partner.password);
+      if (!valid) return res.json({ success: false, message: 'Contrasena incorrecta' });
+      await db.run('UPDATE partners SET last_login=? WHERE id=?', [Math.floor(Date.now()/1000), partner.id]);
+      const token = jwt.sign({ id: partner.id, username: partner.username, role: 'partner', partner_id: partner.id }, SECRET, { expiresIn: '24h' });
+      res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
+      return res.json({ success: true, message: 'Login exitoso', token, role: 'partner' });
     }
 
-    const valid = true; // ya validamos arriba contra env
-    if (!valid) return res.json({ success: false, message: 'Contrasena incorrecta' });
-
-    const token = jwt.sign({ id: admin.id, username: admin.username, role: admin.role }, SECRET, { expiresIn: '24h' });
-    res.cookie('admin_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 86400000, sameSite: 'strict' });
-    return res.json({ success: true, message: 'Login exitoso', token });
+    return res.json({ success: false, message: 'Credenciales incorrectas' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
@@ -262,6 +271,120 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
     await db.run('DELETE FROM app_vars WHERE id=? AND app_id=?', [req.params.varId, req.params.appId]);
     res.json({ success: true, message: 'Variable eliminada' });
   } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// ─── PARTNERS ─────────────────────────────────────────────────────────────────
+
+// Inicializar tabla de partners
+(async function() {
+  await db.run(`CREATE TABLE IF NOT EXISTS partners (
+    id          TEXT PRIMARY KEY,
+    username    TEXT NOT NULL UNIQUE,
+    password    TEXT NOT NULL,
+    display_name TEXT DEFAULT '',
+    email       TEXT DEFAULT '',
+    active      INTEGER DEFAULT 1,
+    last_login  INTEGER DEFAULT NULL,
+    created_at  INTEGER DEFAULT (strftime('%s','now'))
+  )`);
+  await db.run(`CREATE TABLE IF NOT EXISTS partner_apps (
+    partner_id  TEXT NOT NULL,
+    app_id      TEXT NOT NULL,
+    can_genkeys INTEGER DEFAULT 1,
+    can_users   INTEGER DEFAULT 1,
+    can_logs    INTEGER DEFAULT 1,
+    PRIMARY KEY (partner_id, app_id),
+    FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE,
+    FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE
+  )`);
+})();
+
+// Listar partners
+router.get('/partners', requireAdmin, async function(req, res) {
+  try {
+    const partners = await db.all('SELECT * FROM partners ORDER BY created_at DESC');
+    const result = [];
+    for (const p of partners) {
+      const apps = await db.all(
+        'SELECT a.id, a.name, pa.can_genkeys, pa.can_users, pa.can_logs FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
+        [p.id]
+      );
+      result.push(Object.assign({}, p, { password: undefined, apps }));
+    }
+    res.json({ success: true, partners: result });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Crear partner
+router.post('/partners', requireAdmin, async function(req, res) {
+  try {
+    const { username, password, display_name, email, app_ids } = req.body;
+    if (!username || !password) return res.json({ success: false, message: 'Usuario y contraseña requeridos' });
+    const ex = await db.get('SELECT id FROM partners WHERE username=?', [username]);
+    if (ex) return res.json({ success: false, message: 'Username ya existe' });
+    const id = uuidv4();
+    const hashed = await bcrypt.hash(password, 10);
+    await db.run('INSERT INTO partners (id,username,password,display_name,email) VALUES (?,?,?,?,?)',
+      [id, username, hashed, display_name || username, email || '']);
+    // Asociar apps
+    if (app_ids && app_ids.length) {
+      for (const appId of app_ids) {
+        await db.run('INSERT OR IGNORE INTO partner_apps (partner_id,app_id) VALUES (?,?)', [id, appId]);
+      }
+    }
+    const partner = await db.get('SELECT id,username,display_name,email,active,created_at FROM partners WHERE id=?', [id]);
+    res.json({ success: true, message: 'Partner creado', partner });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Actualizar partner
+router.put('/partners/:id', requireAdmin, async function(req, res) {
+  try {
+    const { display_name, email, active, password, app_ids, permissions } = req.body;
+    const p = await db.get('SELECT * FROM partners WHERE id=?', [req.params.id]);
+    if (!p) return res.json({ success: false, message: 'Partner no encontrado' });
+    if (password) {
+      const hashed = await bcrypt.hash(password, 10);
+      await db.run('UPDATE partners SET password=? WHERE id=?', [hashed, p.id]);
+    }
+    await db.run('UPDATE partners SET display_name=?,email=?,active=? WHERE id=?',
+      [display_name ?? p.display_name, email ?? p.email, active ?? p.active, p.id]);
+    // Actualizar apps: borrar y reinsertar
+    if (app_ids !== undefined) {
+      await db.run('DELETE FROM partner_apps WHERE partner_id=?', [p.id]);
+      for (const appId of (app_ids || [])) {
+        const perm = (permissions && permissions[appId]) || {};
+        await db.run('INSERT INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs) VALUES (?,?,?,?,?)',
+          [p.id, appId, perm.can_genkeys ? 1 : 1, perm.can_users ? 1 : 1, perm.can_logs ? 1 : 1]);
+      }
+    }
+    res.json({ success: true, message: 'Partner actualizado' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Eliminar partner
+router.delete('/partners/:id', requireAdmin, async function(req, res) {
+  try {
+    await db.run('DELETE FROM partners WHERE id=?', [req.params.id]);
+    res.json({ success: true, message: 'Partner eliminado' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Apps que puede ver un partner (usado por el middleware de partner)
+router.get('/partner-apps', async function(req, res) {
+  try {
+    const token = (req.cookies && req.cookies.admin_token) ||
+      (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
+    if (!token) return res.json({ success: false, apps: [] });
+    const { SECRET } = require('../middleware/auth');
+    const decoded = require('jsonwebtoken').verify(token, SECRET);
+    if (decoded.role !== 'partner') return res.json({ success: false, apps: [] });
+    const apps = await db.all(
+      'SELECT a.*, pa.can_genkeys, pa.can_users, pa.can_logs FROM partner_apps pa JOIN apps a ON a.id=pa.app_id WHERE pa.partner_id=?',
+      [decoded.partner_id]
+    );
+    res.json({ success: true, apps, role: 'partner', username: decoded.username });
+  } catch (e) { res.json({ success: false, apps: [] }); }
 });
 
 module.exports = router;

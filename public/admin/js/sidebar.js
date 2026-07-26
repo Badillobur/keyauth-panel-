@@ -10,7 +10,8 @@ function buildSidebar(activePage) {
     { page: 'logs',      icon: '📋', label: 'Logs',             href: '/admin/logs.html' },
     { section: 'Config' },
     { page: 'vars',      icon: '⚙️', label: 'Variables',        href: '/admin/vars.html' },
-    { page: 'discord',   icon: '🤖', label: 'Bot Discord',      href: '/admin/discord.html' },
+    { page: 'partners',  icon: '🤝', label: 'Partners',          href: '/admin/partners.html' },
+    { page: 'discord',   icon: '🤖', label: 'Bot Discord',       href: '/admin/discord.html' },
     { page: 'docs',      icon: '📖', label: 'API Docs',         href: '/admin/api-docs.html' },
   ];
 

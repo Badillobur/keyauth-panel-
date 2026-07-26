@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Partners</title>
+  <link rel="stylesheet" href="/admin/css/style.css" />
+  <style>
+    .partner-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; margin-bottom:12px; transition:all var(--transition); }
+    .partner-card:hover { border-color:rgba(245,197,24,0.3); }
+    .partner-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .partner-name { font-size:15px; font-weight:800; color:var(--accent); }
+    .partner-user { font-size:11px; color:var(--text3); font-family:monospace; }
+    .app-tag { display:inline-flex; align-items:center; gap:4px; background:var(--accent-dim); border:1px solid rgba(245,197,24,0.2); border-radius:20px; padding:2px 10px; font-size:11px; color:var(--accent); font-weight:600; margin:2px; }
+    .perm-badge { font-size:9px; background:rgba(34,197,94,0.1); color:var(--green); border-radius:3px; padding:1px 5px; margin-left:4px; }
+    .app-check { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:6px; }
+    .app-check label { flex:1; font-size:13px; color:var(--text2); cursor:pointer; }
+    .app-check input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; }
+  </style>
+</head>
+<body>
+<div id="particles"></div>
+<div class="layout">
+  <div id="sidebar-container"></div>
+  <main class="main">
+    <div class="topbar">
+      <div><div class="topbar-title">🤝 Partners</div><div class="topbar-sub">Gestiona accesos limitados para otras personas</div></div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal('modal-create')">+ Nuevo Partner</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="card" style="background:rgba(245,197,24,0.04);border-color:rgba(245,197,24,0.15);margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--text2);">
+          ⚡ <strong style="color:var(--accent);">¿Qué son los Partners?</strong>
+          Son usuarios con acceso limitado al panel. Solo pueden ver y gestionar las apps que tú les asignes.
+          No tienen acceso a configuración, Discord bot ni al resto del sistema.
+        </div>
+      </div>
+
+      <div id="partners-list">
+        <div class="empty-state"><div class="loader"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Crear Partner -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header"><div class="modal-title">🤝 Nuevo Partner</div><button class="modal-close" onclick="closeModal('modal-create')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="new-username" class="form-control" placeholder="username" /></div>
+      <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="new-password" class="form-control" placeholder="contraseña" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nombre a mostrar</label><input type="text" id="new-display" class="form-control" placeholder="Mi Partner" /></div>
+      <div class="form-group"><label class="form-label">Email (opcional)</label><input type="email" id="new-email" class="form-control" placeholder="email@ejemplo.com" /></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Apps que puede ver</label>
+      <div id="new-apps-list"><div class="empty-state" style="padding:16px;"><div class="loader"></div></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button><button class="btn btn-primary" onclick="createPartner()">Crear Partner</button></div>
+  </div>
+</div>
+
+<!-- Modal Editar Partner -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header"><div class="modal-title">✏️ Editar Partner</div><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
+    <input type="hidden" id="edit-id" />
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Usuario</label><input type="text" id="edit-username" class="form-control" readonly style="opacity:0.6;" /></div>
+      <div class="form-group"><label class="form-label">Nueva Contraseña (dejar vacío = no cambiar)</label><input type="password" id="edit-password" class="form-control" placeholder="••••••••" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nombre a mostrar</label><input type="text" id="edit-display" class="form-control" /></div>
+      <div class="form-group"><label class="form-label">Estado</label><select id="edit-active" class="form-control"><option value="1">Activo</option><option value="0">Desactivado</option></select></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Apps asignadas</label>
+      <div id="edit-apps-list"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button><button class="btn btn-primary" onclick="saveEdit()">Guardar</button></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/admin/js/app.js"></script>
+<script src="/admin/js/sidebar.js"></script>
+<script>
+var allApps = [];
+
+(async function() {
+  injectSidebar('partners');
+  await requireAuth();
+  const ar = await apiFetch(API + '/apps');
+  if (ar && ar.success) allApps = ar.apps;
+  loadPartners();
+  buildAppCheckboxes('new-apps-list', []);
+})();
+
+async function loadPartners() {
+  const res = await apiFetch(API + '/partners');
+  const el = document.getElementById('partners-list');
+  if (!res || !res.success || !res.partners.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🤝</div><p>No hay partners. Crea el primero!</p></div>';
+    return;
+  }
+  el.innerHTML = res.partners.map(function(p) {
+    const appTags = p.apps.length
+      ? p.apps.map(function(a) { return '<span class="app-tag">📦 '+esc(a.name)+'</span>'; }).join('')
+      : '<span style="color:var(--text3);font-size:11px;">Sin apps asignadas</span>';
+    const statusBadge = p.active ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
+    return '<div class="partner-card">' +
+      '<div class="partner-head">' +
+        '<div>' +
+          '<div class="partner-name">' + esc(p.display_name||p.username) + ' ' + statusBadge + '</div>' +
+          '<div class="partner-user">@' + esc(p.username) + ' · ' + (p.last_login?'ultimo login '+relTime(p.last_login):'nunca entro') + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;">' +
+          '<button class="btn btn-secondary btn-sm" onclick="editPartner(\''+p.id+'\')">✏️ Editar</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deletePartner(\''+p.id+'\',\''+esc(p.username)+'\')">🗑️</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:8px;">' + appTags + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function buildAppCheckboxes(containerId, selectedIds) {
+  const el = document.getElementById(containerId);
+  if (!allApps.length) { el.innerHTML = '<p style="color:var(--text3);font-size:12px;">Sin apps disponibles. Crea apps primero.</p>'; return; }
+  el.innerHTML = allApps.map(function(a) {
+    const checked = selectedIds.includes(a.id) ? 'checked' : '';
+    return '<div class="app-check">' +
+      '<input type="checkbox" id="appchk-'+containerId+'-'+a.id+'" value="'+a.id+'" '+checked+' />' +
+      '<label for="appchk-'+containerId+'-'+a.id+'">📦 ' + esc(a.name) + ' <span style="color:var(--text3);font-size:10px;">v'+esc(a.version)+'</span></label>' +
+    '</div>';
+  }).join('');
+}
+
+function getCheckedApps(containerId) {
+  const checks = document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked');
+  return Array.from(checks).map(function(c) { return c.value; });
+}
+
+async function createPartner() {
+  const username = document.getElementById('new-username').value.trim();
+  const password = document.getElementById('new-password').value;
+  const display_name = document.getElementById('new-display').value.trim();
+  const email = document.getElementById('new-email').value.trim();
+  const app_ids = getCheckedApps('new-apps-list');
+  if (!username || !password) { toast('Usuario y contraseña requeridos', 'error'); return; }
+  const res = await apiFetch(API + '/partners', { method: 'POST', body: { username, password, display_name, email, app_ids } });
+  if (res && res.success) {
+    toast('Partner "' + username + '" creado!', 'success');
+    closeModal('modal-create');
+    document.getElementById('new-username').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('new-display').value = '';
+    document.getElementById('new-email').value = '';
+    buildAppCheckboxes('new-apps-list', []);
+    loadPartners();
+  } else if (res) toast(res.message, 'error');
+}
+
+var editData = null;
+async function editPartner(id) {
+  const res = await apiFetch(API + '/partners');
+  if (!res || !res.success) return;
+  const p = res.partners.find(function(x) { return x.id === id; });
+  if (!p) return;
+  editData = p;
+  document.getElementById('edit-id').value = p.id;
+  document.getElementById('edit-username').value = p.username;
+  document.getElementById('edit-display').value = p.display_name || '';
+  document.getElementById('edit-active').value = p.active;
+  document.getElementById('edit-password').value = '';
+  const selectedIds = p.apps.map(function(a) { return a.id; });
+  buildAppCheckboxes('edit-apps-list', selectedIds);
+  openModal('modal-edit');
+}
+
+async function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const display_name = document.getElementById('edit-display').value.trim();
+  const active = parseInt(document.getElementById('edit-active').value);
+  const password = document.getElementById('edit-password').value;
+  const app_ids = getCheckedApps('edit-apps-list');
+  const body = { display_name, active, app_ids };
+  if (password) body.password = password;
+  const res = await apiFetch(API + '/partners/' + id, { method: 'PUT', body });
+  if (res && res.success) {
+    toast('Partner actualizado', 'success');
+    closeModal('modal-edit');
+    loadPartners();
+  } else if (res) toast(res.message, 'error');
+}
+
+async function deletePartner(id, name) {
+  confirmAction('¿Eliminar al partner "' + name + '"? Perdera acceso al panel.', async function() {
+    const res = await apiFetch(API + '/partners/' + id, { method: 'DELETE' });
+    if (res && res.success) { toast('Partner eliminado', 'success'); loadPartners(); }
+  });
+}
+
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
