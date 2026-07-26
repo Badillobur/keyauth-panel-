@@ -240,7 +240,7 @@ function showFullCreds(app) {
   document.getElementById('cred-ownerid').textContent = app.owner_id;
   document.getElementById('cred-secret').textContent  = app.secret;
   document.getElementById('cred-url').textContent     = apiUrl;
-  var cpp = 'std::string name    = XorStr("'+app.name+'").c_str();\nstd::string ownerid = XorStr("'+app.owner_id+'").c_str();\nstd::string secret  = XorStr("'+app.secret+'").c_str();\nstd::string version = XorStr("'+app.version+'").c_str();\nstd::string url     = XorStr("'+apiUrl+'").c_str();';
+  var cpp = '// ─── Kaflow.hpp ───────────────────────────────\nstd::string name    = LMAx27("'+app.name+'").c_str();\nstd::string ownerid = LMAx27("'+app.owner_id+'").c_str();\nstd::string secret  = LMAx27("'+app.secret+'").c_str();\nstd::string version = LMAx27("'+app.version+'").c_str();\nstd::string url     = LMAx27("'+apiUrl+'").c_str();\n\napi KeyAuthApp(name, ownerid, secret, version, url);\n\n// ─── WinMain.hpp (antes del init) ─────────────\nname    = LMAx27("'+app.name+'").c_str();\nownerid = LMAx27("'+app.owner_id+'").c_str();\nsecret  = LMAx27("'+app.secret+'").c_str();\nversion = LMAx27("'+app.version+'").c_str();\nurl     = LMAx27("'+apiUrl+'").c_str();\nKeyAuthApp.init();';
   var el = document.getElementById('cred-cpp');
   el.textContent = cpp; el.dataset.raw = cpp;
   openModal('modal-creds');

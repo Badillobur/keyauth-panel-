@@ -59,15 +59,21 @@ async function requireAuth() {
   var roleEl = document.getElementById('admin-role');
   var avatarEl = document.getElementById('admin-avatar');
   if (nameEl) nameEl.textContent = res.admin.username || 'Admin';
-  if (roleEl) roleEl.textContent = res.admin.role || 'superadmin';
+  if (roleEl) {
+    var roleDisplay = res.admin.role === 'superadmin' ? 'Admin'
+      : res.admin.partner_role === 'owner' ? 'Owner'
+      : res.admin.role === 'partner' ? 'Partner'
+      : res.admin.role || 'Admin';
+    roleEl.textContent = roleDisplay;
+  }
   if (avatarEl) avatarEl.textContent = (res.admin.username || 'L').charAt(0).toUpperCase();
   // Actualizar sidebar con el rol real — esto oculta secciones adminOnly para partners
   if (typeof updateSidebarRole === 'function') {
     var activePage = document.querySelector('.nav-item.active');
     var page = activePage ? activePage.dataset.page : '';
-    updateSidebarRole(res.admin.role || 'superadmin', page);
+    var sidebarRole = res.admin.role || 'superadmin';
+    updateSidebarRole(sidebarRole, page);
   }
-  return res.admin;
 }
 
 // Logout

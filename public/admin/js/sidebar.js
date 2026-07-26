@@ -64,7 +64,8 @@ function buildSidebar(activePage, role) {
 
   html += '</nav>';
   html += '<div class="sidebar-footer">';
-  html += '<div class="user-info"><div class="user-avatar" id="admin-avatar">L</div><div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">superadmin</div></div></div>';
+  var roleLabel = role === 'superadmin' ? 'Admin' : role === 'partner' ? 'Partner' : role === 'owner' ? 'Owner' : role;
+  html += '<div class="user-info"><div class="user-avatar" id="admin-avatar">L</div><div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">' + roleLabel + '</div></div></div>';
   html += '<button class="btn-logout" onclick="logout()"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M5 2H2.5A1.5 1.5 0 001 3.5v6A1.5 1.5 0 002.5 11H5M8.5 4l3 2.5-3 2.5M11.5 6.5H4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Cerrar Sesion</button>';
   html += '</div></aside>';
   return html;

@@ -266,11 +266,20 @@ function onAppChange() {
     document.getElementById('c-url').textContent     = apiUrl;
     // C++ snippet
     document.getElementById('cpp-ex').textContent =
-      'std::string name    = XorStr("'+app.name+'").c_str();\n' +
-      'std::string ownerid = XorStr("'+app.owner_id+'").c_str();\n' +
-      'std::string secret  = XorStr("'+app.secret+'").c_str();\n' +
-      'std::string version = XorStr("'+app.version+'").c_str();\n' +
-      'std::string url     = XorStr("'+apiUrl+'").c_str();';
+      '// ─── Kaflow.hpp ───────────────────────────────\n' +
+      'std::string name    = LMAx27("'+app.name+'").c_str();\n' +
+      'std::string ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
+      'std::string secret  = LMAx27("'+app.secret+'").c_str();\n' +
+      'std::string version = LMAx27("'+app.version+'").c_str();\n' +
+      'std::string url     = LMAx27("'+apiUrl+'").c_str();\n\n' +
+      'api KeyAuthApp(name, ownerid, secret, version, url);\n\n' +
+      '// ─── WinMain.hpp (antes del init) ─────────────\n' +
+      'name    = LMAx27("'+app.name+'").c_str();\n' +
+      'ownerid = LMAx27("'+app.owner_id+'").c_str();\n' +
+      'secret  = LMAx27("'+app.secret+'").c_str();\n' +
+      'version = LMAx27("'+app.version+'").c_str();\n' +
+      'url     = LMAx27("'+apiUrl+'").c_str();\n' +
+      'KeyAuthApp.init();';
   }
 }
 
