@@ -167,19 +167,76 @@
   </div>
 </div>
 
+<!-- Modal Crear Sub-Partner (solo para owners) -->
+<div class="modal-overlay" id="modal-create-subpartner">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-header">
+      <div class="modal-title">Crear Sub-Partner</div>
+      <button class="modal-close" onclick="closeModal('modal-create-subpartner')">✕</button>
+    </div>
+    <div class="section-sep">Datos de acceso</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="sp-username" class="form-control" placeholder="username" /></div>
+      <div class="form-group"><label class="form-label">Contrasena *</label><input type="password" id="sp-password" class="form-control" placeholder="contrasena" /></div>
+    </div>
+    <div class="form-group"><label class="form-label">Nombre visible</label><input type="text" id="sp-display" class="form-control" placeholder="Mi Partner" /></div>
+    <div class="section-sep">Apps y permisos (solo las tuyas)</div>
+    <div id="sp-apps-list"><div class="empty-state" style="padding:12px;"><div class="loader"></div></div></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-create-subpartner')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createSubPartner()">Crear Sub-Partner</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <script src="/admin/js/app.js"></script>
 <script src="/admin/js/sidebar.js"></script>
 <script>
 var allApps = [];
+var currentRole = 'superadmin';
+var userInfo = null;
 
 (async function() {
   injectSidebar('partners');
-  await requireAuth();
-  var ar = await apiFetch(API + '/apps');
-  if (ar && ar.success) allApps = ar.apps;
-  buildAppPerms('new-apps-list', []);
-  loadPartners();
+  var admin = await requireAuth();
+  if (!admin) return;
+  
+  currentRole = admin.role || 'superadmin';
+  
+  // Get user info for partners
+  if (currentRole === 'partner') {
+    var meRes = await apiFetch(API + '/owner/me');
+    if (meRes && meRes.success) {
+      userInfo = meRes.me;
+      var partnerRole = userInfo.role || 'partner';
+      
+      // Update page for partner users
+      document.querySelector('.topbar-title').textContent = 'Mis Partners';
+      document.querySelector('.topbar-sub').textContent = 'Partners que has creado y gestión de accesos';
+      
+      // Show owner controls if user is owner
+      if (partnerRole === 'owner') {
+        document.querySelector('.topbar-actions').innerHTML = 
+          '<button class="btn btn-primary" onclick="openSubPartnerModal()">' +
+            '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+            'Crear Sub-Partner' +
+          '</button>';
+        loadMySubPartners();
+      } else {
+        // Regular partner - no partners to show
+        document.querySelector('.topbar-actions').innerHTML = '';
+        document.getElementById('partners-tbody').innerHTML = 
+          '<tr><td colspan="7"><div class="empty-state"><p>Solo los partners con rol "Owner" pueden crear sub-partners.</p></div></td></tr>';
+      }
+    }
+  } else {
+    // Admin - load all partners
+    var ar = await apiFetch(API + '/apps');
+    if (ar && ar.success) allApps = ar.apps;
+    buildAppPerms('new-apps-list', []);
+    loadPartners();
+  }
 })();
 
 async function loadPartners() {
@@ -419,6 +476,140 @@ async function resetLimit(partnerId, appId, btn) {
 }
 
 function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Add loadMySubPartners function for owner partners
+async function loadMySubPartners() {
+  var res = await apiFetch(API + '/owner/partners');
+  var tbody = document.getElementById('partners-tbody');
+  if (!res || !res.success) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Error cargando sub-partners</p></div></td></tr>';
+    return;
+  }
+  
+  // Update counter info
+  document.querySelector('.topbar-sub').textContent = 
+    'Partners creados: ' + (res.used || 0) + '/' + (res.max || 0) + ' — Gestión de accesos';
+    
+  if (!res.partners || !res.partners.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Sin sub-partners creados. Puedes crear hasta ' + (res.max||0) + '.</p></div></td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = res.partners.map(function(p) {
+    var statusBadge = p.active
+      ? '<span class="badge badge-green">Activo</span>'
+      : '<span class="badge badge-red">Inactivo</span>';
+      
+    var appTags = p.apps && p.apps.length
+      ? p.apps.map(function(a) {
+          var perms = [];
+          if (a.can_genkeys) perms.push('Keys');
+          if (a.can_users)   perms.push('Users');
+          if (a.can_logs)    perms.push('Logs');
+          var limitHtml = '';
+          if (a.key_limit > 0) {
+            var pct = Math.min(100, Math.round(((a.keys_used||0) / a.key_limit) * 100));
+            var isFull = pct >= 90;
+            limitHtml = '<div class="limit-bar-wrap"><div style="font-size:9px;color:var(--text3);margin-bottom:2px;">'+(a.keys_used||0)+'/'+a.key_limit+' keys</div>'
+              + '<div class="limit-bar"><div class="limit-bar-fill'+(isFull?' warn':'')+'" style="width:'+pct+'%"></div></div></div>';
+          }
+          return '<span class="app-tag">'
+            + esc(a.name)
+            + (perms.length ? '<span class="perms">'+perms.join(',')+'</span>' : '')
+            + '</span>'
+            + limitHtml;
+        }).join('')
+      : '<span style="color:var(--text3);font-size:11px;">Sin apps</span>';
+      
+    return '<tr>'
+      + '<td><div class="pname">'+esc(p.display_name||p.username)+'</div><div class="pmeta">@'+esc(p.username)+'</div></td>'
+      + '<td><span class="role-badge role-partner">Partner</span></td>'
+      + '<td style="max-width:240px;">'+appTags+'</td>'
+      + '<td><span style="color:var(--text3);font-size:11px;">N/A</span></td>'
+      + '<td>'+statusBadge+'</td>'
+      + '<td class="text-sm" style="color:var(--text3);">'+(p.last_login ? relTime(p.last_login) : 'Nunca')+'</td>'
+      + '<td><div style="display:flex;gap:4px;">'
+        + '<button class="btn btn-danger btn-sm" onclick="deleteMySubPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>'
+      + '</div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function deleteMySubPartner(id, username) {
+  confirmAction('Eliminar sub-partner "'+username+'"?', async function() {
+    var res = await apiFetch(API + '/owner/partners/' + id, { method: 'DELETE' });
+    if (res && res.success) { toast('Sub-partner eliminado', 'success'); loadMySubPartners(); }
+    else if (res) toast(res.message, 'error');
+  });
+}
+
+// Sub-partner creation functions
+function buildMyAppPerms(containerId, selectedApps) {
+  var el = document.getElementById(containerId);
+  if (!userInfo || !userInfo.apps || !userInfo.apps.length) {
+    el.innerHTML = '<p style="color:var(--text3);font-size:12px;padding:8px;">Sin apps disponibles.</p>';
+    return;
+  }
+  
+  el.innerHTML = userInfo.apps.map(function(a) {
+    var aid = a.id;
+    var sel = selectedApps.find(function(s){ return s.id === a.id || s.app_id === a.id; }) || {};
+    var isChecked = !!sel.id || !!sel.app_id;
+    var ck = isChecked ? (sel.can_genkeys !== undefined ? sel.can_genkeys : 1) : 1;
+    var cu = isChecked ? (sel.can_users   !== undefined ? sel.can_users   : 1) : 1;
+    var cl = isChecked ? (sel.can_logs    !== undefined ? sel.can_logs    : 1) : 1;
+    var kl = isChecked ? (sel.key_limit   || 0) : 0;
+    
+    return '<div class="app-perm-row'+(isChecked?'':' disabled')+'" id="apr-'+containerId+'-'+aid+'">'
+      + '<div>'
+        + '<div style="display:flex;align-items:center;gap:8px;">'
+          + '<strong style="font-size:13px;color:var(--text);">'+esc(a.name)+'</strong>'
+          + (a.version ? '<span class="badge badge-yellow" style="font-size:9px;">v'+esc(a.version)+'</span>' : '')
+        + '</div>'
+        + '<div class="perm-checks" id="perms-'+containerId+'-'+aid+'" style="'+(isChecked?'':'display:none;')+'">'
+          + (a.can_genkeys ? '<label class="perm-check-item"><input type="checkbox" id="perm-genkeys-'+containerId+'-'+aid+'" '+(ck?'checked':'')+'> Generar Keys</label>' : '')
+          + (a.can_users   ? '<label class="perm-check-item"><input type="checkbox" id="perm-users-'+containerId+'-'+aid+'"   '+(cu?'checked':'')+'> Ver Usuarios</label>' : '')
+          + (a.can_logs    ? '<label class="perm-check-item"><input type="checkbox" id="perm-logs-'+containerId+'-'+aid+'"    '+(cl?'checked':'')+'> Ver Logs</label>' : '')
+          + (a.key_limit > 0 ? '<div class="key-limit-wrap">Limite de keys: <input type="number" id="keylimit-'+containerId+'-'+aid+'" class="key-limit-inp" value="'+kl+'" min="0" max="'+(a.key_limit - (a.keys_used||0))+'" placeholder="0"> <span style="font-size:10px;">(max '+(a.key_limit - (a.keys_used||0))+')</span></div>' : '<div class="key-limit-wrap">Limite de keys: <input type="number" id="keylimit-'+containerId+'-'+aid+'" class="key-limit-inp" value="'+kl+'" min="0" placeholder="0=ilimitado"> <span style="font-size:10px;">(0=sin limite)</span></div>')
+        + '</div>'
+      + '</div>'
+      + '<button class="toggle-app-btn'+(isChecked?' active':'')+'" id="togglebtn-'+containerId+'-'+aid+'" onclick="toggleApp(\''+containerId+'\',\''+aid+'\')" title="'+(isChecked?'Quitar':'Asignar')+'">'
+        + (isChecked ? '&#10003;' : '+')
+      + '</button>'
+    + '</div>';
+  }).join('');
+}
+
+async function createSubPartner() {
+  var username     = document.getElementById('sp-username').value.trim();
+  var password     = document.getElementById('sp-password').value;
+  var display_name = document.getElementById('sp-display').value.trim();
+  if (!username || !password) { toast('Usuario y contrasena requeridos', 'error'); return; }
+  
+  var appPerms = getAppPerms('sp-apps-list');
+  var permsObj = {};
+  appPerms.forEach(function(a){ permsObj[a.id] = a; });
+  
+  var res = await apiFetch(API + '/owner/partners', {
+    method: 'POST',
+    body: { username, password, display_name, app_ids: appPerms.map(function(a){return a.id;}), permissions: permsObj }
+  });
+  if (res && res.success) {
+    toast('Sub-partner "'+username+'" creado', 'success');
+    closeModal('modal-create-subpartner');
+    document.getElementById('sp-username').value = '';
+    document.getElementById('sp-password').value = '';
+    document.getElementById('sp-display').value = '';
+    loadMySubPartners();
+  } else if (res) toast(res.message, 'error');
+}
+
+function openSubPartnerModal() {
+  if (userInfo && userInfo.apps) {
+    buildMyAppPerms('sp-apps-list', []);
+  }
+  openModal('modal-create-subpartner');
+}
 
 async function saveLimit(partnerId, field, value, inputEl) {
   var val = parseInt(value);

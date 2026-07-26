@@ -57,7 +57,6 @@
       <div class="tab-bar" id="tab-bar">
         <button class="tab-btn active" onclick="switchTab('tab-bots',this)">Mis Bots</button>
         <button class="tab-btn" id="tab-admin-btn" onclick="switchTab('tab-admin',this)" style="display:none;">Bot Principal (Admin)</button>
-        <button class="tab-btn" id="tab-owner-btn" onclick="switchTab('tab-owner',this)" style="display:none;">Mis Partners</button>
       </div>
 
       <!-- TAB: Bots de partner/owner -->
@@ -129,17 +128,6 @@
           </div>
         </div>
       </div>
-
-      <!-- TAB: Sub-partners (solo owner) -->
-      <div class="tab-pane" id="tab-owner">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div>
-            <div style="font-size:13px;color:var(--text2);">Partners que has creado: <span id="owner-count" style="color:var(--accent);font-weight:800;">—</span> / <span id="owner-max">—</span></div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('modal-create-subpartner')">+ Crear Sub-Partner</button>
-        </div>
-        <div id="owner-partners-list"><div class="empty-state"><div class="loader"></div></div></div>
-      </div>
     </div>
   </main>
 </div>
@@ -167,24 +155,6 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-add-bot')">Cancelar</button>
       <button class="btn btn-primary" onclick="addPartnerBot()">Conectar Bot</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Crear sub-partner (owner) -->
-<div class="modal-overlay" id="modal-create-subpartner">
-  <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto;">
-    <div class="modal-header"><div class="modal-title">Crear Sub-Partner</div><button class="modal-close" onclick="closeModal('modal-create-subpartner')">✕</button></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="sp-username" class="form-control" placeholder="username" /></div>
-      <div class="form-group"><label class="form-label">Contrasena *</label><input type="password" id="sp-password" class="form-control" placeholder="contrasena" /></div>
-    </div>
-    <div class="form-group"><label class="form-label">Nombre visible</label><input type="text" id="sp-display" class="form-control" placeholder="Mi Partner" /></div>
-    <div style="font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 8px;">Apps y permisos (solo las tuyas)</div>
-    <div id="sp-apps-list"><div class="empty-state" style="padding:10px;"><div class="loader"></div></div></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-create-subpartner')">Cancelar</button>
-      <button class="btn btn-primary" onclick="createSubPartner()">Crear</button>
     </div>
   </div>
 </div>
@@ -225,7 +195,8 @@ var notifyState = { login:true, register:true, ban:true, keygen:true };
 
     // Si es owner, mostrar tab de partners
     if (partnerRole === 'owner') {
-      document.getElementById('tab-owner-btn').style.display = '';
+      // Owner partners should go to partners.html for sub-partner management
+      // This section is now handled by partners.html
     }
 
     // Cargar apps disponibles para el selector del modal
@@ -235,7 +206,9 @@ var notifyState = { login:true, register:true, ban:true, keygen:true };
     }
 
     loadPartnerBots();
-    if (partnerRole === 'owner') loadOwnerPartners();
+    if (partnerRole === 'owner') {
+      // Sub-partner management moved to partners.html
+    }
 
   } else {
     // Admin: ver todo
@@ -339,107 +312,6 @@ async function deletePartnerBot(id, name) {
   confirmAction('Eliminar bot "' + name + '"?', async function() {
     var res = await apiFetch(API + '/discord/partner-bots/' + id, { method: 'DELETE' });
     if (res && res.success) { toast('Bot eliminado', 'success'); loadPartnerBots(); }
-    else if (res) toast(res.message, 'error');
-  });
-}
-
-// ─── OWNER: SUB-PARTNERS ─────────────────────────────────────────────────────
-async function loadOwnerPartners() {
-  var res = await apiFetch(API + '/owner/partners');
-  var el = document.getElementById('owner-partners-list');
-  if (!res || !res.success) { el.innerHTML = '<div class="empty-state"><p>Error cargando partners</p></div>'; return; }
-  document.getElementById('owner-count').textContent = res.used || 0;
-  document.getElementById('owner-max').textContent = res.max || 0;
-
-  // Construir selector de apps para el modal de sub-partner
-  if (myApps.length) buildSpApps();
-
-  if (!res.partners || !res.partners.length) {
-    el.innerHTML = '<div class="empty-state"><p>Sin sub-partners aun. Puedes crear hasta ' + (res.max||0) + '.</p></div>';
-    return;
-  }
-  el.innerHTML = res.partners.map(function(p) {
-    var appTags = p.apps && p.apps.length
-      ? p.apps.map(function(a){ return '<span style="font-size:10px;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:4px;margin:1px;">'+esc(a.name)+'</span>'; }).join(' ')
-      : '<span style="color:var(--text3);font-size:11px;">Sin apps</span>';
-    var statusBadge = p.active ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
-    return '<div class="bot-row">'
-      + '<div class="bot-row-info">'
-        + '<div class="bot-row-name">'+esc(p.display_name||p.username)+' '+statusBadge+'</div>'
-        + '<div class="bot-row-meta">@'+esc(p.username)+'</div>'
-        + '<div style="margin-top:4px;">'+appTags+'</div>'
-      + '</div>'
-      + '<div class="bot-row-actions">'
-        + '<button class="btn btn-danger btn-sm" onclick="deleteSubPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>'
-      + '</div>'
-    + '</div>';
-  }).join('');
-}
-
-function buildSpApps() {
-  var el = document.getElementById('sp-apps-list');
-  if (!myApps.length) { el.innerHTML = '<p style="font-size:12px;color:var(--text3);">Sin apps disponibles.</p>'; return; }
-  el.innerHTML = myApps.map(function(a) {
-    var aid = a.id || a.app_id;
-    return '<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;">'
-      + '<div style="display:flex;align-items:center;gap:8px;">'
-        + '<input type="checkbox" id="spchk-'+aid+'" value="'+aid+'" style="accent-color:var(--accent);width:14px;height:14px;" onchange="toggleSpPerms(\''+aid+'\')"/>'
-        + '<strong style="font-size:13px;">'+esc(a.name)+'</strong>'
-      + '</div>'
-      + '<div id="sp-perms-'+aid+'" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">'
-        + '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--text2);">'
-          + (a.can_genkeys ? '<label style="cursor:pointer;"><input type="checkbox" id="sp-gk-'+aid+'" checked> Generar Keys</label>' : '')
-          + (a.can_users   ? '<label style="cursor:pointer;"><input type="checkbox" id="sp-cu-'+aid+'" checked> Ver Usuarios</label>' : '')
-          + (a.can_logs    ? '<label style="cursor:pointer;"><input type="checkbox" id="sp-cl-'+aid+'" checked> Ver Logs</label>' : '')
-        + '</div>'
-        + (a.key_limit > 0
-          ? '<div style="margin-top:6px;font-size:11px;color:var(--text3);">Limite de keys: <input type="number" id="sp-kl-'+aid+'" style="width:60px;padding:2px 5px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;" value="0" min="0" max="'+(a.key_limit - (a.keys_used||0))+'"> <span style="font-size:9px;">(max '+(a.key_limit - (a.keys_used||0))+')</span></div>'
-          : '')
-      + '</div>'
-    + '</div>';
-  }).join('');
-}
-
-function toggleSpPerms(appId) {
-  var chk = document.getElementById('spchk-'+appId);
-  var el = document.getElementById('sp-perms-'+appId);
-  if (el) el.style.display = chk.checked ? '' : 'none';
-}
-
-async function createSubPartner() {
-  var username = document.getElementById('sp-username').value.trim();
-  var password = document.getElementById('sp-password').value;
-  var display  = document.getElementById('sp-display').value.trim();
-  if (!username || !password) { toast('Usuario y contrasena requeridos', 'error'); return; }
-  var app_ids = []; var permissions = {};
-  myApps.forEach(function(a) {
-    var aid = a.id || a.app_id;
-    var chk = document.getElementById('spchk-'+aid);
-    if (chk && chk.checked) {
-      app_ids.push(aid);
-      permissions[aid] = {
-        can_genkeys: document.getElementById('sp-gk-'+aid) ? (document.getElementById('sp-gk-'+aid).checked ? 1 : 0) : 0,
-        can_users:   document.getElementById('sp-cu-'+aid) ? (document.getElementById('sp-cu-'+aid).checked ? 1 : 0) : 0,
-        can_logs:    document.getElementById('sp-cl-'+aid) ? (document.getElementById('sp-cl-'+aid).checked ? 1 : 0) : 0,
-        key_limit:   document.getElementById('sp-kl-'+aid) ? parseInt(document.getElementById('sp-kl-'+aid).value)||0 : 0,
-      };
-    }
-  });
-  var res = await apiFetch(API + '/owner/partners', { method:'POST', body:{ username, password, display_name:display, app_ids, permissions } });
-  if (res && res.success) {
-    toast(res.message, 'success');
-    closeModal('modal-create-subpartner');
-    document.getElementById('sp-username').value = '';
-    document.getElementById('sp-password').value = '';
-    document.getElementById('sp-display').value = '';
-    loadOwnerPartners();
-  } else if (res) toast(res.message, 'error');
-}
-
-async function deleteSubPartner(id, name) {
-  confirmAction('Eliminar sub-partner "'+name+'"?', async function() {
-    var res = await apiFetch(API + '/owner/partners/' + id, { method:'DELETE' });
-    if (res && res.success) { toast('Eliminado', 'success'); loadOwnerPartners(); }
     else if (res) toast(res.message, 'error');
   });
 }
