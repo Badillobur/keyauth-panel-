@@ -319,32 +319,68 @@ async function handleCommands(interaction) {
 
 // ─── Iniciar bot ──────────────────────────────────────────────────────────────
 async function startBot(token, guildId) {
+  // Limpiar bot anterior
   if (botClient) {
     try { botClient.destroy(); } catch(_){}
-    botClient=null; botReady=false;
-    if (statsInterval) clearInterval(statsInterval);
-    if (rpcInterval) clearInterval(rpcInterval);
+    botClient = null; botReady = false;
+    if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+    if (rpcInterval)   { clearInterval(rpcInterval);   rpcInterval = null; }
   }
-  botClient = new Client({ intents:[GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+
+  // Validar token básico antes de intentar conectar
+  if (!token || token.length < 20) {
+    return { ok: false, error: 'Token muy corto o invalido' };
+  }
+
+  botClient = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
+  });
+
   return new Promise(function(resolve) {
-    const timeout = setTimeout(function(){ resolve({ok:false,error:'Timeout — token invalido'}); }, 15000);
+    // 45 segundos de timeout — suficiente para Render al despertar
+    const timeout = setTimeout(function() {
+      console.log('[Discord] Timeout al conectar bot');
+      resolve({ ok: false, error: 'Timeout de conexion (45s). Verifica que el token sea correcto y que el bot no este en otro proceso.' });
+    }, 45000);
+
     botClient.once('ready', async function() {
       clearTimeout(timeout);
       botReady = true;
       console.log('[Discord] Bot conectado como', botClient.user.tag);
-      if (guildId) { try { await registerCommands(token,guildId); } catch(e){ console.log('[Discord] Error commands:',e.message); } }
-      // RPC rotativo cada 3 segundos
+
+      // Registrar slash commands
+      if (guildId) {
+        try { await registerCommands(token, guildId); }
+        catch(e) { console.log('[Discord] Error commands:', e.message); }
+      }
+
+      // RPC rotativo cada 3s
       rpcIndex = 0;
       await rotateRPC();
       rpcInterval = setInterval(rotateRPC, 3000);
-      // Canales stats cada 5 minutos (Discord rate-limit en renombrar)
+
+      // Canales stats cada 5 min
       statsInterval = setInterval(updateStatsChannels, 300000);
       setTimeout(updateStatsChannels, 5000);
-      resolve({ok:true, tag:botClient.user.tag});
+
+      resolve({ ok: true, tag: botClient.user.tag });
     });
+
     botClient.on('interactionCreate', handleCommands);
-    botClient.on('error', function(e){ console.log('[Discord] Error:', e.message); });
-    botClient.login(token).catch(function(e){ clearTimeout(timeout); resolve({ok:false,error:e.message}); });
+
+    botClient.on('error', function(e) {
+      console.log('[Discord] Error:', e.message);
+    });
+
+    // Intentar login
+    botClient.login(token).catch(function(e) {
+      clearTimeout(timeout);
+      let errorMsg = e.message;
+      if (e.message.includes('TOKEN_INVALID') || e.message.includes('401')) {
+        errorMsg = 'Token invalido — verifica que copiaste el token completo desde Discord Developer Portal';
+      }
+      resolve({ ok: false, error: errorMsg });
+    });
   });
 }
 

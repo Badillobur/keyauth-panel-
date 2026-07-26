@@ -90,10 +90,7 @@
             <div class="section-title">Token y Servidor</div>
             <div class="form-group">
               <label class="form-label">Bot Token</label>
-              <div style="display:flex;gap:8px;">
-                <input type="password" id="bot-token" class="form-control" placeholder="Pega tu token aquí..." style="flex:1;" />
-                <button class="btn btn-secondary btn-sm" onclick="toggleToken()" id="token-eye">👁</button>
-              </div>
+              <textarea id="bot-token" class="form-control" placeholder="Pega tu token completo aqui (no se trunca)..." rows="2" style="resize:none;font-family:monospace;font-size:11px;line-height:1.5;"></textarea>
               <div style="font-size:10px;color:var(--text3);margin-top:4px;" id="token-preview"></div>
             </div>
             <div class="form-group">
@@ -284,7 +281,9 @@ async function loadStatus() {
 }
 
 async function saveConfig() {
-  const token = document.getElementById('bot-token').value.trim();
+  // Limpiar token: quitar espacios, saltos de linea y caracteres invisibles
+  const rawToken = document.getElementById('bot-token').value;
+  const token = rawToken.replace(/[\s\n\r\t]/g, '').trim();
   const body = {
     guild_id:           document.getElementById('guild-id').value.trim(),
     log_channel_id:     document.getElementById('log-channel').value.trim(),
@@ -329,10 +328,7 @@ async function sendAnnouncement() {
 }
 
 function toggleToken() {
-  const input = document.getElementById('bot-token');
-  tokenVisible = !tokenVisible;
-  input.type = tokenVisible ? 'text' : 'password';
-  document.getElementById('token-eye').textContent = tokenVisible ? '🙈' : '👁';
+  // No aplica con textarea
 }
 
 function toggleNotify(type) {

@@ -68,9 +68,17 @@ router.get('/me', requireAdmin, function(req, res) {
   res.json({ success: true, admin: req.admin });
 });
 
+// ─── Middleware: solo admin, NO partners ──────────────────────────────────────
+function adminOnly(req, res, next) {
+  if (req.admin && req.admin.role === 'partner') {
+    return res.status(403).json({ success: false, message: 'Acceso denegado — solo el administrador puede hacer esto' });
+  }
+  next();
+}
+
 // ─── STATS ────────────────────────────────────────────────────────────────────
 
-router.get('/stats', requireAdmin, async function(req, res) {
+router.get('/stats', requireAdmin, adminOnly, async function(req, res) {
   try {
     const now = Math.floor(Date.now() / 1000);
     const totalApps    = ((await db.get('SELECT COUNT(*) as c FROM apps')) || {}).c || 0;
@@ -98,7 +106,8 @@ router.get('/apps', requireAdmin, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-router.post('/apps', requireAdmin, async function(req, res) {
+// Crear app — SOLO ADMIN
+router.post('/apps', requireAdmin, adminOnly, async function(req, res) {
   try {
     const { name, version } = req.body;
     if (!name) return res.json({ success: false, message: 'Nombre requerido' });
@@ -113,7 +122,7 @@ router.post('/apps', requireAdmin, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-router.put('/apps/:id', requireAdmin, async function(req, res) {
+router.put('/apps/:id', requireAdmin, adminOnly, async function(req, res) {
   try {
     const app = await db.get('SELECT * FROM apps WHERE id=?', [req.params.id]);
     if (!app) return res.json({ success: false, message: 'App no encontrada' });
@@ -126,7 +135,7 @@ router.put('/apps/:id', requireAdmin, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-router.delete('/apps/:id', requireAdmin, async function(req, res) {
+router.delete('/apps/:id', requireAdmin, adminOnly, async function(req, res) {
   try {
     await db.run('DELETE FROM apps WHERE id=?', [req.params.id]);
     res.json({ success: true, message: 'App eliminada' });
@@ -361,8 +370,8 @@ router.post('/partners/:id/limits/:appId/reset', requireAdmin, async function(re
   } catch(e) { res.json({ success: false, message: e.message }); }
 });
 
-// Listar partners
-router.get('/partners', requireAdmin, async function(req, res) {
+// Listar partners — SOLO ADMIN
+router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
   try {
     const partners = await db.all('SELECT * FROM partners ORDER BY created_at DESC');
     const result = [];
@@ -377,8 +386,8 @@ router.get('/partners', requireAdmin, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// Crear partner
-router.post('/partners', requireAdmin, async function(req, res) {
+// Crear partner — SOLO ADMIN
+router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
   try {
     const { username, password, display_name, email, app_ids } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contraseña requeridos' });
@@ -399,8 +408,8 @@ router.post('/partners', requireAdmin, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// Actualizar partner
-router.put('/partners/:id', requireAdmin, async function(req, res) {
+// Actualizar partner — SOLO ADMIN
+router.put('/partners/:id', requireAdmin, adminOnly, async function(req, res) {
   try {
     const { display_name, email, active, password, app_ids, permissions } = req.body;
     const p = await db.get('SELECT * FROM partners WHERE id=?', [req.params.id]);
@@ -424,8 +433,8 @@ router.put('/partners/:id', requireAdmin, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// Eliminar partner
-router.delete('/partners/:id', requireAdmin, async function(req, res) {
+// Eliminar partner — SOLO ADMIN
+router.delete('/partners/:id', requireAdmin, adminOnly, async function(req, res) {
   try {
     await db.run('DELETE FROM partners WHERE id=?', [req.params.id]);
     res.json({ success: true, message: 'Partner eliminado' });

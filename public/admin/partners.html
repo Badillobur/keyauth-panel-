@@ -2,20 +2,37 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="/admin/lmax27.png" type="image/png" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/admin/lmax27.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LMAx27 — Partners</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    .partner-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; margin-bottom:12px; transition:all var(--transition); }
-    .partner-card:hover { border-color:rgba(245,197,24,0.3); }
-    .partner-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .partner-name { font-size:15px; font-weight:800; color:var(--accent); }
-    .partner-user { font-size:11px; color:var(--text3); font-family:monospace; }
-    .app-tag { display:inline-flex; align-items:center; gap:4px; background:var(--accent-dim); border:1px solid rgba(245,197,24,0.2); border-radius:20px; padding:2px 10px; font-size:11px; color:var(--accent); font-weight:600; margin:2px; }
-    .perm-badge { font-size:9px; background:rgba(34,197,94,0.1); color:var(--green); border-radius:3px; padding:1px 5px; margin-left:4px; }
-    .app-check { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:6px; }
-    .app-check label { flex:1; font-size:13px; color:var(--text2); cursor:pointer; }
-    .app-check input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; }
+    .partner-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:12px; transition:all var(--transition); }
+    .partner-card:hover { border-color:rgba(245,197,24,0.25); }
+    .partner-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .partner-name { font-size:16px; font-weight:800; color:var(--accent); }
+    .partner-user { font-size:11px; color:var(--text3); font-family:monospace; margin-top:2px; }
+
+    .perms-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:8px; margin-top:12px; }
+    .perm-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); }
+    .perm-label { font-size:12px; color:var(--text2); display:flex; align-items:center; gap:8px; }
+    .perm-icon { color:var(--accent); }
+
+    .toggle-sw { width:36px; height:20px; background:var(--bg4); border:1px solid var(--border); border-radius:10px; position:relative; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+    .toggle-sw::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; background:var(--text3); border-radius:50%; transition:all 0.2s; }
+    .toggle-sw.on { background:var(--accent-dim); border-color:var(--accent); }
+    .toggle-sw.on::after { left:18px; background:var(--accent); box-shadow:0 0 6px rgba(245,197,24,0.5); }
+
+    .app-assign { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:6px; }
+    .app-assign label { flex:1; font-size:13px; color:var(--text2); cursor:pointer; }
+    .app-assign input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; }
+
+    .key-limit-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .key-limit-row label { font-size:11px; color:var(--text3); white-space:nowrap; }
+    .key-limit-row input { width:80px; padding:4px 8px; background:var(--bg4); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; outline:none; }
+    .key-limit-row input:focus { border-color:var(--accent); }
+
+    .section-label { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.8px; margin:14px 0 8px; }
   </style>
 </head>
 <body>
@@ -24,72 +41,79 @@
   <div id="sidebar-container"></div>
   <main class="main">
     <div class="topbar">
-      <div><div class="topbar-title">🤝 Partners</div><div class="topbar-sub">Gestiona accesos limitados para otras personas</div></div>
+      <div>
+        <div class="topbar-title">Partners</div>
+        <div class="topbar-sub">Control de acceso y permisos por partner</div>
+      </div>
       <div class="topbar-actions">
-        <button class="btn btn-primary" onclick="openModal('modal-create')">+ Nuevo Partner</button>
+        <button class="btn btn-primary" onclick="openModal('modal-create')">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+          Nuevo Partner
+        </button>
       </div>
     </div>
-    <div class="content">
 
-      <div class="card" style="background:rgba(245,197,24,0.04);border-color:rgba(245,197,24,0.15);margin-bottom:16px;">
-        <div style="font-size:12px;color:var(--text2);">
-          ⚡ <strong style="color:var(--accent);">¿Qué son los Partners?</strong>
-          Son usuarios con acceso limitado al panel. Solo pueden ver y gestionar las apps que tú les asignes.
-          No tienen acceso a configuración, Discord bot ni al resto del sistema.
+    <div class="content">
+      <div class="card" style="background:rgba(245,197,24,0.04);border-color:rgba(245,197,24,0.12);margin-bottom:18px;">
+        <div style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 4.5v4c0 3.5 2.5 6.7 6 7.5 3.5-.8 6-4 6-7.5v-4L8 1.5z" stroke="#f5c518" stroke-width="1.2" stroke-linejoin="round"/><path d="M5.5 8l2 2 3.5-3.5" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><strong style="color:var(--accent);">Partners</strong> tienen acceso limitado. Solo ven las apps que les asignes y solo pueden hacer lo que les permitas.</span>
         </div>
       </div>
-
-      <div id="partners-list">
-        <div class="empty-state"><div class="loader"></div></div>
-      </div>
+      <div id="partners-list"><div class="empty-state"><div class="loader"></div></div></div>
     </div>
   </main>
 </div>
 
-<!-- Modal Crear Partner -->
+<!-- Modal Crear -->
 <div class="modal-overlay" id="modal-create">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-header"><div class="modal-title">🤝 Nuevo Partner</div><button class="modal-close" onclick="closeModal('modal-create')">✕</button></div>
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header"><div class="modal-title">Nuevo Partner</div><button class="modal-close" onclick="closeModal('modal-create')">✕</button></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="new-username" class="form-control" placeholder="username" /></div>
       <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="new-password" class="form-control" placeholder="contraseña" /></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Nombre a mostrar</label><input type="text" id="new-display" class="form-control" placeholder="Mi Partner" /></div>
-      <div class="form-group"><label class="form-label">Email (opcional)</label><input type="email" id="new-email" class="form-control" placeholder="email@ejemplo.com" /></div>
+      <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="new-display" class="form-control" placeholder="Mi Partner" /></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="new-email" class="form-control" placeholder="email@ejemplo.com" /></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Apps que puede ver</label>
-      <div id="new-apps-list"><div class="empty-state" style="padding:16px;"><div class="loader"></div></div></div>
+
+    <div class="section-label">Apps que puede ver y sus permisos</div>
+    <div id="new-apps-list"><div class="empty-state" style="padding:12px;"><div class="loader"></div></div></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createPartner()">Crear Partner</button>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button><button class="btn btn-primary" onclick="createPartner()">Crear Partner</button></div>
   </div>
 </div>
 
-<!-- Modal Editar Partner -->
+<!-- Modal Editar -->
 <div class="modal-overlay" id="modal-edit">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-header"><div class="modal-title">✏️ Editar Partner</div><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header"><div class="modal-title">Editar Partner</div><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
     <input type="hidden" id="edit-id" />
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Usuario</label><input type="text" id="edit-username" class="form-control" readonly style="opacity:0.6;" /></div>
-      <div class="form-group"><label class="form-label">Nueva Contraseña (dejar vacío = no cambiar)</label><input type="password" id="edit-password" class="form-control" placeholder="••••••••" /></div>
+      <div class="form-group"><label class="form-label">Usuario</label><input type="text" id="edit-username" class="form-control" readonly style="opacity:0.5;" /></div>
+      <div class="form-group"><label class="form-label">Nueva Contraseña</label><input type="password" id="edit-password" class="form-control" placeholder="dejar vacío = no cambiar" /></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Nombre a mostrar</label><input type="text" id="edit-display" class="form-control" /></div>
+      <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="edit-display" class="form-control" /></div>
       <div class="form-group"><label class="form-label">Estado</label><select id="edit-active" class="form-control"><option value="1">Activo</option><option value="0">Desactivado</option></select></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Apps asignadas</label>
-      <div id="edit-apps-list"></div>
+
+    <div class="section-label">Apps asignadas y permisos</div>
+    <div id="edit-apps-list"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Guardar Cambios</button>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button><button class="btn btn-primary" onclick="saveEdit()">Guardar</button></div>
   </div>
 </div>
 
 <div id="toast-container"></div>
 <script src="/admin/js/app.js"></script>
-<script src="/admin/js/icons.js"></script>
 <script src="/admin/js/sidebar.js"></script>
 <script>
 var allApps = [];
@@ -100,52 +124,106 @@ var allApps = [];
   const ar = await apiFetch(API + '/apps');
   if (ar && ar.success) allApps = ar.apps;
   loadPartners();
-  buildAppCheckboxes('new-apps-list', []);
+  buildAppPerms('new-apps-list', []);
 })();
 
 async function loadPartners() {
   const res = await apiFetch(API + '/partners');
   const el = document.getElementById('partners-list');
   if (!res || !res.success || !res.partners.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🤝</div><p>No hay partners. Crea el primero!</p></div>';
+    el.innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="margin:0 auto 10px;display:block;"><circle cx="14" cy="12" r="6" stroke="#333" stroke-width="2"/><circle cx="26" cy="12" r="6" stroke="#333" stroke-width="2"/><path d="M2 36c0-6.6 5.4-10.5 12-10.5M38 36c0-6.6-5.4-10.5-12-10.5M20 25.5c6.6 0 12 3.9 12 10.5H8c0-6.6 5.4-10.5 12-10.5z" stroke="#333" stroke-width="2"/></svg><p>No hay partners aun</p></div>';
     return;
   }
   el.innerHTML = res.partners.map(function(p) {
+    const statusBadge = p.active
+      ? '<span class="badge badge-green">Activo</span>'
+      : '<span class="badge badge-red">Inactivo</span>';
     const appTags = p.apps.length
-      ? p.apps.map(function(a) { return '<span class="app-tag">📦 '+esc(a.name)+'</span>'; }).join('')
+      ? p.apps.map(function(a) {
+          const perms = [];
+          if (a.can_genkeys) perms.push('Generar Keys');
+          if (a.can_users)   perms.push('Ver Usuarios');
+          if (a.can_logs)    perms.push('Ver Logs');
+          const limit = a.key_limit > 0 ? ' (max '+a.key_limit+' keys)' : '';
+          return '<div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid rgba(245,197,24,0.2);border-radius:6px;padding:3px 10px;margin:2px;font-size:11px;color:var(--accent);">' +
+            '<strong>' + esc(a.name) + '</strong>' + limit +
+            (perms.length ? '<span style="color:var(--text3);font-size:10px;">· '+perms.join(', ')+'</span>' : '') +
+          '</div>';
+        }).join('')
       : '<span style="color:var(--text3);font-size:11px;">Sin apps asignadas</span>';
-    const statusBadge = p.active ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
     return '<div class="partner-card">' +
       '<div class="partner-head">' +
-        '<div>' +
-          '<div class="partner-name">' + esc(p.display_name||p.username) + ' ' + statusBadge + '</div>' +
-          '<div class="partner-user">@' + esc(p.username) + ' · ' + (p.last_login?'ultimo login '+relTime(p.last_login):'nunca entro') + '</div>' +
-        '</div>' +
+        '<div><div class="partner-name">' + esc(p.display_name||p.username) + ' ' + statusBadge + '</div>' +
+        '<div class="partner-user">@' + esc(p.username) + ' · ' + (p.last_login ? 'ultimo login '+relTime(p.last_login) : 'nunca entro') + '</div></div>' +
         '<div style="display:flex;gap:6px;">' +
-          '<button class="btn btn-secondary btn-sm" onclick="editPartner(\''+p.id+'\')">✏️ Editar</button>' +
-          '<button class="btn btn-danger btn-sm" onclick="deletePartner(\''+p.id+'\',\''+esc(p.username)+'\')">🗑️</button>' +
+          '<button class="btn btn-secondary btn-sm" onclick="editPartner(\''+p.id+'\')">Editar</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="delPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>' +
         '</div>' +
       '</div>' +
-      '<div style="margin-top:8px;">' + appTags + '</div>' +
+      '<div>' + appTags + '</div>' +
     '</div>';
   }).join('');
 }
 
-function buildAppCheckboxes(containerId, selectedIds) {
+// Construir lista de apps con checkboxes y permisos granulares
+function buildAppPerms(containerId, selectedApps) {
   const el = document.getElementById(containerId);
-  if (!allApps.length) { el.innerHTML = '<p style="color:var(--text3);font-size:12px;">Sin apps disponibles. Crea apps primero.</p>'; return; }
+  if (!allApps.length) { el.innerHTML = '<p style="color:var(--text3);font-size:12px;padding:8px;">Sin apps disponibles.</p>'; return; }
   el.innerHTML = allApps.map(function(a) {
-    const checked = selectedIds.includes(a.id) ? 'checked' : '';
-    return '<div class="app-check">' +
-      '<input type="checkbox" id="appchk-'+containerId+'-'+a.id+'" value="'+a.id+'" '+checked+' />' +
-      '<label for="appchk-'+containerId+'-'+a.id+'">📦 ' + esc(a.name) + ' <span style="color:var(--text3);font-size:10px;">v'+esc(a.version)+'</span></label>' +
+    const sel = selectedApps.find(function(s) { return s.id === a.id; }) || {};
+    const checked = sel.id ? 'checked' : '';
+    const ck = sel.can_genkeys !== undefined ? sel.can_genkeys : 1;
+    const cu = sel.can_users !== undefined ? sel.can_users : 1;
+    const cl = sel.can_logs !== undefined ? sel.can_logs : 1;
+    const kl = sel.key_limit || 0;
+    return '<div class="app-assign" style="flex-direction:column;align-items:flex-start;">' +
+      '<div style="display:flex;align-items:center;gap:10px;width:100%;">' +
+        '<input type="checkbox" id="chk-'+containerId+'-'+a.id+'" value="'+a.id+'" '+checked+' onchange="toggleAppPerms(\''+containerId+'\',\''+a.id+'\')" />' +
+        '<label for="chk-'+containerId+'-'+a.id+'" style="font-weight:700;color:var(--text);">'+esc(a.name)+'</label>' +
+        '<span style="font-size:10px;color:var(--text3);">v'+esc(a.version)+'</span>' +
+      '</div>' +
+      '<div id="perms-'+containerId+'-'+a.id+'" style="margin-top:8px;padding-left:26px;width:100%;'+(checked?'':'display:none;')+'">' +
+        '<div class="perms-grid">' +
+          '<div class="perm-item"><div class="perm-label">Generar Keys</div><div class="toggle-sw '+(ck?'on':'')+'" id="perm-genkeys-'+containerId+'-'+a.id+'" onclick="togglePerm(this)"></div></div>' +
+          '<div class="perm-item"><div class="perm-label">Ver Usuarios</div><div class="toggle-sw '+(cu?'on':'')+'" id="perm-users-'+containerId+'-'+a.id+'" onclick="togglePerm(this)"></div></div>' +
+          '<div class="perm-item"><div class="perm-label">Ver Logs</div><div class="toggle-sw '+(cl?'on':'')+'" id="perm-logs-'+containerId+'-'+a.id+'" onclick="togglePerm(this)"></div></div>' +
+        '</div>' +
+        '<div class="key-limit-row">' +
+          '<label>Limite de keys (0 = sin limite):</label>' +
+          '<input type="number" id="keylimit-'+containerId+'-'+a.id+'" value="'+kl+'" min="0" />' +
+        '</div>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
 
-function getCheckedApps(containerId) {
-  const checks = document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked');
-  return Array.from(checks).map(function(c) { return c.value; });
+function toggleAppPerms(containerId, appId) {
+  const chk = document.getElementById('chk-'+containerId+'-'+appId);
+  const perms = document.getElementById('perms-'+containerId+'-'+appId);
+  if (perms) perms.style.display = chk.checked ? '' : 'none';
+}
+
+function togglePerm(el) { el.classList.toggle('on'); }
+
+function getAppPerms(containerId) {
+  const result = [];
+  allApps.forEach(function(a) {
+    const chk = document.getElementById('chk-'+containerId+'-'+a.id);
+    if (chk && chk.checked) {
+      const gk = document.getElementById('perm-genkeys-'+containerId+'-'+a.id);
+      const cu = document.getElementById('perm-users-'+containerId+'-'+a.id);
+      const cl = document.getElementById('perm-logs-'+containerId+'-'+a.id);
+      const kl = document.getElementById('keylimit-'+containerId+'-'+a.id);
+      result.push({
+        id: a.id,
+        can_genkeys: gk && gk.classList.contains('on') ? 1 : 0,
+        can_users:   cu && cu.classList.contains('on') ? 1 : 0,
+        can_logs:    cl && cl.classList.contains('on') ? 1 : 0,
+        key_limit:   kl ? parseInt(kl.value) || 0 : 0
+      });
+    }
+  });
+  return result;
 }
 
 async function createPartner() {
@@ -153,18 +231,18 @@ async function createPartner() {
   const password = document.getElementById('new-password').value;
   const display_name = document.getElementById('new-display').value.trim();
   const email = document.getElementById('new-email').value.trim();
-  const app_ids = getCheckedApps('new-apps-list');
   if (!username || !password) { toast('Usuario y contraseña requeridos', 'error'); return; }
-  const res = await apiFetch(API + '/partners', { method: 'POST', body: { username, password, display_name, email, app_ids } });
+  const appPerms = getAppPerms('new-apps-list');
+  const res = await apiFetch(API + '/partners', { method:'POST', body:{ username, password, display_name, email, app_ids: appPerms.map(function(a){return a.id;}), permissions: Object.fromEntries(appPerms.map(function(a){return [a.id,a];})) }});
   if (res && res.success) {
-    toast('Partner "' + username + '" creado!', 'success');
+    toast('Partner "'+username+'" creado!', 'success');
     closeModal('modal-create');
+    loadPartners();
+    buildAppPerms('new-apps-list', []);
     document.getElementById('new-username').value = '';
     document.getElementById('new-password').value = '';
     document.getElementById('new-display').value = '';
     document.getElementById('new-email').value = '';
-    buildAppCheckboxes('new-apps-list', []);
-    loadPartners();
   } else if (res) toast(res.message, 'error');
 }
 
@@ -172,16 +250,15 @@ var editData = null;
 async function editPartner(id) {
   const res = await apiFetch(API + '/partners');
   if (!res || !res.success) return;
-  const p = res.partners.find(function(x) { return x.id === id; });
+  const p = res.partners.find(function(x){return x.id===id;});
   if (!p) return;
   editData = p;
   document.getElementById('edit-id').value = p.id;
   document.getElementById('edit-username').value = p.username;
-  document.getElementById('edit-display').value = p.display_name || '';
+  document.getElementById('edit-display').value = p.display_name||'';
   document.getElementById('edit-active').value = p.active;
   document.getElementById('edit-password').value = '';
-  const selectedIds = p.apps.map(function(a) { return a.id; });
-  buildAppCheckboxes('edit-apps-list', selectedIds);
+  buildAppPerms('edit-apps-list', p.apps || []);
   openModal('modal-edit');
 }
 
@@ -190,20 +267,17 @@ async function saveEdit() {
   const display_name = document.getElementById('edit-display').value.trim();
   const active = parseInt(document.getElementById('edit-active').value);
   const password = document.getElementById('edit-password').value;
-  const app_ids = getCheckedApps('edit-apps-list');
-  const body = { display_name, active, app_ids };
+  const appPerms = getAppPerms('edit-apps-list');
+  const body = { display_name, active, app_ids: appPerms.map(function(a){return a.id;}), permissions: Object.fromEntries(appPerms.map(function(a){return [a.id,a];})) };
   if (password) body.password = password;
-  const res = await apiFetch(API + '/partners/' + id, { method: 'PUT', body });
-  if (res && res.success) {
-    toast('Partner actualizado', 'success');
-    closeModal('modal-edit');
-    loadPartners();
-  } else if (res) toast(res.message, 'error');
+  const res = await apiFetch(API + '/partners/' + id, { method:'PUT', body });
+  if (res && res.success) { toast('Partner actualizado', 'success'); closeModal('modal-edit'); loadPartners(); }
+  else if (res) toast(res.message, 'error');
 }
 
-async function deletePartner(id, name) {
-  confirmAction('¿Eliminar al partner "' + name + '"? Perdera acceso al panel.', async function() {
-    const res = await apiFetch(API + '/partners/' + id, { method: 'DELETE' });
+async function delPartner(id, name) {
+  confirmAction('¿Eliminar al partner "'+name+'"?', async function() {
+    const res = await apiFetch(API + '/partners/'+id, { method:'DELETE' });
     if (res && res.success) { toast('Partner eliminado', 'success'); loadPartners(); }
   });
 }
