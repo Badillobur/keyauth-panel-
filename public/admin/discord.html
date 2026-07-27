@@ -274,14 +274,35 @@
           return '<option value="' + app.id + '">' + esc(app.name) + '</option>';
         }).join('');
         
-        managerSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
-        freeSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
+        if (managerSelect) managerSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
+        if (freeSelect) freeSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
       }
     }
 
     function loadBots() {
+      // Load from localStorage if available
+      var savedManagerBots = localStorage.getItem('manager_bots');
+      var savedFreeBotState = localStorage.getItem('free_bot_active');
+      
+      if (savedManagerBots) {
+        try {
+          managerBots = JSON.parse(savedManagerBots);
+        } catch(e) {
+          managerBots = [];
+        }
+      }
+      
+      if (savedFreeBotState) {
+        freeBotActive = savedFreeBotState === 'true';
+      }
+      
       renderManagerBots();
       renderFreeBotStats();
+    }
+
+    function saveBots() {
+      localStorage.setItem('manager_bots', JSON.stringify(managerBots));
+      localStorage.setItem('free_bot_active', freeBotActive.toString());
     }
 
     function renderManagerBots() {
@@ -336,6 +357,8 @@
       var name = document.getElementById('manager-bot-name').value.trim();
       var appId = document.getElementById('manager-app-select').value;
       var guildId = document.getElementById('manager-guild-id').value.trim();
+      var commandChannel = document.getElementById('manager-command-channel').value.trim();
+      var logChannel = document.getElementById('manager-log-channel').value.trim();
       var token = document.getElementById('manager-bot-token').value.trim();
       
       if (!name || !appId || !guildId || !token) {
@@ -344,21 +367,24 @@
       }
       
       // No hay límites para admin - acceso ilimitado
-      toast('Bot premium creado exitosamente', 'success');
-      
-      // Agregar bot a la lista (simulación)
       var app = apps.find(function(a) { return a.id === appId; });
       var newBot = {
         id: 'bot' + Date.now(),
         name: name,
         app: app ? app.name : 'Unknown',
+        appId: appId,
         status: 'online',
         guild: guildId,
+        commandChannel: commandChannel,
+        logChannel: logChannel,
         createdAt: new Date().toISOString().split('T')[0]
       };
       
       managerBots.push(newBot);
+      saveBots(); // Guardar en localStorage
       renderManagerBots();
+      
+      toast('Bot premium creado exitosamente', 'success');
       
       // Limpiar formulario
       document.getElementById('manager-bot-name').value = '';
