@@ -98,6 +98,7 @@ app.get('/login',     function(req, res) { res.sendFile(require('path').join(__d
 app.get('/panel',     function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/index.html')); });
 app.get('/apps',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/apps.html')); });
 app.get('/keys',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/keys.html')); });
+app.get('/licenses',  function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/licenses.html')); });
 app.get('/users',     function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/users.html')); });
 app.get('/logs',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/logs.html')); });
 app.get('/vars',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/vars.html')); });
