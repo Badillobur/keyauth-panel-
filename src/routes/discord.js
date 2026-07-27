@@ -526,6 +526,30 @@ router.post('/send', requireAdmin, async function(req, res) {
 // Mapa de clientes de bot activos por partner_id
 var partnerBots = {};
 
+// ─── BOTS POR PARTNER ─────────────────────────────────────────────────────────
+// Sistema de permisos granular controlado por el admin
+// Admin controla EXACTAMENTE qué puede hacer cada partner/owner
+
+// Mapa de clientes de bot activos por partner_id
+var partnerBots = {};
+
+// Permisos por defecto (admin puede cambiar)
+const DEFAULT_PERMISSIONS = {
+  can_genkeys: true,      // Puede generar keys
+  can_view_users: true,   // Puede ver usuarios
+  can_ban_users: false,   // Puede banear (solo admin por defecto)
+  can_view_logs: false,   // Puede ver logs (solo admin)
+  can_reset_hwid: false,  // Puede resetear HWID (solo admin)
+  can_extend_sub: false,  // Puede extender suscripciones (solo admin)
+  max_keys_per_day: 50,   // Máximo keys por día
+  max_key_duration: 30    // Máximo días por key
+};
+
+async function getPartnerPermissions(partnerId, appId) {
+  const perms = await db.get('SELECT * FROM partner_permissions WHERE partner_id=? AND app_id=?', [partnerId, appId]);
+  return perms || DEFAULT_PERMISSIONS;
+}
+
 async function startPartnerBot(botId, token, guildId, appId, partnerId) {
   // Destruir si ya existe
   if (partnerBots[botId]) {
@@ -542,68 +566,245 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
       clearTimeout(timeout);
       partnerBots[botId] = { client, appId, partnerId, ready: true };
       console.log('[PartnerBot] Bot conectado:', client.user.tag, 'para partner', partnerId);
-      // Registrar comandos limitados para partner
+      
+      // Obtener permisos del partner
+      const perms = await getPartnerPermissions(partnerId, appId);
+      
+      // Registrar comandos basados en permisos
       if (guildId) {
         try {
           const cmds = [
             new SlashCommandBuilder().setName('ping').setDescription('Latencia del bot'),
-            new SlashCommandBuilder().setName('stats').setDescription('Stats de tu app'),
-            new SlashCommandBuilder().setName('keys').setDescription('Generar keys')
-              .addIntegerOption(function(o){return o.setName('cantidad').setDescription('Cuantas keys').setRequired(true).setMinValue(1).setMaxValue(50);})
-              .addIntegerOption(function(o){return o.setName('dias').setDescription('Dias (0=permanente)').setRequired(false).setMinValue(0);}),
-          ].map(function(c){return c.toJSON();});
+            new SlashCommandBuilder().setName('stats').setDescription('Stats de tu app')
+          ];
+          
+          // Solo agregar comandos si tiene permisos
+          if (perms.can_genkeys) {
+            cmds.push(
+              new SlashCommandBuilder().setName('keys').setDescription('Generar keys')
+                .addIntegerOption(function(o){return o.setName('cantidad').setDescription('Cuantas keys').setRequired(true).setMinValue(1).setMaxValue(Math.min(50, perms.max_keys_per_day));})
+                .addIntegerOption(function(o){return o.setName('dias').setDescription('Dias (0=permanente)').setRequired(false).setMinValue(0).setMaxValue(perms.max_key_duration);})
+            );
+          }
+          
+          if (perms.can_view_users) {
+            cmds.push(
+              new SlashCommandBuilder().setName('usuarios').setDescription('Ver usuarios de tu app')
+                .addStringOption(function(o){return o.setName('buscar').setDescription('Buscar usuario').setRequired(false);})
+            );
+          }
+          
+          if (perms.can_ban_users) {
+            cmds.push(
+              new SlashCommandBuilder().setName('ban').setDescription('Banear usuario')
+                .addStringOption(function(o){return o.setName('usuario').setDescription('Username').setRequired(true);})
+                .addStringOption(function(o){return o.setName('razon').setDescription('Razon del ban').setRequired(false);}),
+              new SlashCommandBuilder().setName('unban').setDescription('Desbanear usuario')
+                .addStringOption(function(o){return o.setName('usuario').setDescription('Username').setRequired(true);})
+            );
+          }
+          
+          if (perms.can_reset_hwid) {
+            cmds.push(
+              new SlashCommandBuilder().setName('reset-hwid').setDescription('Resetear HWID de usuario')
+                .addStringOption(function(o){return o.setName('usuario').setDescription('Username').setRequired(true);})
+            );
+          }
+          
+          if (perms.can_extend_sub) {
+            cmds.push(
+              new SlashCommandBuilder().setName('extender').setDescription('Extender suscripcion')
+                .addStringOption(function(o){return o.setName('usuario').setDescription('Username').setRequired(true);})
+                .addIntegerOption(function(o){return o.setName('dias').setDescription('Dias a agregar').setRequired(true).setMinValue(1).setMaxValue(365);})
+            );
+          }
+          
+          if (perms.can_view_logs) {
+            cmds.push(
+              new SlashCommandBuilder().setName('logs').setDescription('Ver logs de actividad')
+                .addIntegerOption(function(o){return o.setName('ultimos').setDescription('Ultimos N registros').setRequired(false).setMinValue(1).setMaxValue(20);})
+            );
+          }
+          
           const rest = new REST({version:'10'}).setToken(cleanToken);
-          await rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: cmds });
+          await rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: cmds.map(c => c.toJSON()) });
+          console.log('[PartnerBot]', cmds.length, 'comandos registrados con permisos para', partnerId);
         } catch(e) { console.log('[PartnerBot] Error registrando commands:', e.message); }
       }
-      // RPC simple
-      try { client.user.setPresence({ status: 'online', activities: [{ name: 'LMAx27 Panel', type: ActivityType.Watching }] }); } catch(_) {}
+      
+      // RPC dinámico basado en la app
+      const app = await db.get('SELECT name FROM apps WHERE id=?', [appId]);
+      const appName = app ? app.name : 'LMAx27';
+      try { 
+        client.user.setPresence({ 
+          status: 'online', 
+          activities: [{ name: `${appName} - Sistema de Auth`, type: ActivityType.Watching }] 
+        }); 
+      } catch(_) {}
 
+      // Manejador de comandos con verificación de permisos
       client.on('interactionCreate', async function(interaction) {
         if (!interaction.isChatInputCommand()) return;
         const cmd = interaction.commandName;
+        
         if (cmd === 'ping') return interaction.reply({ content: 'Pong! WS: **' + client.ws.ping + 'ms**', ephemeral: true });
+        
         await interaction.deferReply({ ephemeral: true });
+        
+        // Verificar permisos antes de cada comando
+        const perms = await getPartnerPermissions(partnerId, appId);
+        
         if (cmd === 'stats') {
           const now = Math.floor(Date.now()/1000);
-          const [users, keys, online] = await Promise.all([
+          const [users, keys, online, banned] = await Promise.all([
             db.get('SELECT COUNT(*) as c FROM users WHERE app_id=?', [appId]).then(function(r){return r?r.c:0;}),
             db.get('SELECT COUNT(*) as c FROM licenses WHERE app_id=?', [appId]).then(function(r){return r?r.c:0;}),
-            db.get('SELECT COUNT(*) as c FROM sessions WHERE expires_at>? AND app_id=?', [now,appId]).then(function(r){return r?r.c:0;})
+            db.get('SELECT COUNT(*) as c FROM sessions WHERE expires_at>? AND app_id=?', [now,appId]).then(function(r){return r?r.c:0;}),
+            db.get('SELECT COUNT(*) as c FROM users WHERE app_id=? AND banned=1', [appId]).then(function(r){return r?r.c:0;})
           ]);
           const app = await db.get('SELECT name FROM apps WHERE id=?', [appId]);
-          const embed = goldEmbed('Stats — '+(app?app.name:'App'), '')
-            .addFields({name:'Usuarios',value:'`'+users+'`',inline:true},{name:'Keys',value:'`'+keys+'`',inline:true},{name:'Online',value:'`'+online+'`',inline:true});
+          const embed = goldEmbed('📊 Stats — '+(app?app.name:'App'), '')
+            .addFields(
+              {name:'👥 Usuarios',value:'`'+users+'`',inline:true},
+              {name:'🔑 Keys',value:'`'+keys+'`',inline:true},
+              {name:'🟢 Online',value:'`'+online+'`',inline:true},
+              {name:'🚫 Baneados',value:'`'+banned+'`',inline:true},
+              {name:'⚡ Bot',value:'Partner Bot',inline:true},
+              {name:'🎯 Permisos',value:Object.values(perms).filter(Boolean).length+'/8',inline:true}
+            );
           return interaction.editReply({ embeds: [embed] });
         }
-        if (cmd === 'keys') {
-          // Verificar permiso
+        
+        if (cmd === 'keys' && perms.can_genkeys) {
           const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [partnerId, appId]);
-          if (!pa || !pa.can_genkeys) return interaction.editReply({ content: 'Sin permiso para generar keys' });
+          if (!pa || !pa.can_genkeys) return interaction.editReply({ content: '❌ Sin permiso para generar keys' });
+          
           const amount = interaction.options.getInteger('cantidad') || 1;
-          const dias = interaction.options.getInteger('dias');
-          // Verificar limite
+          const dias = interaction.options.getInteger('dias') || 0;
+          
+          // Verificar límite diario
+          const today = new Date().toISOString().split('T')[0];
+          const todayKeys = await db.get(
+            'SELECT COUNT(*) as c FROM licenses WHERE app_id=? AND note LIKE ? AND date(created_at, "unixepoch") = ?',
+            [appId, '%partner%', today]
+          );
+          if (todayKeys && todayKeys.c + amount > perms.max_keys_per_day) {
+            return interaction.editReply({ content: `❌ Límite diario alcanzado (${todayKeys.c}/${perms.max_keys_per_day})` });
+          }
+          
+          // Verificar duración máxima
+          if (dias > perms.max_key_duration) {
+            return interaction.editReply({ content: `❌ Duración máxima: ${perms.max_key_duration} días` });
+          }
+          
+          // Verificar limite total del partner
           if (pa.key_limit > 0) {
             const left = pa.key_limit - (pa.keys_used || 0);
-            if (left <= 0) return interaction.editReply({ content: 'Limite de keys alcanzado (' + pa.keys_used + '/' + pa.key_limit + ')' });
-            if (amount > left) return interaction.editReply({ content: 'Solo puedes generar ' + left + ' key(s) mas. Limite: ' + pa.key_limit });
+            if (left <= 0) return interaction.editReply({ content: 'Limite total alcanzado (' + pa.keys_used + '/' + pa.key_limit + ')' });
+            if (amount > left) return interaction.editReply({ content: 'Solo puedes generar ' + left + ' key(s) más' });
           }
+          
           const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
           const seg = function(n){ let s=''; for(let i=0;i<n;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; };
           const created = [];
+          
           for (let i = 0; i < amount; i++) {
             const kv = 'KEY-'+seg(5)+'-'+seg(5)+'-'+seg(5)+'-'+seg(5);
-            await db.run('INSERT INTO licenses (id,app_id,key_value,note,duration,level,max_uses) VALUES (?,?,?,?,?,?,?)',
-              [uuidv4(), appId, kv, 'Bot Discord partner', dias||null, 1, 1]);
+            await db.run('INSERT INTO licenses (id,app_id,key_value,note,duration,level,max_uses,created_at) VALUES (?,?,?,?,?,?,?,?)',
+              [uuidv4(), appId, kv, `Partner ${partnerId} - Discord`, dias||null, 1, 1, Math.floor(Date.now()/1000)]);
             created.push(kv);
           }
+          
+          // Actualizar contador
           if (pa.key_limit > 0) await db.run('UPDATE partner_apps SET keys_used=keys_used+? WHERE partner_id=? AND app_id=?', [amount, partnerId, appId]);
-          const embed = goldEmbed(amount + ' Key(s) Generada(s)', '```\n' + created.join('\n') + '\n```');
+          
+          // Log de la acción
+          await db.run('INSERT INTO logs (id,app_id,username,action,ip,created_at) VALUES (?,?,?,?,?,?)', [
+            uuidv4(), appId, `Partner-${partnerId}`, `Generó ${amount} keys via Discord`, 'Discord Bot', Math.floor(Date.now()/1000)
+          ]);
+          
+          const app = await db.get('SELECT name FROM apps WHERE id=?', [appId]);
+          const embed = goldEmbed(`🔑 ${amount} Key(s) Generada(s) — ${app?app.name:'App'}`, 
+            '```\n' + created.join('\n') + '\n```')
+            .addFields(
+              {name:'Duración',value:dias?dias+' días':'Permanente',inline:true},
+              {name:'Restantes Hoy',value:`${perms.max_keys_per_day - (todayKeys.c + amount)}`,inline:true}
+            );
           return interaction.editReply({ embeds: [embed] });
         }
+        
+        if (cmd === 'usuarios' && perms.can_view_users) {
+          const buscar = interaction.options.getString('buscar') || '';
+          const query = buscar ? 
+            'SELECT username,ip,createdate,banned,ban_reason FROM users WHERE app_id=? AND username LIKE ? ORDER BY createdate DESC LIMIT 10' :
+            'SELECT username,ip,createdate,banned,ban_reason FROM users WHERE app_id=? ORDER BY createdate DESC LIMIT 10';
+          const params = buscar ? [appId, `%${buscar}%`] : [appId];
+          
+          const users = await db.all(query, params);
+          if (!users.length) return interaction.editReply({ content: '❌ No se encontraron usuarios' });
+          
+          const embed = goldEmbed(`👥 Usuarios${buscar ? ` (búsqueda: ${buscar})` : ''}`, '');
+          users.forEach(u => {
+            const status = u.banned ? '🚫 Baneado' : '✅ Activo';
+            const fecha = new Date(u.createdate * 1000).toLocaleDateString();
+            embed.addFields({
+              name: u.username,
+              value: `Estado: ${status} | IP: \`${u.ip}\` | Registro: ${fecha}${u.ban_reason ? ` | Razón: ${u.ban_reason}` : ''}`,
+              inline: false
+            });
+          });
+          
+          return interaction.editReply({ embeds: [embed] });
+        }
+        
+        if (cmd === 'ban' && perms.can_ban_users) {
+          const username = interaction.options.getString('usuario');
+          const razon = interaction.options.getString('razon') || 'Baneado via Discord';
+          
+          const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
+          if (!user) return interaction.editReply({ content: '❌ Usuario no encontrado' });
+          
+          await db.run('UPDATE users SET banned=1, ban_reason=? WHERE id=?', [razon, user.id]);
+          
+          // Log
+          await db.run('INSERT INTO logs (id,app_id,username,action,ip,created_at) VALUES (?,?,?,?,?,?)', [
+            uuidv4(), appId, `Partner-${partnerId}`, `Baneó a ${username}: ${razon}`, 'Discord Bot', Math.floor(Date.now()/1000)
+          ]);
+          
+          const embed = new EmbedBuilder().setColor(0xEF4444).setTitle('🚫 Usuario Baneado')
+            .addFields({name:'Usuario',value:username,inline:true},{name:'Razón',value:razon,inline:false})
+            .setTimestamp().setFooter({text:'LMAx27 Partner Bot'});
+          return interaction.editReply({ embeds: [embed] });
+        }
+        
+        if (cmd === 'logs' && perms.can_view_logs) {
+          const limit = interaction.options.getInteger('ultimos') || 10;
+          const logs = await db.all('SELECT username,action,ip,created_at FROM logs WHERE app_id=? ORDER BY created_at DESC LIMIT ?', [appId, limit]);
+          
+          if (!logs.length) return interaction.editReply({ content: '❌ No hay logs disponibles' });
+          
+          const embed = goldEmbed(`📋 Últimos ${logs.length} Logs`, '');
+          logs.forEach(log => {
+            const fecha = new Date(log.created_at * 1000).toLocaleString();
+            embed.addFields({
+              name: `${log.username} - ${fecha}`,
+              value: `${log.action} (IP: ${log.ip})`,
+              inline: false
+            });
+          });
+          
+          return interaction.editReply({ embeds: [embed] });
+        }
+        
+        // Comandos sin permiso
+        if (!perms[`can_${cmd.replace('-','_')}`]) {
+          return interaction.editReply({ content: `❌ Sin permisos para usar /${cmd}` });
+        }
       });
+
       resolve({ ok: true, tag: client.user.tag });
     });
+    
     client.on('error', function(e) { console.log('[PartnerBot] Error:', e.message); });
     client.login(cleanToken).catch(function(e) {
       clearTimeout(timeout);

@@ -66,6 +66,27 @@ async function runMigrationV2() {
       )
     `);
 
+    // Crear tabla partner_permissions
+    await run(`
+      CREATE TABLE IF NOT EXISTS partner_permissions (
+        id              TEXT PRIMARY KEY,
+        partner_id      TEXT NOT NULL,
+        app_id          TEXT NOT NULL,
+        can_genkeys     INTEGER NOT NULL DEFAULT 1,
+        can_view_users  INTEGER NOT NULL DEFAULT 1,
+        can_ban_users   INTEGER NOT NULL DEFAULT 0,
+        can_view_logs   INTEGER NOT NULL DEFAULT 0,
+        can_reset_hwid  INTEGER NOT NULL DEFAULT 0,
+        can_extend_sub  INTEGER NOT NULL DEFAULT 0,
+        max_keys_per_day INTEGER NOT NULL DEFAULT 50,
+        max_key_duration INTEGER NOT NULL DEFAULT 30,
+        created_at      INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+        FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE,
+        FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE,
+        UNIQUE(partner_id, app_id)
+      )
+    `);
+
     console.log('[Migration] ✅ Tablas creadas exitosamente');
     console.log('[Migration] ✅ Aplicaciones existentes preservadas');
     

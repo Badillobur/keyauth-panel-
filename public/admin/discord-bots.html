@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="/admin/lmax27.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Discord Bots</title>
+  <link rel="stylesheet" href="/admin/css/style.css" />
+  <style>
+    .bot-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(350px, 1fr)); gap:16px; }
+    .bot-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; position:relative; }
+    .bot-card.online::before { content:''; position:absolute; top:12px; right:12px; width:8px; height:8px; background:var(--green); border-radius:50%; box-shadow:0 0 8px var(--green); }
+    .bot-card.offline::before { content:''; position:absolute; top:12px; right:12px; width:8px; height:8px; background:var(--red); border-radius:50%; }
+    .bot-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .bot-avatar { width:42px; height:42px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:black; font-size:16px; }
+    .bot-info h3 { margin:0; font-size:15px; font-weight:700; color:var(--text); }
+    .bot-info .meta { font-size:11px; color:var(--text3); margin-top:2px; }
+    .bot-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .bot-stat { text-align:center; }
+    .bot-stat .value { font-size:18px; font-weight:800; color:var(--accent); }
+    .bot-stat .label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+    .bot-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .invite-btn { background:linear-gradient(135deg, #5865f2, #7289da); border:none; color:white; font-weight:600; font-size:12px; padding:8px 12px; border-radius:6px; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:6px; }
+    .invite-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(88,101,242,.3); }
+    .invite-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .status-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+    .status-online { background:rgba(34,197,94,.15); color:#22c55e; border:1px solid rgba(34,197,94,.3); }
+    .status-offline { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+    .app-badge { background:var(--bg3); color:var(--text2); padding:2px 6px; border-radius:3px; font-size:9px; font-weight:600; margin-left:6px; }
+    .empty-bot-card { background:var(--bg3); border:2px dashed var(--border); border-radius:var(--radius-lg); padding:24px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px; }
+    .add-bot-btn { background:var(--accent); color:black; border:none; padding:10px 16px; border-radius:var(--radius); font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+    .add-bot-btn:hover { transform:translateY(-1px); }
+  </style>
+</head>
+<body>
+<div id="particles"></div>
+<div class="layout">
+  <div id="sidebar-container"></div>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Discord Bots</div>
+        <div class="topbar-sub">Bots personalizados por app con control total de comandos</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal('modal-create')">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+          Nuevo Bot
+        </button>
+        <button class="btn btn-secondary" onclick="reload()">Actualizar</button>
+        <button class="btn btn-accent" onclick="location.href='/discord'">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1L8.09 4.91L12 6.5L8.09 8.09L6.5 12L4.91 8.09L1 6.5L4.91 4.91L6.5 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          Bot Principal
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="bot-grid" id="bots-grid">
+        <div class="empty-state">
+          <div class="loader"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Crear Bot -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <div class="modal-title">Nuevo Discord Bot</div>
+      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Bot Token *</label>
+      <input type="password" id="new-bot-token" class="form-control" placeholder="Pega el token de Discord Developer Portal" />
+      <div class="form-hint">Obtén el token desde <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Aplicación *</label>
+      <select id="new-app-id" class="form-control">
+        <option value="">Seleccionar app...</option>
+      </select>
+      <div class="form-hint">Solo puedes crear bots para apps que tienes asignadas</div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Guild ID (Servidor Discord)</label>
+      <input type="text" id="new-guild-id" class="form-control" placeholder="ID del servidor Discord (opcional)" />
+      <div class="form-hint">Para comandos slash. Vacío = comandos globales (tarda hasta 1 hora)</div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Canal de Logs</label>
+      <input type="text" id="new-log-channel" class="form-control" placeholder="ID del canal para notificaciones" />
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createBot()">Crear Bot</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/admin/js/app.js"></script>
+<script src="/admin/js/sidebar.js"></script>
+<script>
+var currentRole = 'superadmin';
+var availableApps = [];
+
+(async function() {
+  injectSidebar('discord-bots');
+  var admin = await requireAuth();
+  if (!admin) return;
+  
+  currentRole = admin.role || 'superadmin';
+  
+  if (currentRole === 'partner') {
+    // Partner - solo sus apps y bots
+    document.querySelector('.topbar-title').textContent = 'Mis Discord Bots';
+    document.querySelector('.topbar-sub').textContent = 'Bots personalizados para tus aplicaciones';
+  }
+  
+  await loadAvailableApps();
+  await loadBots();
+})();
+
+async function loadAvailableApps() {
+  var res;
+  if (currentRole === 'partner') {
+    res = await apiFetch(API + '/owner/me');
+    if (res && res.success && res.me) {
+      availableApps = res.me.apps || [];
+    }
+  } else {
+    res = await apiFetch(API + '/apps');
+    if (res && res.success) {
+      availableApps = res.apps || [];
+    }
+  }
+  
+  // Poblar selector de apps
+  var select = document.getElementById('new-app-id');
+  select.innerHTML = '<option value="">Seleccionar app...</option>';
+  availableApps.forEach(function(app) {
+    var option = document.createElement('option');
+    option.value = app.id;
+    option.textContent = app.name + (app.version ? ' v' + app.version : '');
+    select.appendChild(option);
+  });
+}
+
+async function loadBots() {
+  var res = await apiFetch(API + '/discord/partner-bots');
+  var grid = document.getElementById('bots-grid');
+  
+  if (!res || !res.success) {
+    grid.innerHTML = '<div class="empty-state"><p>Error cargando bots</p></div>';
+    return;
+  }
+  
+  var bots = res.bots || [];
+  
+  if (bots.length === 0) {
+    grid.innerHTML = 
+      '<div class="empty-bot-card">' +
+        '<svg width="48" height="48" viewBox="0 0 48 48" fill="var(--text3)"><path d="M24 4C35.05 4 44 12.95 44 24C44 35.05 35.05 44 24 44C12.95 44 4 35.05 4 24C4 12.95 12.95 4 24 4ZM24 20C21.79 20 20 21.79 20 24C20 26.21 21.79 28 24 28C26.21 28 28 26.21 28 24C28 21.79 26.21 20 24 20ZM24 32C19.58 32 16 28.42 16 24C16 19.58 19.58 16 24 16C28.42 16 32 19.58 32 24C32 28.42 28.42 32 24 32Z"/></svg>' +
+        '<div>' +
+          '<h3 style="color:var(--text);margin:0 0 6px;">Sin bots aún</h3>' +
+          '<p style="color:var(--text3);font-size:13px;margin:0;">Crea tu primer bot Discord personalizado</p>' +
+        '</div>' +
+        '<button class="add-bot-btn" onclick="openModal(\'modal-create\')">Crear Primer Bot</button>' +
+      '</div>';
+    return;
+  }
+  
+  grid.innerHTML = bots.map(function(bot) {
+    var isOnline = bot.online;
+    var app = availableApps.find(function(a) { return a.id === bot.app_id; }) || { name: bot.app_name || 'App Desconocida' };
+    var botInitials = (bot.bot_name || 'Bot').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 2);
+    
+    return '<div class="bot-card ' + (isOnline ? 'online' : 'offline') + '">' +
+      '<div class="bot-card-header">' +
+        '<div class="bot-avatar">' + botInitials + '</div>' +
+        '<div class="bot-info">' +
+          '<h3>' + esc(bot.bot_name || 'Bot Sin Nombre') + '<span class="app-badge">' + esc(app.name) + '</span></h3>' +
+          '<div class="meta">' +
+            '<span class="status-badge status-' + (isOnline ? 'online' : 'offline') + '">' +
+              (isOnline ? '🟢 Online' : '🔴 Offline') +
+            '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      
+      '<div class="bot-stats">' +
+        '<div class="bot-stat">' +
+          '<div class="value">' + (bot.guild_id ? '1' : '∞') + '</div>' +
+          '<div class="label">Servidores</div>' +
+        '</div>' +
+        '<div class="bot-stat">' +
+          '<div class="value">' + (isOnline ? '8+' : '0') + '</div>' +
+          '<div class="label">Comandos</div>' +
+        '</div>' +
+      '</div>' +
+      
+      '<div class="bot-actions">' +
+        (isOnline 
+          ? '<button class="invite-btn" onclick="getInviteLink(\'' + bot.id + '\')">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.369a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.369a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>' +
+              'Invitar al Servidor' +
+            '</button>'
+          : '<button class="btn btn-secondary btn-sm" onclick="reconnectBot(\'' + bot.id + '\')" style="font-size:11px;">Reconectar</button>'
+        ) +
+        '<button class="btn btn-secondary btn-sm" onclick="editBot(\'' + bot.id + '\')" style="font-size:11px;">Config</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteBot(\'' + bot.id + '\', \'' + esc(bot.bot_name || 'Bot') + '\')" style="font-size:11px;">Eliminar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function createBot() {
+  var token = document.getElementById('new-bot-token').value.trim();
+  var appId = document.getElementById('new-app-id').value;
+  var guildId = document.getElementById('new-guild-id').value.trim();
+  var logChannel = document.getElementById('new-log-channel').value.trim();
+  
+  if (!token || !appId) {
+    toast('Token y aplicación son requeridos', 'error');
+    return;
+  }
+  
+  // Validar formato básico del token
+  if (token.length < 50 || !token.includes('.')) {
+    toast('Token parece inválido - verifica que copiaste el token completo', 'warning');
+  }
+  
+  var res = await apiFetch(API + '/discord/partner-bots', {
+    method: 'POST',
+    body: {
+      bot_token: token,
+      app_id: appId,
+      guild_id: guildId,
+      log_channel_id: logChannel,
+      chan_online_id: '',
+      chan_users_id: '',
+      chan_keys_id: ''
+    }
+  });
+  
+  if (res && res.success) {
+    toast('Bot conectado correctamente: ' + (res.bot_id || 'ID desconocido'), 'success');
+    closeModal('modal-create');
+    clearForm();
+    await loadBots();
+  } else if (res) {
+    toast('Error: ' + res.message, 'error');
+  }
+}
+
+function clearForm() {
+  document.getElementById('new-bot-token').value = '';
+  document.getElementById('new-app-id').value = '';
+  document.getElementById('new-guild-id').value = '';
+  document.getElementById('new-log-channel').value = '';
+}
+
+async function getInviteLink(botId) {
+  var res = await apiFetch(API + '/discord/partner-bots/' + botId + '/invite');
+  
+  if (res && res.success) {
+    var link = res.link;
+    
+    // Crear modal temporal con el enlace
+    var modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.innerHTML = 
+      '<div class="modal" style="max-width:480px;">' +
+        '<div class="modal-header">' +
+          '<div class="modal-title">🔗 Enlace de Invitación</div>' +
+          '<button class="modal-close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+        '</div>' +
+        '<div style="padding:0 20px 20px;">' +
+          '<p style="color:var(--text2);font-size:13px;margin-bottom:16px;">Usa este enlace para invitar el bot a tu servidor Discord:</p>' +
+          '<div style="background:var(--bg3);padding:12px;border-radius:6px;border:1px solid var(--border);margin-bottom:16px;">' +
+            '<input type="text" value="' + link + '" readonly style="width:100%;background:none;border:none;color:var(--text);font-family:monospace;font-size:12px;" onclick="this.select()">' +
+          '</div>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+          '<button class="btn btn-secondary" onclick="this.closest(\'.modal-overlay\').remove()">Cerrar</button>' +
+          '<button class="invite-btn" onclick="window.open(\'' + link + '\', \'_blank\')">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z"/></svg>' +
+            'Abrir Discord' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    
+    document.body.appendChild(modal);
+    
+    // Auto-seleccionar el enlace
+    setTimeout(function() {
+      var input = modal.querySelector('input');
+      if (input) {
+        input.select();
+        // Intentar copiar automáticamente
+        try {
+          document.execCommand('copy');
+          toast('Enlace copiado al portapapeles', 'success');
+        } catch (e) {}
+      }
+    }, 100);
+    
+  } else if (res) {
+    toast('Error: ' + res.message, 'error');
+  } else {
+    toast('Error obteniendo enlace de invitación', 'error');
+  }
+}
+
+async function reconnectBot(botId) {
+  toast('Reconectando bot...', 'info');
+  
+  var res = await apiFetch(API + '/discord/partner-bots/' + botId + '/reconnect', {
+    method: 'POST'
+  });
+  
+  if (res && res.success) {
+    toast('Bot reconectado correctamente', 'success');
+    await loadBots();
+  } else if (res) {
+    toast('Error: ' + res.message, 'error');
+  }
+}
+
+async function deleteBot(botId, botName) {
+  confirmAction('¿Eliminar el bot "' + botName + '"? Esta acción no se puede deshacer.', async function() {
+    var res = await apiFetch(API + '/discord/partner-bots/' + botId, {
+      method: 'DELETE'
+    });
+    
+    if (res && res.success) {
+      toast('Bot eliminado correctamente', 'success');
+      await loadBots();
+    } else if (res) {
+      toast('Error: ' + res.message, 'error');
+    }
+  });
+}
+
+async function editBot(botId) {
+  toast('Función de edición próximamente', 'info');
+}
+
+async function reload() {
+  await loadBots();
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

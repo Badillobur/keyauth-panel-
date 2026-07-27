@@ -99,6 +99,83 @@ function adminOnly(req, res, next) {
   next();
 }
 
+// ─── GESTIÓN DE PERMISOS DE PARTNERS ─────────────────────────────────────────
+
+// GET /admin/partner-permissions/:partnerId/:appId
+router.get('/partner-permissions/:partnerId/:appId', requireAdmin, async function(req, res) {
+  try {
+    const { partnerId, appId } = req.params;
+    
+    // Solo admin puede ver todos los permisos
+    if (req.admin.role === 'partner' && req.admin.id !== partnerId) {
+      return res.status(403).json({ success: false, message: 'Sin acceso' });
+    }
+    
+    const perms = await db.get('SELECT * FROM partner_permissions WHERE partner_id=? AND app_id=?', [partnerId, appId]);
+    const defaultPerms = {
+      can_genkeys: 1, can_view_users: 1, can_ban_users: 0,
+      can_view_logs: 0, can_reset_hwid: 0, can_extend_sub: 0,
+      max_keys_per_day: 50, max_key_duration: 30
+    };
+    res.json({ success: true, permissions: perms || defaultPerms });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// POST /admin/partner-permissions/:partnerId/:appId
+router.post('/partner-permissions/:partnerId/:appId', adminOnly, async function(req, res) {
+  try {
+    const { partnerId, appId } = req.params;
+    const {
+      can_genkeys, can_view_users, can_ban_users, can_view_logs,
+      can_reset_hwid, can_extend_sub, max_keys_per_day, max_key_duration
+    } = req.body;
+    
+    // Verificar que el partner y la app existen
+    const partner = await db.get('SELECT id FROM partners WHERE id=?', [partnerId]);
+    const app = await db.get('SELECT id FROM apps WHERE id=?', [appId]);
+    if (!partner || !app) {
+      return res.json({ success: false, message: 'Partner o App no encontrada' });
+    }
+    
+    // Verificar si existe
+    const existing = await db.get('SELECT id FROM partner_permissions WHERE partner_id=? AND app_id=?', [partnerId, appId]);
+    
+    if (existing) {
+      // Actualizar
+      await db.run(`UPDATE partner_permissions SET 
+        can_genkeys=?, can_view_users=?, can_ban_users=?, can_view_logs=?,
+        can_reset_hwid=?, can_extend_sub=?, max_keys_per_day=?, max_key_duration=?,
+        updated_at=(strftime('%s','now'))
+        WHERE partner_id=? AND app_id=?`, [
+        can_genkeys?1:0, can_view_users?1:0, can_ban_users?1:0, can_view_logs?1:0,
+        can_reset_hwid?1:0, can_extend_sub?1:0, max_keys_per_day||50, max_key_duration||30,
+        partnerId, appId
+      ]);
+    } else {
+      // Crear
+      const { v4: uuidv4 } = require('uuid');
+      await db.run(`INSERT INTO partner_permissions 
+        (id, partner_id, app_id, can_genkeys, can_view_users, can_ban_users, can_view_logs,
+         can_reset_hwid, can_extend_sub, max_keys_per_day, max_key_duration, created_at, updated_at) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,strftime('%s','now'),strftime('%s','now'))`, [
+        uuidv4(), partnerId, appId,
+        can_genkeys?1:0, can_view_users?1:0, can_ban_users?1:0, can_view_logs?1:0,
+        can_reset_hwid?1:0, can_extend_sub?1:0, max_keys_per_day||50, max_key_duration||30
+      ]);
+    }
+    
+    // Log de cambio de permisos
+    await db.run(`INSERT INTO logs (id, app_id, message, ip_address, user_agent, created_at) 
+                  VALUES (?, ?, ?, ?, ?, strftime('%s','now'))`, [
+      uuidv4(), appId, 
+      `Admin ${req.admin.username} actualizó permisos del partner ${partnerId}`,
+      req.ip || 'unknown', req.headers['user-agent'] || 'unknown'
+    ]);
+    
+    res.json({ success: true, message: 'Permisos actualizados correctamente' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
 // ─── STATS ────────────────────────────────────────────────────────────────────
 
 router.get('/stats', requireAdmin, async function(req, res) {

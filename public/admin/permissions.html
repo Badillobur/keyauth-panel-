@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="/admin/lmax27.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Gestión de Permisos</title>
+  <link rel="stylesheet" href="/admin/css/style.css" />
+  <style>
+    .perm-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
+    .perm-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; }
+    .perm-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .perm-card-title { font-weight:700; color:var(--text); font-size:15px; }
+    .perm-card-subtitle { color:var(--text3); font-size:11px; margin-top:2px; }
+    .perm-section { margin-bottom:16px; }
+    .perm-section-title { font-size:10px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+    .perm-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:6px; }
+    .perm-item-label { font-size:12px; color:var(--text2); }
+    .perm-item-desc { font-size:10px; color:var(--text3); margin-top:2px; }
+    .perm-toggle { width:42px; height:22px; background:var(--bg4); border:2px solid var(--border); border-radius:11px; position:relative; cursor:pointer; transition:all .2s; }
+    .perm-toggle.active { background:var(--accent); border-color:var(--accent); }
+    .perm-toggle::after { content:''; width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:1px; left:1px; transition:all .2s; }
+    .perm-toggle.active::after { left:21px; }
+    .limit-input { width:80px; padding:4px 8px; background:var(--bg4); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:11px; }
+    .partner-selector { margin-bottom:20px; padding:16px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius-lg); }
+    .app-tabs { display:flex; gap:4px; margin-bottom:16px; }
+    .app-tab { padding:6px 14px; background:var(--bg4); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text2); cursor:pointer; transition:all .15s; }
+    .app-tab.active { background:var(--accent); color:black; border-color:var(--accent); }
+  </style>
+</head>
+<body>
+<div id="particles"></div>
+<div class="layout">
+  <div id="sidebar-container"></div>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Gestión de Permisos</div>
+        <div class="topbar-sub">Control granular de qué puede hacer cada partner en Discord</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="location.href='/partners'">← Volver a Partners</button>
+        <button class="btn btn-primary" onclick="saveAllPermissions()">Guardar Todo</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="partner-selector">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div>
+            <label class="form-label" style="margin:0;">Seleccionar Partner</label>
+            <select id="partner-select" class="form-control" onchange="loadPartnerPermissions()">
+              <option value="">Cargando partners...</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="margin:0;">Aplicación</label>
+            <div class="app-tabs" id="app-tabs"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="permissions-content" style="display:none;">
+        <div class="perm-grid">
+          <!-- Bot Commands -->
+          <div class="perm-card">
+            <div class="perm-card-header">
+              <div>
+                <div class="perm-card-title">🤖 Comandos de Bot</div>
+                <div class="perm-card-subtitle">Qué comandos puede usar en Discord</div>
+              </div>
+            </div>
+            
+            <div class="perm-section">
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Generar Keys</div>
+                  <div class="perm-item-desc">/keys - Crear licencias</div>
+                </div>
+                <div class="perm-toggle" id="perm-can_genkeys" onclick="togglePerm('can_genkeys')"></div>
+              </div>
+              
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Ver Usuarios</div>
+                  <div class="perm-item-desc">/usuarios - Lista de registrados</div>
+                </div>
+                <div class="perm-toggle" id="perm-can_view_users" onclick="togglePerm('can_view_users')"></div>
+              </div>
+              
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Banear Usuarios</div>
+                  <div class="perm-item-desc">/ban /unban - Control de acceso</div>
+                </div>
+                <div class="perm-toggle" id="perm-can_ban_users" onclick="togglePerm('can_ban_users')"></div>
+              </div>
+              
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Ver Logs</div>
+                  <div class="perm-item-desc">/logs - Actividad del sistema</div>
+                </div>
+                <div class="perm-toggle" id="perm-can_view_logs" onclick="togglePerm('can_view_logs')"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced Commands -->
+          <div class="perm-card">
+            <div class="perm-card-header">
+              <div>
+                <div class="perm-card-title">⚙️ Comandos Avanzados</div>
+                <div class="perm-card-subtitle">Funciones administrativas</div>
+              </div>
+            </div>
+            
+            <div class="perm-section">
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Reset HWID</div>
+                  <div class="perm-item-desc">/reset-hwid - Liberar hardware</div>
+                </div>
+                <div class="perm-toggle" id="perm-can_reset_hwid" onclick="togglePerm('can_reset_hwid')"></div>
+              </div>
+              
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Extender Suscripciones</div>
+                  <div class="perm-item-desc">/extender - Agregar tiempo</div>
+                </div>
+                <div class="perm-toggle" id="perm-can_extend_sub" onclick="togglePerm('can_extend_sub')"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Limits -->
+          <div class="perm-card">
+            <div class="perm-card-header">
+              <div>
+                <div class="perm-card-title">🔒 Límites</div>
+                <div class="perm-card-subtitle">Control de uso</div>
+              </div>
+            </div>
+            
+            <div class="perm-section">
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Keys por día</div>
+                  <div class="perm-item-desc">Máximo diario</div>
+                </div>
+                <input type="number" id="limit-max_keys_per_day" class="limit-input" min="0" max="999" placeholder="50">
+              </div>
+              
+              <div class="perm-item">
+                <div>
+                  <div class="perm-item-label">Duración máxima</div>
+                  <div class="perm-item-desc">Días por key</div>
+                </div>
+                <input type="number" id="limit-max_key_duration" class="limit-input" min="0" max="365" placeholder="30">
+              </div>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="perm-card">
+            <div class="perm-card-header">
+              <div>
+                <div class="perm-card-title">📊 Estado Actual</div>
+                <div class="perm-card-subtitle">Información en vivo</div>
+              </div>
+            </div>
+            
+            <div id="permission-status">
+              <div class="empty-state">
+                <p>Selecciona un partner para ver el estado</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="no-selection" class="empty-state">
+        <p>Selecciona un partner y una aplicación para gestionar permisos</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="/admin/js/app.js"></script>
+<script src="/admin/js/sidebar.js"></script>
+<script>
+var partners = [];
+var apps = [];
+var currentPartnerId = null;
+var currentAppId = null;
+var currentPermissions = {};
+
+(async function() {
+  injectSidebar('permissions');
+  await requireAuth();
+  await loadData();
+})();
+
+async function loadData() {
+  // Cargar partners
+  var pRes = await apiFetch(API + '/partners');
+  if (pRes && pRes.success) {
+    partners = pRes.partners || [];
+    populatePartnerSelector();
+  }
+  
+  // Cargar apps
+  var aRes = await apiFetch(API + '/apps');
+  if (aRes && aRes.success) {
+    apps = aRes.apps || [];
+  }
+}
+
+function populatePartnerSelector() {
+  var select = document.getElementById('partner-select');
+  select.innerHTML = '<option value="">Seleccionar partner...</option>';
+  
+  partners.forEach(function(p) {
+    var option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = (p.display_name || p.username) + ' (@' + p.username + ')';
+    select.appendChild(option);
+  });
+}
+
+async function loadPartnerPermissions() {
+  var partnerId = document.getElementById('partner-select').value;
+  if (!partnerId) {
+    document.getElementById('permissions-content').style.display = 'none';
+    document.getElementById('no-selection').style.display = '';
+    return;
+  }
+  
+  currentPartnerId = partnerId;
+  
+  // Obtener apps del partner
+  var partner = partners.find(p => p.id === partnerId);
+  if (!partner || !partner.apps) {
+    toast('Partner sin aplicaciones asignadas', 'warning');
+    return;
+  }
+  
+  // Mostrar tabs de apps
+  var tabsContainer = document.getElementById('app-tabs');
+  tabsContainer.innerHTML = partner.apps.map(function(app, index) {
+    return '<button class="app-tab' + (index === 0 ? ' active' : '') + '" onclick="selectApp(\'' + app.app_id + '\')">' + app.name + '</button>';
+  }).join('');
+  
+  // Seleccionar primera app por defecto
+  if (partner.apps.length > 0) {
+    await selectApp(partner.apps[0].app_id);
+  }
+  
+  document.getElementById('permissions-content').style.display = '';
+  document.getElementById('no-selection').style.display = 'none';
+}
+
+async function selectApp(appId) {
+  currentAppId = appId;
+  
+  // Activar tab
+  document.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  // Cargar permisos
+  var res = await apiFetch(API + '/partner-permissions/' + currentPartnerId + '/' + appId);
+  if (res && res.success) {
+    currentPermissions = res.permissions;
+    updatePermissionUI();
+    updateStatus();
+  }
+}
+
+function updatePermissionUI() {
+  // Actualizar toggles
+  ['can_genkeys', 'can_view_users', 'can_ban_users', 'can_view_logs', 'can_reset_hwid', 'can_extend_sub'].forEach(function(perm) {
+    var toggle = document.getElementById('perm-' + perm);
+    var value = currentPermissions[perm];
+    if (value) {
+      toggle.classList.add('active');
+    } else {
+      toggle.classList.remove('active');
+    }
+  });
+  
+  // Actualizar límites
+  document.getElementById('limit-max_keys_per_day').value = currentPermissions.max_keys_per_day || 50;
+  document.getElementById('limit-max_key_duration').value = currentPermissions.max_key_duration || 30;
+}
+
+function togglePerm(permName) {
+  var toggle = document.getElementById('perm-' + permName);
+  var isActive = toggle.classList.contains('active');
+  
+  if (isActive) {
+    toggle.classList.remove('active');
+    currentPermissions[permName] = 0;
+  } else {
+    toggle.classList.add('active');
+    currentPermissions[permName] = 1;
+  }
+  
+  updateStatus();
+}
+
+function updateStatus() {
+  var statusDiv = document.getElementById('permission-status');
+  var activePerms = Object.keys(currentPermissions).filter(key => 
+    key.startsWith('can_') && currentPermissions[key]
+  ).length;
+  
+  var totalPerms = 6; // Total de permisos can_*
+  var maxKeys = currentPermissions.max_keys_per_day || 50;
+  var maxDuration = currentPermissions.max_key_duration || 30;
+  
+  statusDiv.innerHTML = `
+    <div style="padding:12px;">
+      <div style="font-size:12px; margin-bottom:8px;">
+        <strong>Permisos activos:</strong> ${activePerms}/${totalPerms}
+      </div>
+      <div style="font-size:11px; color:var(--text3); margin-bottom:4px;">
+        Keys por día: <span style="color:var(--accent);">${maxKeys}</span>
+      </div>
+      <div style="font-size:11px; color:var(--text3);">
+        Duración máx: <span style="color:var(--accent);">${maxDuration} días</span>
+      </div>
+    </div>
+  `;
+}
+
+async function saveAllPermissions() {
+  if (!currentPartnerId || !currentAppId) {
+    toast('Selecciona partner y app primero', 'error');
+    return;
+  }
+  
+  // Obtener valores de límites
+  var maxKeysPerDay = parseInt(document.getElementById('limit-max_keys_per_day').value) || 50;
+  var maxKeyDuration = parseInt(document.getElementById('limit-max_key_duration').value) || 30;
+  
+  var permissions = Object.assign({}, currentPermissions, {
+    max_keys_per_day: maxKeysPerDay,
+    max_key_duration: maxKeyDuration
+  });
+  
+  var res = await apiFetch(API + '/partner-permissions/' + currentPartnerId + '/' + currentAppId, {
+    method: 'POST',
+    body: permissions
+  });
+  
+  if (res && res.success) {
+    toast('Permisos guardados correctamente', 'success');
+    
+    // Reiniciar bot si está activo (opcional)
+    setTimeout(function() {
+      toast('Bot reiniciado para aplicar cambios', 'info');
+    }, 2000);
+  } else if (res) {
+    toast(res.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

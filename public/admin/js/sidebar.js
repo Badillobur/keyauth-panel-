@@ -6,7 +6,9 @@ var SVG = {
   logs:      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="1.5" width="12" height="12" rx="2" stroke="#f5c518" stroke-width="1.4"/><path d="M4.5 5h6M4.5 7.5h6M4.5 10h3.5" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round"/></svg>',
   vars:      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 7.5h2.5L6 3l3 9 2-4.5h2" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   partners:  '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="5" cy="4.5" r="2" stroke="#f5c518" stroke-width="1.4"/><circle cx="10" cy="4.5" r="2" stroke="#f5c518" stroke-width="1.4"/><path d="M1 13c0-2.2 1.8-3.5 4-3.5M14 13c0-2.2-1.8-3.5-4-3.5M7.5 9.5c2.2 0 4 1.3 4 3.5H3.5c0-2.2 1.8-3.5 4-3.5z" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  permissions: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M6.5 1L8.09 4.91L12 6.5L8.09 8.09L6.5 12L4.91 8.09L1 6.5L4.91 4.91L6.5 1Z" stroke="#f5c518" stroke-width="1.3" stroke-linejoin="round"/></svg>',
   discord:   '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M12.5 2.5C11.4 2 10.2 1.7 9 1.6L8.8 2c-1.2-.2-2.4-.2-3.6 0L5 1.6C3.8 1.7 2.6 2 1.5 2.5-.4 5.3.1 8.2.3 11c1.3.9 2.5 1.5 3.7 1.9l.7-1c-.4-.2-.8-.4-1.2-.7l.3-.2c2.2 1 4.8 1 7 0l.3.2c-.4.3-.8.5-1.2.7l.7 1c1.2-.4 2.4-1 3.7-1.9.2-2.8-.5-5.6-2.8-8.5zM5 9c-.8 0-1.5-.7-1.5-1.5S4.2 6 5 6s1.5.7 1.5 1.5S5.8 9 5 9zm5 0c-.8 0-1.5-.7-1.5-1.5S9.2 6 10 6s1.5.7 1.5 1.5S10.8 9 10 9z" fill="#f5c518" opacity=".8"/></svg>',
+  'discord-bots': '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="4" cy="6" r="2.5" stroke="#f5c518" stroke-width="1.2"/><circle cx="11" cy="6" r="2.5" stroke="#f5c518" stroke-width="1.2"/><path d="M1.5 11.5c0-1.5 1-2.5 2.5-2.5h6c1.5 0 2.5 1 2.5 2.5M4 12.5v1M11 12.5v1M7.5 2v3.5M6 3.5h3" stroke="#f5c518" stroke-width="1.2" stroke-linecap="round"/></svg>',
   docs:      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2.5" y="1" width="10" height="13" rx="1.5" stroke="#f5c518" stroke-width="1.4"/><path d="M5 5h5M5 7.5h5M5 10h3" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round"/></svg>',
 };
 
@@ -25,7 +27,11 @@ function buildSidebar(activePage, role, partnerRole) {
     { section: 'Config' },
     { page: 'vars',      label: 'Variables',        href: '/vars',     adminOnly: true },
     { page: 'partners',  label: 'Partners',         href: '/partners', adminOnly: true, ownerAllowed: true },
-    { page: 'discord',   label: 'Bot Discord',      href: '/discord' },
+    { page: 'permissions', label: 'Permisos',       href: '/permissions', adminOnly: true },
+    { section: 'Discord' },
+    { page: 'discord',   label: 'Bot Principal',    href: '/discord' },
+    { page: 'discord-bots', label: 'Mis Bots',      href: '/discord-bots' },
+    { section: 'Docs' },
     { page: 'docs',      label: 'API Docs',         href: '/docs',     adminOnly: true },
   ];
 
