@@ -34,6 +34,8 @@
     .key-limit-inp:focus { border-color:var(--accent); }
     .toggle-app-btn { background:none; border:1px solid var(--border); border-radius:4px; width:28px; height:28px; cursor:pointer; color:var(--text3); font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s; }
     .toggle-app-btn.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+    .btn-accent { background:linear-gradient(135deg,#5865f2,#4752c4); color:white; border:1px solid #5865f2; }
+    .btn-accent:hover { background:linear-gradient(135deg,#4752c4,#3c4bb5); border-color:#4752c4; }
   </style>
 </head>
 <body>
@@ -164,6 +166,102 @@
     <div id="limits-body"></div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="closeModal('modal-limits')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Permisos de Bot Discord -->
+<div class="modal-overlay" id="modal-bot-perms">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title">Permisos de Bot Discord — <span id="bp-pname" style="color:var(--accent);"></span></div>
+      <button class="modal-close" onclick="closeModal('modal-bot-perms')">✕</button>
+    </div>
+    <input type="hidden" id="bp-partner-id">
+    <input type="hidden" id="bp-app-id">
+    
+    <div style="padding:0 20px 20px;">
+      <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">
+        Controla exactamente qué puede hacer el bot Discord de este partner en esta app.
+      </p>
+      
+      <div class="section-sep">Comandos Discord</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <input type="checkbox" id="bp-can_genkeys" style="accent-color:var(--accent);width:16px;height:16px;">
+          <div>
+            <div style="font-weight:600;font-size:12px;color:var(--text);">Generar Keys</div>
+            <div style="font-size:10px;color:var(--text3);">Comando /keys</div>
+          </div>
+        </label>
+        
+        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <input type="checkbox" id="bp-can_view_users" style="accent-color:var(--accent);width:16px;height:16px;">
+          <div>
+            <div style="font-weight:600;font-size:12px;color:var(--text);">Ver Usuarios</div>
+            <div style="font-size:10px;color:var(--text3);">Comando /usuarios</div>
+          </div>
+        </label>
+        
+        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <input type="checkbox" id="bp-can_ban_users" style="accent-color:var(--accent);width:16px;height:16px;">
+          <div>
+            <div style="font-weight:600;font-size:12px;color:var(--text);">Ban/Unban</div>
+            <div style="font-size:10px;color:var(--text3);">Comandos /ban /unban</div>
+          </div>
+        </label>
+        
+        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <input type="checkbox" id="bp-can_view_logs" style="accent-color:var(--accent);width:16px;height:16px;">
+          <div>
+            <div style="font-weight:600;font-size:12px;color:var(--text);">Ver Logs</div>
+            <div style="font-size:10px;color:var(--text3);">Comando /logs</div>
+          </div>
+        </label>
+        
+        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <input type="checkbox" id="bp-can_reset_hwid" style="accent-color:var(--accent);width:16px;height:16px;">
+          <div>
+            <div style="font-weight:600;font-size:12px;color:var(--text);">Reset HWID</div>
+            <div style="font-size:10px;color:var(--text3);">Comando /reset-hwid</div>
+          </div>
+        </label>
+        
+        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <input type="checkbox" id="bp-can_extend_sub" style="accent-color:var(--accent);width:16px;height:16px;">
+          <div>
+            <div style="font-weight:600;font-size:12px;color:var(--text);">Extender Subs</div>
+            <div style="font-size:10px;color:var(--text3);">Comando /extender</div>
+          </div>
+        </label>
+      </div>
+      
+      <div class="section-sep">Límites de Generación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Keys por día</label>
+          <input type="number" id="bp-max_keys_per_day" class="form-control" min="0" max="9999" placeholder="100">
+          <div class="form-hint">Máximo de keys que puede generar por día</div>
+        </div>
+        
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Duración máxima (días)</label>
+          <input type="number" id="bp-max_key_duration" class="form-control" min="0" max="365" placeholder="365">
+          <div class="form-hint">Días máximos por key (0 = permanente)</div>
+        </div>
+      </div>
+      
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:16px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">
+          <strong style="color:var(--accent);">Ejemplo:</strong> Si pones 50 keys/día, el bot solo podrá crear 50 keys por día. 
+          Si pones 30 días máx, las keys no podrán durar más de 30 días.
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-bot-perms')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBotPermissions()">Guardar Permisos</button>
     </div>
   </div>
 </div>
@@ -299,6 +397,7 @@ async function loadPartners() {
       + '<td class="text-sm" style="color:var(--text3);">'+(p.last_login ? relTime(p.last_login) : 'Nunca')+'</td>'
       + '<td><div style="display:flex;gap:4px;">'
         + '<button class="btn btn-secondary btn-sm" onclick="openLimits(\''+p.id+'\',\''+esc(p.display_name||p.username)+'\')">Limites</button>'
+        + '<button class="btn btn-accent btn-sm" onclick="openBotPerms(\''+p.id+'\',\''+esc(p.display_name||p.username)+'\')">Permisos Bot</button>'
         + '<button class="btn btn-secondary btn-sm" onclick="editPartner(\''+p.id+'\')">Editar</button>'
         + '<button class="btn btn-danger btn-sm" onclick="delPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>'
       + '</div></td>'
@@ -628,6 +727,71 @@ async function saveLimit(partnerId, field, value, inputEl) {
 }
 
 // ─── GESTIÓN DE PERMISOS EN EDITAR PARTNER ─────────────────────────────────
+
+// Abrir modal de permisos de bot para un partner
+async function openBotPerms(partnerId, partnerName) {
+  document.getElementById('bp-pname').textContent = partnerName;
+  document.getElementById('bp-partner-id').value = partnerId;
+  
+  // Obtener apps del partner
+  var res = await apiFetch(API + '/partners');
+  if (!res || !res.success) return;
+  var partner = res.partners.find(p => p.id === partnerId);
+  if (!partner || !partner.apps || !partner.apps.length) {
+    toast('Partner sin apps asignadas', 'warning');
+    return;
+  }
+  
+  // Si tiene múltiples apps, usar la primera por ahora
+  // TODO: agregar selector de app si hay múltiples
+  var appId = partner.apps[0].id;
+  document.getElementById('bp-app-id').value = appId;
+  
+  // Cargar permisos actuales
+  var permsRes = await apiFetch(API + '/partner-permissions/' + partnerId + '/' + appId);
+  if (permsRes && permsRes.success && permsRes.permissions) {
+    var p = permsRes.permissions;
+    document.getElementById('bp-can_genkeys').checked = !!p.can_genkeys;
+    document.getElementById('bp-can_view_users').checked = !!p.can_view_users;
+    document.getElementById('bp-can_ban_users').checked = !!p.can_ban_users;
+    document.getElementById('bp-can_view_logs').checked = !!p.can_view_logs;
+    document.getElementById('bp-can_reset_hwid').checked = !!p.can_reset_hwid;
+    document.getElementById('bp-can_extend_sub').checked = !!p.can_extend_sub;
+    document.getElementById('bp-max_keys_per_day').value = p.max_keys_per_day || 100;
+    document.getElementById('bp-max_key_duration').value = p.max_key_duration || 365;
+  }
+  
+  openModal('modal-bot-perms');
+}
+
+async function saveBotPermissions() {
+  var partnerId = document.getElementById('bp-partner-id').value;
+  var appId = document.getElementById('bp-app-id').value;
+  
+  var perms = {
+    can_genkeys: document.getElementById('bp-can_genkeys').checked ? 1 : 0,
+    can_view_users: document.getElementById('bp-can_view_users').checked ? 1 : 0,
+    can_ban_users: document.getElementById('bp-can_ban_users').checked ? 1 : 0,
+    can_view_logs: document.getElementById('bp-can_view_logs').checked ? 1 : 0,
+    can_reset_hwid: document.getElementById('bp-can_reset_hwid').checked ? 1 : 0,
+    can_extend_sub: document.getElementById('bp-can_extend_sub').checked ? 1 : 0,
+    max_keys_per_day: parseInt(document.getElementById('bp-max_keys_per_day').value) || 100,
+    max_key_duration: parseInt(document.getElementById('bp-max_key_duration').value) || 365
+  };
+  
+  var res = await apiFetch(API + '/partner-permissions/' + partnerId + '/' + appId, {
+    method: 'POST',
+    body: perms
+  });
+  
+  if (res && res.success) {
+    toast('Permisos guardados correctamente', 'success');
+    closeModal('modal-bot-perms');
+    loadPartners();
+  } else if (res) {
+    toast(res.message, 'error');
+  }
+}
 
 async function reload() {
   if (currentRole === 'partner' && userInfo && userInfo.role === 'owner') {
