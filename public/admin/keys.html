@@ -123,8 +123,8 @@
         
         <div class="form-group">
           <label class="form-label">License Mask <span style="color:#ef4444;">*</span></label>
-          <input type="text" id="gen-mask" class="form-control" value="*****-*****" placeholder="*****-*****" style="font-family:monospace;" />
-          <div class="form-hint">Use * for random characters. Example: KEY-*****-*****</div>
+          <input type="text" id="gen-mask" class="form-control" value="5-5" placeholder="5-5-5" style="font-family:monospace;" />
+          <div class="form-hint">Format: numbers separated by dashes. Example: "5-5" = XXXXX-XXXXX, "4-4-4" = XXXX-XXXX-XXXX</div>
         </div>
         
         <div class="form-group">
@@ -280,11 +280,18 @@
       if (!currentAppId) return toast('No app selected', 'error');
       
       const amount = parseInt(document.getElementById('gen-amount').value) || 1;
-      const mask = document.getElementById('gen-mask').value || '*****-*****';
+      const maskPattern = document.getElementById('gen-mask').value || '5-5';
       const subscription = document.getElementById('gen-subscription').value;
       const note = document.getElementById('gen-note').value;
       const unit = document.getElementById('gen-unit').value;
       const duration = parseInt(document.getElementById('gen-duration').value) || 0;
+      
+      // Convert mask pattern like "5-5" to "*****-*****"
+      const maskParts = maskPattern.split('-');
+      const prefix = maskParts.map(function(part) {
+        const count = parseInt(part) || 5;
+        return '*'.repeat(count);
+      }).join('-');
       
       let durationInDays = 0;
       if (unit === 'lifetime') {
@@ -299,7 +306,7 @@
       
       const body = {
         amount: amount,
-        prefix: mask,
+        prefix: prefix,
         level: subscription === 'Premium' ? 2 : subscription === 'VIP' ? 3 : 1,
         note: note
       };
@@ -316,7 +323,7 @@
           
           // Reset form
           document.getElementById('gen-amount').value = '1';
-          document.getElementById('gen-mask').value = '*****-*****';
+          document.getElementById('gen-mask').value = '5-5';
           document.getElementById('gen-subscription').value = 'default';
           document.getElementById('gen-note').value = '';
           document.getElementById('gen-unit').value = 'days';
