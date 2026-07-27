@@ -29,6 +29,11 @@
     .no-app-selected { text-align:center; padding:24px 12px; color:var(--text3); font-size:12px; }
     .cred-refresh-btn { width:100%; margin-top:12px; }
 
+    /* Language buttons */
+    .lang-btn { padding:6px 12px; border:1px solid var(--border); background:var(--bg3); color:var(--text3); border-radius:var(--radius); font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; margin:0; }
+    .lang-btn:hover { border-color:var(--accent); color:var(--text); }
+    .lang-btn.active { background:var(--accent); border-color:var(--accent); color:#000; font-weight:800; }
+
     /* Lista apps derecha */
     .apps-search { width:100%; padding:9px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:13px; outline:none; transition:border-color .15s; margin-bottom:12px; box-sizing:border-box; }
     .apps-search:focus { border-color:rgba(245,197,24,.4); }
@@ -258,24 +263,21 @@ function selectApp(app) {
     '</div>';
   }
 
-  // Código C++ genérico para todos los proyectos
-  var cppCode = 
-    '#include "LMAx27Auth.hpp"\n' +
-    '#include "LMAx27Enc.hpp"\n\n' +
-    'lmax::Auth app(\n' +
-    '  LMAx27("' + app.name + '"),\n' +
-    '  LMAx27("' + app.owner_id + '"),\n' +
-    '  LMAx27("' + app.secret + '"),\n' +
-    '  LMAx27("' + app.version + '"),\n' +
-    '  LMAx27("' + apiUrl + '")\n' +
-    ');\n\n' +
-    'app.init();\n' +
-    'app.login(username, password);\n' +
-    'if (!app.response.success) {\n' +
-    '  // Handle error\n' +
-    '}';
+  // Código para diferentes lenguajes
+  var codes = {
+    cpp: '#include "LMAx27Auth.hpp"\n#include "LMAx27Enc.hpp"\n\nlmax::Auth app(\n  LMAx27("' + app.name + '"),\n  LMAx27("' + app.owner_id + '"),\n  LMAx27("' + app.secret + '"),\n  LMAx27("' + app.version + '"),\n  LMAx27("' + apiUrl + '")\n);\n\napp.init();\napp.login(username, password);\nif (!app.response.success) {\n  // Handle error\n}',
+    
+    python: 'import requests\nimport json\n\nclass LMAx27Auth:\n    def __init__(self):\n        self.name = "' + app.name + '"\n        self.ownerid = "' + app.owner_id + '"\n        self.secret = "' + app.secret + '"\n        self.version = "' + app.version + '"\n        self.url = "' + apiUrl + '"\n    \n    def login(self, username, password):\n        data = {\n            "type": "login",\n            "username": username,\n            "password": password,\n            "ownerid": self.ownerid,\n            "secret": self.secret\n        }\n        response = requests.post(self.url, json=data)\n        return response.json()',
+    
+    csharp: 'using System;\nusing System.Net.Http;\nusing System.Text;\nusing Newtonsoft.Json;\n\npublic class LMAx27Auth\n{\n    public string Name = "' + app.name + '";\n    public string OwnerId = "' + app.owner_id + '";\n    public string Secret = "' + app.secret + '";\n    public string Version = "' + app.version + '";\n    public string Url = "' + apiUrl + '";\n    \n    public async Task<bool> Login(string username, string password)\n    {\n        var client = new HttpClient();\n        var data = new {\n            type = "login",\n            username = username,\n            password = password,\n            ownerid = OwnerId,\n            secret = Secret\n        };\n        var json = JsonConvert.SerializeObject(data);\n        var content = new StringContent(json, Encoding.UTF8, "application/json");\n        var response = await client.PostAsync(Url, content);\n        return response.IsSuccessStatusCode;\n    }\n}',
+    
+    nodejs: 'const axios = require(\'axios\');\n\nclass LMAx27Auth {\n    constructor() {\n        this.name = \'' + app.name + '\';\n        this.ownerid = \'' + app.owner_id + '\';\n        this.secret = \'' + app.secret + '\';\n        this.version = \'' + app.version + '\';\n        this.url = \'' + apiUrl + '\';\n    }\n    \n    async login(username, password) {\n        try {\n            const response = await axios.post(this.url, {\n                type: \'login\',\n                username: username,\n                password: password,\n                ownerid: this.ownerid,\n                secret: this.secret\n            });\n            return response.data;\n        } catch (error) {\n            console.error(\'Login error:\', error);\n            return { success: false };\n        }\n    }\n}'
+  };
 
-  var safeCpp = cppCode.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  var safeCodes = {};
+  Object.keys(codes).forEach(function(lang) {
+    safeCodes[lang] = codes[lang].replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  });
 
   document.getElementById('creds-content').innerHTML =
     '<div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;">' +
@@ -287,12 +289,24 @@ function selectApp(app) {
     credRow('APPLICATION SECRET', masked(app.secret), app.secret) +
     credRow('APPLICATION VERSION', app.version) +
     '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
-        '<span style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Codigo C++ - LMAx27</span>' +
-        '<button class="cred-copy-btn" style="font-size:10px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;" onclick="copyText(\'' + safeCpp + '\',this)">Copiar</button>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
+        '<span style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Código para Diferentes Lenguajes</span>' +
       '</div>' +
-      '<pre style="margin:0;font-size:9px;line-height:1.5;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;overflow-x:auto;white-space:pre;max-height:200px;overflow-y:auto;">' + esc(cppCode) + '</pre>' +
+      '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">' +
+        '<button class="lang-btn active" onclick="showLanguageCode(\'cpp\', this)">C++</button>' +
+        '<button class="lang-btn" onclick="showLanguageCode(\'python\', this)">Python</button>' +
+        '<button class="lang-btn" onclick="showLanguageCode(\'csharp\', this)">C#</button>' +
+        '<button class="lang-btn" onclick="showLanguageCode(\'nodejs\', this)">Node.js</button>' +
+      '</div>' +
+      '<div style="position:relative;">' +
+        '<pre id="code-display" style="margin:0;font-size:9px;line-height:1.5;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow-x:auto;white-space:pre;max-height:220px;overflow-y:auto;">' + esc(codes.cpp) + '</pre>' +
+        '<button class="cred-copy-btn" style="position:absolute;top:8px;right:8px;font-size:10px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;" onclick="copyCurrentCode()">Copiar</button>' +
+      '</div>' +
     '</div>';
+
+  // Store codes globally for copy function
+  window.currentCodes = codes;
+  window.currentLanguage = 'cpp';
 }
 
 function currentSelectedApp() {
@@ -432,6 +446,25 @@ async function deleteApp(id, name) {
     var res = await apiFetch(API + '/apps/' + id, { method:'DELETE' });
     if (res && res.success) { toast('App eliminada', 'success'); loadApps(); }
   });
+}
+
+// Language switching functions
+function showLanguageCode(lang, btn) {
+  if (!window.currentCodes) return;
+  
+  // Update active button
+  document.querySelectorAll('.lang-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  
+  // Update code display
+  document.getElementById('code-display').textContent = window.currentCodes[lang];
+  window.currentLanguage = lang;
+}
+
+function copyCurrentCode() {
+  if (!window.currentCodes || !window.currentLanguage) return;
+  var code = window.currentCodes[window.currentLanguage];
+  copyText(code, event.target);
 }
 </script>
 

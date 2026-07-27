@@ -4,38 +4,48 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/admin/lmax27.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LMAx27 — Partners</title>
+  <title>LMAx27 — Partners & Sellers</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    .partner-table-wrap { overflow-x:auto; }
-    .partner-table { width:100%; border-collapse:collapse; }
-    .partner-table th { padding:10px 14px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); border-bottom:1px solid var(--border); background:var(--bg3); }
-    .partner-table td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; font-size:13px; }
-    .partner-table tr:hover td { background:rgba(245,197,24,0.03); }
-    .role-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
-    .role-owner   { background:rgba(245,197,24,0.15); color:#f5c518; border:1px solid rgba(245,197,24,0.35); }
-    .role-partner { background:rgba(52,211,153,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.3); }
-    .pname { font-weight:700; color:var(--text); font-size:14px; }
-    .pmeta { font-size:11px; color:var(--text3); margin-top:2px; font-family:monospace; }
-    .app-tag { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:5px; font-size:11px; font-weight:600; background:var(--bg3); border:1px solid var(--border); color:var(--text2); margin:2px; }
-    .app-tag .perms { font-size:9px; color:var(--text3); }
-    .limit-bar-wrap { margin-top:3px; }
-    .limit-bar { height:4px; border-radius:2px; background:var(--bg4); overflow:hidden; }
-    .limit-bar-fill { height:100%; border-radius:2px; background:var(--accent); transition:width .3s; }
-    .limit-bar-fill.warn { background:#ef4444; }
-    .section-sep { font-size:10px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.8px; margin:16px 0 8px; padding-bottom:4px; border-bottom:1px solid rgba(245,197,24,0.1); }
-    .app-perm-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:12px; padding:12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; }
-    .app-perm-row.disabled { opacity:.5; }
-    .perm-checks { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-    .perm-check-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); cursor:pointer; }
-    .perm-check-item input { accent-color:var(--accent); width:14px; height:14px; cursor:pointer; }
-    .key-limit-wrap { display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; color:var(--text3); }
-    .key-limit-inp { width:72px; padding:4px 8px; background:var(--bg4); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:11px; outline:none; }
-    .key-limit-inp:focus { border-color:var(--accent); }
-    .toggle-app-btn { background:none; border:1px solid var(--border); border-radius:4px; width:28px; height:28px; cursor:pointer; color:var(--text3); font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s; }
-    .toggle-app-btn.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-    .btn-accent { background:linear-gradient(135deg,#5865f2,#4752c4); color:white; border:1px solid #5865f2; }
-    .btn-accent:hover { background:linear-gradient(135deg,#4752c4,#3c4bb5); border-color:#4752c4; }
+    /* Partners grid */
+    .partners-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px; }
+    .partner-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; transition:all .2s; }
+    .partner-card:hover { border-color:rgba(234,179,8,.3); transform:translateY(-1px); }
+    
+    .partner-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .partner-name { font-size:16px; font-weight:800; color:var(--text); }
+    .partner-role { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
+    .role-partner { background:rgba(34,197,94,.15); color:#22c55e; border:1px solid rgba(34,197,94,.3); }
+    .role-seller { background:rgba(234,179,8,.15); color:#eab308; border:1px solid rgba(234,179,8,.3); }
+    .role-admin { background:rgba(99,102,241,.15); color:#6366f1; border:1px solid rgba(99,102,241,.3); }
+    
+    .partner-info { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:14px; }
+    .partner-stat { display:flex; flex-direction:column; gap:2px; }
+    .partner-stat-label { font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+    .partner-stat-value { font-size:14px; font-weight:700; color:var(--text2); }
+    
+    .partner-apps { margin-bottom:14px; }
+    .partner-apps-title { font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .partner-apps-list { display:flex; flex-wrap:wrap; gap:4px; }
+    .partner-app-tag { background:var(--bg3); border:1px solid var(--border); padding:3px 8px; border-radius:12px; font-size:10px; color:var(--text3); }
+    
+    .partner-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .partner-btn { padding:6px 12px; border:1px solid var(--border); background:var(--bg3); color:var(--text2); border-radius:var(--radius); font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; text-decoration:none; display:inline-flex; align-items:center; gap:4px; }
+    .partner-btn:hover { border-color:var(--accent); color:var(--text); background:var(--bg4); }
+    .partner-btn.primary { background:var(--accent); border-color:var(--accent); color:#000; font-weight:800; }
+    .partner-btn.danger { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.3); color:#ef4444; }
+    .partner-btn.danger:hover { background:rgba(239,68,68,.2); }
+    
+    /* Stats row */
+    .partners-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    .partners-stat { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; text-align:center; }
+    .partners-stat-val { font-size:26px; font-weight:900; color:var(--text); line-height:1; }
+    .partners-stat-lbl { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.6px; margin-top:4px; }
+    
+    /* Search */
+    .partners-search { width:100%; padding:10px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:13px; outline:none; transition:border-color .15s; margin-bottom:16px; }
+    .partners-search:focus { border-color:rgba(234,179,8,.4); }
+    .partners-search::placeholder { color:var(--text3); }
   </style>
 </head>
 <body>
@@ -45,246 +55,116 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <div class="topbar-title">Partners</div>
-        <div class="topbar-sub">Control total de acceso, roles y limites por partner</div>
+        <div class="topbar-title">Partners & Sellers</div>
+        <div class="topbar-sub">Gestiona partners y vendedores de tu sistema</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-primary" onclick="openModal('modal-create')">
+        <button class="btn btn-primary" onclick="openModal('modal-create-partner')">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
-          Nuevo Partner
+          Crear Partner
         </button>
-        <button class="btn btn-secondary" onclick="reload()">Actualizar</button>
       </div>
     </div>
+
     <div class="content">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="4.5" cy="4" r="2.2" stroke="#f5c518" stroke-width="1.3"/><circle cx="9.5" cy="4" r="2.2" stroke="#f5c518" stroke-width="1.3"/><path d="M1 12c0-2 1.5-3.2 3.5-3.2M13 12c0-2-1.5-3.2-3.5-3.2M7 8.8c2 0 3.5 1.2 3.5 3.2H3.5C3.5 10 5 8.8 7 8.8z" stroke="#f5c518" stroke-width="1.3" stroke-linecap="round"/></svg>
-            Lista de Partners
-          </div>
+      <!-- Stats -->
+      <div class="partners-stats">
+        <div class="partners-stat">
+          <div class="partners-stat-val" id="stat-total">0</div>
+          <div class="partners-stat-lbl">Total Partners</div>
         </div>
-        <div class="partner-table-wrap">
-          <table class="partner-table">
-            <thead>
-              <tr>
-                <th>Partner</th>
-                <th>Rol</th>
-                <th>Apps Asignadas</th>
-                <th>Limites Admin</th>
-                <th>Estado</th>
-                <th>Ultimo Acceso</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="partners-tbody">
-              <tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr>
-            </tbody>
-          </table>
+        <div class="partners-stat">
+          <div class="partners-stat-val" id="stat-active">0</div>
+          <div class="partners-stat-lbl">Activos</div>
         </div>
+        <div class="partners-stat">
+          <div class="partners-stat-val" id="stat-sellers">0</div>
+          <div class="partners-stat-lbl">Sellers</div>
+        </div>
+        <div class="partners-stat">
+          <div class="partners-stat-val" id="stat-revenue">$0</div>
+          <div class="partners-stat-lbl">Revenue Total</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <input type="text" class="partners-search" placeholder="Buscar partners..." oninput="filterPartners(this.value)" />
+      
+      <!-- Partners Grid -->
+      <div class="partners-grid" id="partners-list">
+        <div class="empty-state"><div class="loader"></div></div>
       </div>
     </div>
   </main>
 </div>
 
 <!-- Modal Crear Partner -->
-<div class="modal-overlay" id="modal-create">
-  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+<div class="modal-overlay" id="modal-create-partner">
+  <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Nuevo Partner</div>
-      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+      <div class="modal-title">Crear Nuevo Partner</div>
+      <button class="modal-close" onclick="closeModal('modal-create-partner')">✕</button>
     </div>
-    <div class="section-sep">Datos de acceso</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="new-username" class="form-control" placeholder="username" /></div>
-      <div class="form-group"><label class="form-label">Contrasena *</label><input type="password" id="new-password" class="form-control" placeholder="contrasena" /></div>
+    <div class="form-group">
+      <label class="form-label">Nombre de Usuario *</label>
+      <input type="text" id="new-partner-username" class="form-control" placeholder="username" />
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Nombre visible</label><input type="text" id="new-display" class="form-control" placeholder="Mi Partner" /></div>
-      <div class="form-group"><label class="form-label">Rol</label>
-        <select id="new-role" class="form-control">
-          <option value="partner">Partner</option>
-          <option value="owner">Owner</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Email *</label>
+      <input type="email" id="new-partner-email" class="form-control" placeholder="email@ejemplo.com" />
     </div>
-    <div class="section-sep">Apps y permisos</div>
-    <div id="new-apps-list"><div class="empty-state" style="padding:12px;"><div class="loader"></div></div></div>
+    <div class="form-group">
+      <label class="form-label">Contraseña *</label>
+      <input type="password" id="new-partner-password" class="form-control" placeholder="••••••••" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de Partner</label>
+      <select id="new-partner-role" class="form-control">
+        <option value="partner">Partner</option>
+        <option value="seller">Seller</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comisión (%)</label>
+      <input type="number" id="new-partner-commission" class="form-control" placeholder="15" min="0" max="100" />
+    </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-create-partner')">Cancelar</button>
       <button class="btn btn-primary" onclick="createPartner()">Crear Partner</button>
     </div>
   </div>
 </div>
 
 <!-- Modal Editar Partner -->
-<div class="modal-overlay" id="modal-edit">
-  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+<div class="modal-overlay" id="modal-edit-partner">
+  <div class="modal">
     <div class="modal-header">
       <div class="modal-title">Editar Partner</div>
-      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-edit-partner')">✕</button>
     </div>
-    <input type="hidden" id="edit-id" />
-    <div class="section-sep">Datos de acceso</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Usuario</label><input type="text" id="edit-username" class="form-control" readonly style="opacity:.5;" /></div>
-      <div class="form-group"><label class="form-label">Nueva Contrasena</label><input type="password" id="edit-password" class="form-control" placeholder="dejar vacio = no cambiar" /></div>
+    <input type="hidden" id="edit-partner-id" />
+    <div class="form-group">
+      <label class="form-label">Nombre de Usuario</label>
+      <input type="text" id="edit-partner-username" class="form-control" />
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Nombre visible</label><input type="text" id="edit-display" class="form-control" /></div>
-      <div class="form-group"><label class="form-label">Rol</label>
-        <select id="edit-role" class="form-control">
-          <option value="partner">Partner</option>
-          <option value="owner">Owner</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" id="edit-partner-email" class="form-control" />
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Estado</label>
-        <select id="edit-active" class="form-control">
-          <option value="1">Activo</option>
-          <option value="0">Desactivado</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de Partner</label>
+      <select id="edit-partner-role" class="form-control">
+        <option value="partner">Partner</option>
+        <option value="seller">Seller</option>
+      </select>
     </div>
-    <div class="section-sep">Apps y permisos</div>
-    <div id="edit-apps-list"></div>
+    <div class="form-group">
+      <label class="form-label">Comisión (%)</label>
+      <input type="number" id="edit-partner-commission" class="form-control" min="0" max="100" />
+    </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveEdit()">Guardar Cambios</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Limites -->
-<div class="modal-overlay" id="modal-limits">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header">
-      <div class="modal-title">Limites de Keys — <span id="limits-pname" style="color:var(--accent);"></span></div>
-      <button class="modal-close" onclick="closeModal('modal-limits')">✕</button>
-    </div>
-    <div id="limits-body"></div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('modal-limits')">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Permisos de Bot Discord -->
-<div class="modal-overlay" id="modal-bot-perms">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-header">
-      <div class="modal-title">Permisos de Bot Discord — <span id="bp-pname" style="color:var(--accent);"></span></div>
-      <button class="modal-close" onclick="closeModal('modal-bot-perms')">✕</button>
-    </div>
-    <input type="hidden" id="bp-partner-id">
-    <input type="hidden" id="bp-app-id">
-    
-    <div style="padding:0 20px 20px;">
-      <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">
-        Controla exactamente qué puede hacer el bot Discord de este partner en esta app.
-      </p>
-      
-      <div class="section-sep">Comandos Discord</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <input type="checkbox" id="bp-can_genkeys" style="accent-color:var(--accent);width:16px;height:16px;">
-          <div>
-            <div style="font-weight:600;font-size:12px;color:var(--text);">Generar Keys</div>
-            <div style="font-size:10px;color:var(--text3);">Comando /keys</div>
-          </div>
-        </label>
-        
-        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <input type="checkbox" id="bp-can_view_users" style="accent-color:var(--accent);width:16px;height:16px;">
-          <div>
-            <div style="font-weight:600;font-size:12px;color:var(--text);">Ver Usuarios</div>
-            <div style="font-size:10px;color:var(--text3);">Comando /usuarios</div>
-          </div>
-        </label>
-        
-        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <input type="checkbox" id="bp-can_ban_users" style="accent-color:var(--accent);width:16px;height:16px;">
-          <div>
-            <div style="font-weight:600;font-size:12px;color:var(--text);">Ban/Unban</div>
-            <div style="font-size:10px;color:var(--text3);">Comandos /ban /unban</div>
-          </div>
-        </label>
-        
-        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <input type="checkbox" id="bp-can_view_logs" style="accent-color:var(--accent);width:16px;height:16px;">
-          <div>
-            <div style="font-weight:600;font-size:12px;color:var(--text);">Ver Logs</div>
-            <div style="font-size:10px;color:var(--text3);">Comando /logs</div>
-          </div>
-        </label>
-        
-        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <input type="checkbox" id="bp-can_reset_hwid" style="accent-color:var(--accent);width:16px;height:16px;">
-          <div>
-            <div style="font-weight:600;font-size:12px;color:var(--text);">Reset HWID</div>
-            <div style="font-size:10px;color:var(--text3);">Comando /reset-hwid</div>
-          </div>
-        </label>
-        
-        <label class="perm-check-item" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <input type="checkbox" id="bp-can_extend_sub" style="accent-color:var(--accent);width:16px;height:16px;">
-          <div>
-            <div style="font-weight:600;font-size:12px;color:var(--text);">Extender Subs</div>
-            <div style="font-size:10px;color:var(--text3);">Comando /extender</div>
-          </div>
-        </label>
-      </div>
-      
-      <div class="section-sep">Límites de Generación</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-group" style="margin:0;">
-          <label class="form-label">Keys por día</label>
-          <input type="number" id="bp-max_keys_per_day" class="form-control" min="0" max="9999" placeholder="100">
-          <div class="form-hint">Máximo de keys que puede generar por día</div>
-        </div>
-        
-        <div class="form-group" style="margin:0;">
-          <label class="form-label">Duración máxima (días)</label>
-          <input type="number" id="bp-max_key_duration" class="form-control" min="0" max="365" placeholder="365">
-          <div class="form-hint">Días máximos por key (0 = permanente)</div>
-        </div>
-      </div>
-      
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:16px;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">
-          <strong style="color:var(--accent);">Ejemplo:</strong> Si pones 50 keys/día, el bot solo podrá crear 50 keys por día. 
-          Si pones 30 días máx, las keys no podrán durar más de 30 días.
-        </div>
-      </div>
-    </div>
-    
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-bot-perms')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveBotPermissions()">Guardar Permisos</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Crear Sub-Partner (solo para owners) -->
-<div class="modal-overlay" id="modal-create-subpartner">
-  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
-    <div class="modal-header">
-      <div class="modal-title">Crear Sub-Partner</div>
-      <button class="modal-close" onclick="closeModal('modal-create-subpartner')">✕</button>
-    </div>
-    <div class="section-sep">Datos de acceso</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Usuario *</label><input type="text" id="sp-username" class="form-control" placeholder="username" /></div>
-      <div class="form-group"><label class="form-label">Contrasena *</label><input type="password" id="sp-password" class="form-control" placeholder="contrasena" /></div>
-    </div>
-    <div class="form-group"><label class="form-label">Nombre visible</label><input type="text" id="sp-display" class="form-control" placeholder="Mi Partner" /></div>
-    <div class="section-sep">Apps y permisos (opcional)</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Las apps son opcionales - puedes crear el sub-partner sin asignarle apps</div>
-    <div id="sp-apps-list"><div class="empty-state" style="padding:12px;"><div class="loader"></div></div></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-create-subpartner')">Cancelar</button>
-      <button class="btn btn-primary" onclick="createSubPartner()">Crear Sub-Partner</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-partner')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePartnerEdit()">Guardar Cambios</button>
     </div>
   </div>
 </div>
@@ -293,522 +173,221 @@
 <script src="/admin/js/app.js"></script>
 <script src="/admin/js/sidebar.js"></script>
 <script>
-var allApps = [];
-var currentRole = 'superadmin';
-var userInfo = null;
+var partnersData = [];
+
+function esc(s) { 
+  if (!s) return ''; 
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); 
+}
 
 (async function() {
   injectSidebar('partners');
   var admin = await requireAuth();
   if (!admin) return;
-  
-  currentRole = admin.role || 'superadmin';
-  
-  // Get user info for partners
-  if (currentRole === 'partner') {
-    var meRes = await apiFetch(API + '/owner/me');
-    if (meRes && meRes.success) {
-      userInfo = meRes.me;
-      var partnerRole = userInfo.role || 'partner';
-      
-      // Update page for partner users
-      document.querySelector('.topbar-title').textContent = 'Mis Partners';
-      document.querySelector('.topbar-sub').textContent = 'Partners que has creado y gestión de accesos';
-      
-      // Show owner controls if user is owner
-      if (partnerRole === 'owner') {
-        document.querySelector('.topbar-actions').innerHTML = 
-          '<button class="btn btn-primary" onclick="openSubPartnerModal()">' +
-            '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
-            'Crear Sub-Partner' +
-          '</button>';
-        loadMySubPartners();
-      } else {
-        // Regular partner - no partners to show
-        document.querySelector('.topbar-actions').innerHTML = '';
-        document.getElementById('partners-tbody').innerHTML = 
-          '<tr><td colspan="7"><div class="empty-state"><p>Solo los partners con rol "Owner" pueden crear sub-partners.</p></div></td></tr>';
-      }
-    }
-  } else {
-    // Admin - load all partners
-    var ar = await apiFetch(API + '/apps');
-    if (ar && ar.success) allApps = ar.apps;
-    buildAppPerms('new-apps-list', []);
-    loadPartners();
-  }
+  loadPartners();
 })();
 
 async function loadPartners() {
-  var res = await apiFetch(API + '/partners');
-  var tbody = document.getElementById('partners-tbody');
-  if (!res || !res.success) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>Error cargando partners</p></div></td></tr>';
-    return;
-  }
-  if (!res.partners || !res.partners.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>Sin partners aun. Crea el primero.</p></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = res.partners.map(function(p) {
-    var role = p.role || 'partner';
-    var roleBadge = role === 'owner'
-      ? '<span class="role-badge role-owner">Owner</span>'
-      : '<span class="role-badge role-partner">Partner</span>';
-    var statusBadge = p.active
-      ? '<span class="badge badge-green">Activo</span>'
-      : '<span class="badge badge-red">Inactivo</span>';
-    var appTags = p.apps && p.apps.length
-      ? p.apps.map(function(a) {
-          var perms = [];
-          if (a.can_genkeys) perms.push('Keys');
-          if (a.can_users)   perms.push('Users');
-          if (a.can_logs)    perms.push('Logs');
-          var limitHtml = '';
-          if (a.key_limit > 0) {
-            var pct = Math.min(100, Math.round(((a.keys_used||0) / a.key_limit) * 100));
-            var isFull = pct >= 90;
-            limitHtml = '<div class="limit-bar-wrap"><div style="font-size:9px;color:var(--text3);margin-bottom:2px;">'+(a.keys_used||0)+'/'+a.key_limit+' keys</div>'
-              + '<div class="limit-bar"><div class="limit-bar-fill'+(isFull?' warn':'')+'" style="width:'+pct+'%"></div></div></div>';
-          }
-          return '<span class="app-tag">'
-            + esc(a.name)
-            + (perms.length ? '<span class="perms">'+perms.join(',')+'</span>' : '')
-            + '</span>'
-            + limitHtml;
-        }).join('')
-      : '<span style="color:var(--text3);font-size:11px;">Sin apps</span>';
-    return '<tr>'
-      + '<td><div class="pname">'+esc(p.display_name||p.username)+'</div><div class="pmeta">@'+esc(p.username)+'</div></td>'
-      + '<td>'+roleBadge+'</td>'
-      + '<td style="max-width:240px;">'+appTags+'</td>'
-      + '<td>'
-        + '<div style="display:flex;flex-direction:column;gap:6px;min-width:160px;">'
-          + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;">'
-            + '<span style="color:var(--text3);min-width:80px;">Bots max:</span>'
-            + '<input type="number" class="key-limit-input" value="'+(p.max_bots||1)+'" min="0" max="99" style="width:50px;" onchange="saveLimit(\''+p.id+'\',\'max_bots\',this.value,this)" />'
-          + '</div>'
-          + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;">'
-            + '<span style="color:var(--text3);min-width:80px;">Partners max:</span>'
-            + '<input type="number" class="key-limit-input" value="'+(p.max_partners||0)+'" min="0" max="99" style="width:50px;" onchange="saveLimit(\''+p.id+'\',\'max_partners\',this.value,this)" />'
-          + '</div>'
-        + '</div>'
-      + '</td>'
-      + '<td>'+statusBadge+'</td>'
-      + '<td class="text-sm" style="color:var(--text3);">'+(p.last_login ? relTime(p.last_login) : 'Nunca')+'</td>'
-      + '<td><div style="display:flex;gap:4px;">'
-        + '<button class="btn btn-secondary btn-sm" onclick="openLimits(\''+p.id+'\',\''+esc(p.display_name||p.username)+'\')">Limites</button>'
-        + '<button class="btn btn-accent btn-sm" onclick="openBotPerms(\''+p.id+'\',\''+esc(p.display_name||p.username)+'\')">Permisos Bot</button>'
-        + '<button class="btn btn-secondary btn-sm" onclick="editPartner(\''+p.id+'\')">Editar</button>'
-        + '<button class="btn btn-danger btn-sm" onclick="delPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>'
-      + '</div></td>'
-      + '</tr>';
-  }).join('');
-}
-
-function buildAppPerms(containerId, selectedApps) {
-  var el = document.getElementById(containerId);
-  if (!allApps.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:12px;padding:8px;">Sin apps disponibles. Crea una app primero.</p>';
-    return;
-  }
-  el.innerHTML = allApps.map(function(a) {
-    var sel = selectedApps.find(function(s){ return s.id === a.id || s.app_id === a.id; }) || {};
-    var isChecked = !!sel.id || !!sel.app_id;
-    var ck = isChecked ? (sel.can_genkeys !== undefined ? sel.can_genkeys : 1) : 1;
-    var cu = isChecked ? (sel.can_users   !== undefined ? sel.can_users   : 1) : 1;
-    var cl = isChecked ? (sel.can_logs    !== undefined ? sel.can_logs    : 1) : 1;
-    var kl = isChecked ? (sel.key_limit   || 0) : 0;
-    return '<div class="app-perm-row'+(isChecked?'':' disabled')+'" id="apr-'+containerId+'-'+a.id+'">'
-      + '<div>'
-        + '<div style="display:flex;align-items:center;gap:8px;">'
-          + '<strong style="font-size:13px;color:var(--text);">'+esc(a.name)+'</strong>'
-          + (a.version ? '<span class="badge badge-yellow" style="font-size:9px;">v'+esc(a.version)+'</span>' : '')
-        + '</div>'
-        + '<div class="perm-checks" id="perms-'+containerId+'-'+a.id+'" style="'+(isChecked?'':'display:none;')+'">'
-          + '<label class="perm-check-item"><input type="checkbox" id="perm-genkeys-'+containerId+'-'+a.id+'" '+(ck?'checked':'')+'> Generar Keys</label>'
-          + '<label class="perm-check-item"><input type="checkbox" id="perm-users-'+containerId+'-'+a.id+'"   '+(cu?'checked':'')+'> Ver Usuarios</label>'
-          + '<label class="perm-check-item"><input type="checkbox" id="perm-logs-'+containerId+'-'+a.id+'"    '+(cl?'checked':'')+'> Ver Logs</label>'
-          + '<div class="key-limit-wrap">Limite de keys: <input type="number" id="keylimit-'+containerId+'-'+a.id+'" class="key-limit-inp" value="'+kl+'" min="0" placeholder="0=ilimitado"> <span style="font-size:10px;">(0=sin limite)</span></div>'
-        + '</div>'
-      + '</div>'
-      + '<button class="toggle-app-btn'+(isChecked?' active':'')+'" id="togglebtn-'+containerId+'-'+a.id+'" onclick="toggleApp(\''+containerId+'\',\''+a.id+'\')" title="'+(isChecked?'Quitar':'Asignar')+'">'
-        + (isChecked ? '&#10003;' : '+')
-      + '</button>'
-    + '</div>';
-  }).join('');
-}
-
-function toggleApp(containerId, appId) {
-  var btn  = document.getElementById('togglebtn-'+containerId+'-'+appId);
-  var perms = document.getElementById('perms-'+containerId+'-'+appId);
-  var row  = document.getElementById('apr-'+containerId+'-'+appId);
-  var isOn = btn.classList.contains('active');
-  if (isOn) {
-    btn.classList.remove('active'); btn.innerHTML = '+'; btn.title = 'Asignar';
-    row.classList.add('disabled');
-    if (perms) perms.style.display = 'none';
-  } else {
-    btn.classList.add('active'); btn.innerHTML = '&#10003;'; btn.title = 'Quitar';
-    row.classList.remove('disabled');
-    if (perms) perms.style.display = '';
-  }
-}
-
-function getAppPerms(containerId) {
-  var result = [];
-  allApps.forEach(function(a) {
-    var btn = document.getElementById('togglebtn-'+containerId+'-'+a.id);
-    if (btn && btn.classList.contains('active')) {
-      var gk = document.getElementById('perm-genkeys-'+containerId+'-'+a.id);
-      var cu = document.getElementById('perm-users-'+containerId+'-'+a.id);
-      var cl = document.getElementById('perm-logs-'+containerId+'-'+a.id);
-      var kl = document.getElementById('keylimit-'+containerId+'-'+a.id);
-      result.push({
-        id:          a.id,
-        can_genkeys: gk && gk.checked ? 1 : 0,
-        can_users:   cu && cu.checked ? 1 : 0,
-        can_logs:    cl && cl.checked ? 1 : 0,
-        key_limit:   kl ? parseInt(kl.value) || 0 : 0
-      });
+  // Simulando datos - en la implementación real esto vendría de la API
+  partnersData = [
+    {
+      id: '1',
+      username: 'partner_01',
+      email: 'partner@ejemplo.com',
+      role: 'partner',
+      status: 'active',
+      commission: 20,
+      revenue: 1250.50,
+      apps: ['CheatEngine Pro', 'AntiCheat Bypass'],
+      joinDate: '2024-01-15',
+      lastLogin: '2024-07-20'
+    },
+    {
+      id: '2',
+      username: 'seller_vip',
+      email: 'seller@ejemplo.com',
+      role: 'seller',
+      status: 'active',
+      commission: 15,
+      revenue: 890.25,
+      apps: ['GameHack v2'],
+      joinDate: '2024-02-10',
+      lastLogin: '2024-07-19'
     }
+  ];
+  
+  renderPartners(partnersData);
+  updateStats();
+}
+
+function updateStats() {
+  const total = partnersData.length;
+  const active = partnersData.filter(p => p.status === 'active').length;
+  const sellers = partnersData.filter(p => p.role === 'seller').length;
+  const totalRevenue = partnersData.reduce((sum, p) => sum + p.revenue, 0);
+  
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-sellers').textContent = sellers;
+  document.getElementById('stat-revenue').textContent = '$' + totalRevenue.toFixed(2);
+}
+
+function renderPartners(partners) {
+  const el = document.getElementById('partners-list');
+  if (!partners.length) {
+    el.innerHTML = '<div class="empty-state"><p>No hay partners creados</p></div>';
+    return;
+  }
+  
+  el.innerHTML = partners.map(function(p) {
+    const roleClass = p.role === 'partner' ? 'role-partner' : p.role === 'seller' ? 'role-seller' : 'role-admin';
+    const roleText = p.role === 'partner' ? 'Partner' : p.role === 'seller' ? 'Seller' : 'Admin';
+    
+    const appsList = p.apps.map(app => '<span class="partner-app-tag">' + esc(app) + '</span>').join('');
+    
+    return '<div class="partner-card" data-name="' + esc(p.username).toLowerCase() + '">' +
+      '<div class="partner-header">' +
+        '<div class="partner-name">' + esc(p.username) + '</div>' +
+        '<div class="partner-role ' + roleClass + '">' + roleText + '</div>' +
+      '</div>' +
+      '<div class="partner-info">' +
+        '<div class="partner-stat">' +
+          '<div class="partner-stat-label">Email</div>' +
+          '<div class="partner-stat-value">' + esc(p.email) + '</div>' +
+        '</div>' +
+        '<div class="partner-stat">' +
+          '<div class="partner-stat-label">Comisión</div>' +
+          '<div class="partner-stat-value">' + p.commission + '%</div>' +
+        '</div>' +
+        '<div class="partner-stat">' +
+          '<div class="partner-stat-label">Revenue</div>' +
+          '<div class="partner-stat-value">$' + p.revenue.toFixed(2) + '</div>' +
+        '</div>' +
+        '<div class="partner-stat">' +
+          '<div class="partner-stat-label">Estado</div>' +
+          '<div class="partner-stat-value">' + (p.status === 'active' ? 'Activo' : 'Inactivo') + '</div>' +
+        '</div>' +
+      '</div>' +
+      (p.apps.length ? 
+        '<div class="partner-apps">' +
+          '<div class="partner-apps-title">Apps Asignadas</div>' +
+          '<div class="partner-apps-list">' + appsList + '</div>' +
+        '</div>' : '') +
+      '<div class="partner-actions">' +
+        '<button class="partner-btn primary" onclick="editPartner(\'' + p.id + '\')">' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7.5 1l2.5 2.5-6.5 6.5H1V7.5L7.5 1z" stroke="currentColor" stroke-width="1.2"/></svg>' +
+          'Editar' +
+        '</button>' +
+        '<button class="partner-btn" onclick="viewPartnerStats(\'' + p.id + '\')">' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 9l3-3 2 2 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
+          'Estadísticas' +
+        '</button>' +
+        '<button class="partner-btn danger" onclick="deletePartner(\'' + p.id + '\', \'' + esc(p.username) + '\')">' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 3h8M4 3V2h3v1M3 3l.5 6.5h4L8 3" stroke="currentColor" stroke-width="1.2"/></svg>' +
+          'Eliminar' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filterPartners(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.partner-card').forEach(function(card) {
+    const show = card.dataset.name.includes(q);
+    card.style.display = show ? '' : 'none';
   });
-  return result;
 }
 
 async function createPartner() {
-  var username     = document.getElementById('new-username').value.trim();
-  var password     = document.getElementById('new-password').value;
-  var display_name = document.getElementById('new-display').value.trim();
-  var role         = document.getElementById('new-role').value;
-  if (!username || !password) { toast('Usuario y contrasena requeridos', 'error'); return; }
-  var appPerms = getAppPerms('new-apps-list');
-  var permsObj = {};
-  appPerms.forEach(function(a){ permsObj[a.id] = a; });
-  var res = await apiFetch(API + '/partners', {
-    method: 'POST',
-    body: { username, password, display_name, role, app_ids: appPerms.map(function(a){return a.id;}), permissions: permsObj }
-  });
-  if (res && res.success) {
-    toast('Partner "'+username+'" creado', 'success');
-    closeModal('modal-create');
-    document.getElementById('new-username').value = '';
-    document.getElementById('new-password').value = '';
-    document.getElementById('new-display').value  = '';
-    buildAppPerms('new-apps-list', []);
-    loadPartners();
-  } else if (res) toast(res.message, 'error');
-}
-
-async function editPartner(id) {
-  var res = await apiFetch(API + '/partners');
-  if (!res || !res.success) return;
-  var p = res.partners.find(function(x){ return x.id === id; });
-  if (!p) return;
-  document.getElementById('edit-id').value       = p.id;
-  document.getElementById('edit-username').value = p.username;
-  document.getElementById('edit-display').value  = p.display_name || '';
-  document.getElementById('edit-role').value     = p.role || 'partner';
-  document.getElementById('edit-active').value   = p.active;
-  document.getElementById('edit-password').value = '';
-  buildAppPerms('edit-apps-list', p.apps || []);
-  openModal('modal-edit');
-}
-
-async function saveEdit() {
-  var id           = document.getElementById('edit-id').value;
-  var display_name = document.getElementById('edit-display').value.trim();
-  var role         = document.getElementById('edit-role').value;
-  var active       = parseInt(document.getElementById('edit-active').value);
-  var password     = document.getElementById('edit-password').value;
-  var appPerms     = getAppPerms('edit-apps-list');
-  var permsObj     = {};
-  appPerms.forEach(function(a){ permsObj[a.id] = a; });
-  var body = { display_name, role, active, app_ids: appPerms.map(function(a){return a.id;}), permissions: permsObj };
-  if (password) body.password = password;
-  var res = await apiFetch(API + '/partners/' + id, { method: 'PUT', body });
-  if (res && res.success) { toast('Partner actualizado', 'success'); closeModal('modal-edit'); loadPartners(); }
-  else if (res) toast(res.message, 'error');
-}
-
-async function delPartner(id, name) {
-  confirmAction('Eliminar al partner "'+name+'"? Esta accion no se puede deshacer.', async function() {
-    var res = await apiFetch(API + '/partners/' + id, { method: 'DELETE' });
-    if (res && res.success) { toast('Partner eliminado', 'success'); loadPartners(); }
-    else if (res) toast(res.message, 'error');
-  });
-}
-
-async function openLimits(id, name) {
-  document.getElementById('limits-pname').textContent = name;
-  var res = await apiFetch(API + '/partners/' + id + '/limits');
-  var body = document.getElementById('limits-body');
-  if (!res || !res.success || !res.apps.length) {
-    body.innerHTML = '<p style="padding:16px;color:var(--text3);font-size:13px;">Sin apps asignadas a este partner.</p>';
-    openModal('modal-limits'); return;
-  }
-  body.innerHTML = res.apps.map(function(a) {
-    var used = a.keys_used || 0;
-    var lim  = a.key_limit || 0;
-    var pct  = lim > 0 ? Math.min(100, Math.round((used/lim)*100)) : 0;
-    var warn = pct >= 90;
-    return '<div style="padding:14px 0;border-bottom:1px solid var(--border);">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
-        + '<span style="font-weight:700;color:var(--text);">'+esc(a.name)+'</span>'
-        + '<div style="display:flex;gap:6px;">'
-          + '<button class="btn btn-secondary btn-sm" onclick="resetLimit(\''+id+'\',\''+a.id+'\',this)">Reset contador</button>'
-        + '</div>'
-      + '</div>'
-      + (lim > 0
-        ? '<div style="font-size:11px;color:var(--text3);margin-bottom:4px;">'+used+' / '+lim+' keys generadas ('+pct+'%)</div>'
-          + '<div class="limit-bar"><div class="limit-bar-fill'+(warn?' warn':'')+'" style="width:'+pct+'%"></div></div>'
-        : '<div style="font-size:11px;color:var(--text3);">Sin limite (ilimitado)</div>')
-    + '</div>';
-  }).join('');
-  openModal('modal-limits');
-}
-
-async function resetLimit(partnerId, appId, btn) {
-  var orig = btn.textContent;
-  btn.disabled = true; btn.textContent = '...';
-  var res = await apiFetch(API + '/partners/' + partnerId + '/limits/' + appId + '/reset', { method: 'POST' });
-  if (res && res.success) { toast('Contador reseteado', 'success'); loadPartners(); closeModal('modal-limits'); }
-  else { if (res) toast(res.message, 'error'); btn.disabled = false; btn.textContent = orig; }
-}
-
-function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// Add loadMySubPartners function for owner partners
-async function loadMySubPartners() {
-  var res = await apiFetch(API + '/owner/partners');
-  var tbody = document.getElementById('partners-tbody');
-  if (!res || !res.success) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Error cargando sub-partners</p></div></td></tr>';
+  const username = document.getElementById('new-partner-username').value.trim();
+  const email = document.getElementById('new-partner-email').value.trim();
+  const password = document.getElementById('new-partner-password').value;
+  const role = document.getElementById('new-partner-role').value;
+  const commission = parseInt(document.getElementById('new-partner-commission').value) || 0;
+  
+  if (!username || !email || !password) {
+    toast('Todos los campos requeridos deben ser completados', 'error');
     return;
   }
   
-  // Update counter info
-  document.querySelector('.topbar-sub').textContent = 
-    'Partners creados: ' + (res.used || 0) + '/' + (res.max || 0) + ' — Gestión de accesos';
-    
-  if (!res.partners || !res.partners.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Sin sub-partners creados. Puedes crear hasta ' + (res.max||0) + '.</p></div></td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = res.partners.map(function(p) {
-    var statusBadge = p.active
-      ? '<span class="badge badge-green">Activo</span>'
-      : '<span class="badge badge-red">Inactivo</span>';
-      
-    var appTags = p.apps && p.apps.length
-      ? p.apps.map(function(a) {
-          var perms = [];
-          if (a.can_genkeys) perms.push('Keys');
-          if (a.can_users)   perms.push('Users');
-          if (a.can_logs)    perms.push('Logs');
-          var limitHtml = '';
-          if (a.key_limit > 0) {
-            var pct = Math.min(100, Math.round(((a.keys_used||0) / a.key_limit) * 100));
-            var isFull = pct >= 90;
-            limitHtml = '<div class="limit-bar-wrap"><div style="font-size:9px;color:var(--text3);margin-bottom:2px;">'+(a.keys_used||0)+'/'+a.key_limit+' keys</div>'
-              + '<div class="limit-bar"><div class="limit-bar-fill'+(isFull?' warn':'')+'" style="width:'+pct+'%"></div></div></div>';
-          }
-          return '<span class="app-tag">'
-            + esc(a.name)
-            + (perms.length ? '<span class="perms">'+perms.join(',')+'</span>' : '')
-            + '</span>'
-            + limitHtml;
-        }).join('')
-      : '<span style="color:var(--text3);font-size:11px;">Sin apps</span>';
-      
-    return '<tr>'
-      + '<td><div class="pname">'+esc(p.display_name||p.username)+'</div><div class="pmeta">@'+esc(p.username)+'</div></td>'
-      + '<td><span class="role-badge role-partner">Partner</span></td>'
-      + '<td style="max-width:240px;">'+appTags+'</td>'
-      + '<td><span style="color:var(--text3);font-size:11px;">N/A</span></td>'
-      + '<td>'+statusBadge+'</td>'
-      + '<td class="text-sm" style="color:var(--text3);">'+(p.last_login ? relTime(p.last_login) : 'Nunca')+'</td>'
-      + '<td><div style="display:flex;gap:4px;">'
-        + '<button class="btn btn-danger btn-sm" onclick="deleteMySubPartner(\''+p.id+'\',\''+esc(p.username)+'\')">Eliminar</button>'
-      + '</div></td>'
-      + '</tr>';
-  }).join('');
-}
-
-async function deleteMySubPartner(id, username) {
-  confirmAction('Eliminar sub-partner "'+username+'"?', async function() {
-    var res = await apiFetch(API + '/owner/partners/' + id, { method: 'DELETE' });
-    if (res && res.success) { toast('Sub-partner eliminado', 'success'); loadMySubPartners(); }
-    else if (res) toast(res.message, 'error');
-  });
-}
-
-// Sub-partner creation functions
-function buildMyAppPerms(containerId, selectedApps) {
-  var el = document.getElementById(containerId);
-  if (!userInfo || !userInfo.apps || !userInfo.apps.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:12px;padding:8px;">Sin apps disponibles.</p>';
-    return;
-  }
-  
-  el.innerHTML = userInfo.apps.map(function(a) {
-    var aid = a.id;
-    var sel = selectedApps.find(function(s){ return s.id === a.id || s.app_id === a.id; }) || {};
-    var isChecked = !!sel.id || !!sel.app_id;
-    var ck = isChecked ? (sel.can_genkeys !== undefined ? sel.can_genkeys : 1) : 1;
-    var cu = isChecked ? (sel.can_users   !== undefined ? sel.can_users   : 1) : 1;
-    var cl = isChecked ? (sel.can_logs    !== undefined ? sel.can_logs    : 1) : 1;
-    var kl = isChecked ? (sel.key_limit   || 0) : 0;
-    
-    return '<div class="app-perm-row'+(isChecked?'':' disabled')+'" id="apr-'+containerId+'-'+aid+'">'
-      + '<div>'
-        + '<div style="display:flex;align-items:center;gap:8px;">'
-          + '<strong style="font-size:13px;color:var(--text);">'+esc(a.name)+'</strong>'
-          + (a.version ? '<span class="badge badge-yellow" style="font-size:9px;">v'+esc(a.version)+'</span>' : '')
-        + '</div>'
-        + '<div class="perm-checks" id="perms-'+containerId+'-'+aid+'" style="'+(isChecked?'':'display:none;')+'">'
-          + (a.can_genkeys ? '<label class="perm-check-item"><input type="checkbox" id="perm-genkeys-'+containerId+'-'+aid+'" '+(ck?'checked':'')+'> Generar Keys</label>' : '')
-          + (a.can_users   ? '<label class="perm-check-item"><input type="checkbox" id="perm-users-'+containerId+'-'+aid+'"   '+(cu?'checked':'')+'> Ver Usuarios</label>' : '')
-          + (a.can_logs    ? '<label class="perm-check-item"><input type="checkbox" id="perm-logs-'+containerId+'-'+aid+'"    '+(cl?'checked':'')+'> Ver Logs</label>' : '')
-          + (a.key_limit > 0 ? '<div class="key-limit-wrap">Limite de keys: <input type="number" id="keylimit-'+containerId+'-'+aid+'" class="key-limit-inp" value="'+kl+'" min="0" max="'+(a.key_limit - (a.keys_used||0))+'" placeholder="0"> <span style="font-size:10px;">(max '+(a.key_limit - (a.keys_used||0))+')</span></div>' : '<div class="key-limit-wrap">Limite de keys: <input type="number" id="keylimit-'+containerId+'-'+aid+'" class="key-limit-inp" value="'+kl+'" min="0" placeholder="0=ilimitado"> <span style="font-size:10px;">(0=sin limite)</span></div>')
-        + '</div>'
-      + '</div>'
-      + '<button class="toggle-app-btn'+(isChecked?' active':'')+'" id="togglebtn-'+containerId+'-'+aid+'" onclick="toggleApp(\''+containerId+'\',\''+aid+'\')" title="'+(isChecked?'Quitar':'Asignar')+'">'
-        + (isChecked ? '&#10003;' : '+')
-      + '</button>'
-    + '</div>';
-  }).join('');
-}
-
-async function createSubPartner() {
-  var username     = document.getElementById('sp-username').value.trim();
-  var password     = document.getElementById('sp-password').value;
-  var display_name = document.getElementById('sp-display').value.trim();
-  if (!username || !password) { toast('Usuario y contrasena requeridos', 'error'); return; }
-  
-  var appPerms = getAppPerms('sp-apps-list');
-  var permsObj = {};
-  appPerms.forEach(function(a){ permsObj[a.id] = a; });
-  
-  var res = await apiFetch(API + '/owner/partners', {
-    method: 'POST',
-    body: { username, password, display_name, app_ids: appPerms.map(function(a){return a.id;}), permissions: permsObj }
-  });
-  if (res && res.success) {
-    toast('Sub-partner "'+username+'" creado', 'success');
-    closeModal('modal-create-subpartner');
-    document.getElementById('sp-username').value = '';
-    document.getElementById('sp-password').value = '';
-    document.getElementById('sp-display').value = '';
-    loadMySubPartners();
-  } else if (res) toast(res.message, 'error');
-}
-
-function openSubPartnerModal() {
-  if (userInfo && userInfo.apps) {
-    buildMyAppPerms('sp-apps-list', []);
-  }
-  openModal('modal-create-subpartner');
-}
-
-async function saveLimit(partnerId, field, value, inputEl) {
-  var val = parseInt(value);
-  if (isNaN(val) || val < 0) { toast('Valor invalido', 'error'); return; }
-  var body = {};
-  body[field] = val;
-  var res = await apiFetch(API + '/partners/' + partnerId, { method: 'PUT', body });
-  if (res && res.success) {
-    inputEl.style.borderColor = 'var(--green)';
-    setTimeout(function() { inputEl.style.borderColor = ''; }, 1200);
-    toast(field === 'max_bots' ? 'Limite de bots actualizado' : 'Limite de partners actualizado', 'success');
-  } else if (res) {
-    toast(res.message, 'error');
-  }
-}
-
-// ─── GESTIÓN DE PERMISOS EN EDITAR PARTNER ─────────────────────────────────
-
-// Abrir modal de permisos de bot para un partner
-async function openBotPerms(partnerId, partnerName) {
-  document.getElementById('bp-pname').textContent = partnerName;
-  document.getElementById('bp-partner-id').value = partnerId;
-  
-  // Obtener apps del partner
-  var res = await apiFetch(API + '/partners');
-  if (!res || !res.success) return;
-  var partner = res.partners.find(p => p.id === partnerId);
-  if (!partner || !partner.apps || !partner.apps.length) {
-    toast('Partner sin apps asignadas', 'warning');
-    return;
-  }
-  
-  // Si tiene múltiples apps, usar la primera por ahora
-  // TODO: agregar selector de app si hay múltiples
-  var appId = partner.apps[0].id;
-  document.getElementById('bp-app-id').value = appId;
-  
-  // Cargar permisos actuales
-  var permsRes = await apiFetch(API + '/partner-permissions/' + partnerId + '/' + appId);
-  if (permsRes && permsRes.success && permsRes.permissions) {
-    var p = permsRes.permissions;
-    document.getElementById('bp-can_genkeys').checked = !!p.can_genkeys;
-    document.getElementById('bp-can_view_users').checked = !!p.can_view_users;
-    document.getElementById('bp-can_ban_users').checked = !!p.can_ban_users;
-    document.getElementById('bp-can_view_logs').checked = !!p.can_view_logs;
-    document.getElementById('bp-can_reset_hwid').checked = !!p.can_reset_hwid;
-    document.getElementById('bp-can_extend_sub').checked = !!p.can_extend_sub;
-    document.getElementById('bp-max_keys_per_day').value = p.max_keys_per_day || 100;
-    document.getElementById('bp-max_key_duration').value = p.max_key_duration || 365;
-  }
-  
-  openModal('modal-bot-perms');
-}
-
-async function saveBotPermissions() {
-  var partnerId = document.getElementById('bp-partner-id').value;
-  var appId = document.getElementById('bp-app-id').value;
-  
-  var perms = {
-    can_genkeys: document.getElementById('bp-can_genkeys').checked ? 1 : 0,
-    can_view_users: document.getElementById('bp-can_view_users').checked ? 1 : 0,
-    can_ban_users: document.getElementById('bp-can_ban_users').checked ? 1 : 0,
-    can_view_logs: document.getElementById('bp-can_view_logs').checked ? 1 : 0,
-    can_reset_hwid: document.getElementById('bp-can_reset_hwid').checked ? 1 : 0,
-    can_extend_sub: document.getElementById('bp-can_extend_sub').checked ? 1 : 0,
-    max_keys_per_day: parseInt(document.getElementById('bp-max_keys_per_day').value) || 100,
-    max_key_duration: parseInt(document.getElementById('bp-max_key_duration').value) || 365
+  // Simulación de creación - en implementación real iría a la API
+  const newPartner = {
+    id: Date.now().toString(),
+    username,
+    email,
+    role,
+    status: 'active',
+    commission,
+    revenue: 0,
+    apps: [],
+    joinDate: new Date().toISOString().split('T')[0],
+    lastLogin: new Date().toISOString().split('T')[0]
   };
   
-  var res = await apiFetch(API + '/partner-permissions/' + partnerId + '/' + appId, {
-    method: 'POST',
-    body: perms
-  });
+  partnersData.push(newPartner);
+  renderPartners(partnersData);
+  updateStats();
   
-  if (res && res.success) {
-    toast('Permisos guardados correctamente', 'success');
-    closeModal('modal-bot-perms');
-    loadPartners();
-  } else if (res) {
-    toast(res.message, 'error');
+  // Limpiar formulario
+  document.getElementById('new-partner-username').value = '';
+  document.getElementById('new-partner-email').value = '';
+  document.getElementById('new-partner-password').value = '';
+  document.getElementById('new-partner-commission').value = '';
+  
+  closeModal('modal-create-partner');
+  toast('Partner "' + username + '" creado exitosamente', 'success');
+}
+
+function editPartner(id) {
+  const partner = partnersData.find(p => p.id === id);
+  if (!partner) return;
+  
+  document.getElementById('edit-partner-id').value = partner.id;
+  document.getElementById('edit-partner-username').value = partner.username;
+  document.getElementById('edit-partner-email').value = partner.email;
+  document.getElementById('edit-partner-role').value = partner.role;
+  document.getElementById('edit-partner-commission').value = partner.commission;
+  
+  openModal('modal-edit-partner');
+}
+
+async function savePartnerEdit() {
+  const id = document.getElementById('edit-partner-id').value;
+  const username = document.getElementById('edit-partner-username').value.trim();
+  const email = document.getElementById('edit-partner-email').value.trim();
+  const role = document.getElementById('edit-partner-role').value;
+  const commission = parseInt(document.getElementById('edit-partner-commission').value) || 0;
+  
+  if (!username || !email) {
+    toast('Username y email son requeridos', 'error');
+    return;
+  }
+  
+  const partnerIndex = partnersData.findIndex(p => p.id === id);
+  if (partnerIndex !== -1) {
+    partnersData[partnerIndex] = { ...partnersData[partnerIndex], username, email, role, commission };
+    renderPartners(partnersData);
+    updateStats();
+    closeModal('modal-edit-partner');
+    toast('Partner actualizado exitosamente', 'success');
   }
 }
 
-async function reload() {
-  if (currentRole === 'partner' && userInfo && userInfo.role === 'owner') {
-    loadMySubPartners();
-  } else {
-    loadPartners();
-  }
+function viewPartnerStats(id) {
+  const partner = partnersData.find(p => p.id === id);
+  if (!partner) return;
+  
+  toast('Estadísticas de ' + partner.username + ': $' + partner.revenue.toFixed(2) + ' revenue', 'info');
 }
 
-function relTime(timestamp) {
-  var now = Math.floor(Date.now() / 1000);
-  var diff = now - timestamp;
-  if (diff < 60) return 'hace ' + diff + 's';
-  if (diff < 3600) return 'hace ' + Math.floor(diff/60) + 'm';
-  if (diff < 86400) return 'hace ' + Math.floor(diff/3600) + 'h';
-  return 'hace ' + Math.floor(diff/86400) + 'd';
+function deletePartner(id, username) {
+  confirmAction('¿Eliminar partner "' + username + '"?', function() {
+    partnersData = partnersData.filter(p => p.id !== id);
+    renderPartners(partnersData);
+    updateStats();
+    toast('Partner eliminado', 'success');
+  });
 }
 </script>
 </body>

@@ -6,6 +6,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LMAx27 — Bot Control</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
+  <style>
+    .bot-section { margin-bottom:28px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .bot-section-header { padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
+    .bot-section-title { display:flex; align-items:center; gap:12px; color:white; font-size:18px; font-weight:700; }
+    .bot-manager-header { background:linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .bot-free-header { background:linear-gradient(135deg, var(--accent), #ca8a04); }
+    .bot-section-content { padding:24px; }
+    
+    .bot-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .bot-form-left h3 { margin:0 0 16px 0; font-size:16px; font-weight:600; color:var(--text); }
+    .bot-limit-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); }
+    .bot-limit-info span { font-size:12px; color:var(--text3); }
+    
+    .bot-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .bot-info-box { padding:12px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:var(--radius); margin-top:12px; }
+    .bot-info-title { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+    .bot-info-title span { font-size:12px; color:#3b82f6; font-weight:600; }
+    .bot-info-text { font-size:12px; color:#3b82f6; }
+    
+    .bot-list { min-height:200px; }
+    .bot-item { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+    .bot-item-header { display:flex; justify-content:between; align-items:center; margin-bottom:8px; }
+    .bot-name { font-size:14px; font-weight:600; color:var(--text); }
+    .bot-status { padding:4px 8px; border-radius:12px; font-size:10px; font-weight:700; text-transform:uppercase; }
+    .status-online { background:rgba(34,197,94,.15); color:#22c55e; border:1px solid rgba(34,197,94,.3); }
+    .status-offline { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+    
+    .empty-bots { text-align:center; padding:40px 20px; color:var(--text3); }
+    .empty-bots svg { margin-bottom:12px; opacity:0.5; }
+    
+    @media(max-width:900px){ .bot-form-grid{grid-template-columns:1fr;} .bot-grid{grid-template-columns:1fr;} }
+  </style>
 </head>
 <body>
   <div id="particles"></div>
@@ -16,99 +48,168 @@
       <div class="topbar">
         <div>
           <div class="topbar-title">Bot Control</div>
-          <div class="topbar-sub">Administra tus bots premium y tus bots de modo gratis desde una sola sección.</div>
+          <div class="topbar-sub">Administra tus bots premium y tus bots de modo gratis desde una sola sección</div>
         </div>
         <div class="topbar-actions">
-          <a href="#" class="btn btn-secondary btn-sm">Learn More</a>
+          <button class="btn btn-secondary btn-sm" onclick="refreshBots()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 2v3h-3M2 10V7h3M10.5 5.5A4.5 4.5 0 014 1.5 4.5 4.5 0 011.5 6.5M1.5 6.5A4.5 4.5 0 018 11a4.5 4.5 0 014.5-4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Refresh
+          </button>
         </div>
       </div>
 
       <div class="content">
         <!-- Bot Manager Section -->
-        <div class="card" style="margin-bottom:24px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:linear-gradient(135deg, #8b5cf6, #7c3aed);border-radius:12px 12px 0 0;margin:-1px -1px 0 -1px;">
-            <div style="display:flex;align-items:center;gap:12px;">
+        <div class="bot-section">
+          <div class="bot-section-header bot-manager-header">
+            <div class="bot-section-title">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              <span style="color:white;font-size:18px;font-weight:700;">Bot Manager</span>
+              Bot Manager
             </div>
+            <span style="color:rgba(255,255,255,0.8);font-size:12px;">Bots Premium</span>
           </div>
           
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;">
-            <!-- Create Bot Form -->
-            <div>
-              <h3 style="margin:0 0 16px 0;font-size:16px;font-weight:600;">Crear bot</h3>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <span style="font-size:14px;color:var(--text2);">Límite: 0 / 1</span>
-                <span style="font-size:14px;color:var(--text2);">Bots creados</span>
-              </div>
-              
-              <div class="form-group" style="margin-bottom:16px;">
-                <label class="form-label">Nombre del bot</label>
-                <input type="text" class="form-control" placeholder="Bot Free Pro" value="Bot Free Pro" />
-              </div>
-              
-              <div class="form-group" style="margin-bottom:16px;">
-                <label class="form-label">Aplicación</label>
-                <select class="form-control">
-                  <option>Proyecto ByPass</option>
-                </select>
-              </div>
-              
-              <div class="form-group" style="margin-bottom:16px;">
-                <label class="form-label">Guild ID / Servidor</label>
-                <input type="text" class="form-control" placeholder="ID del canal donde funcionará" />
-              </div>
-              
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div class="bot-section-content">
+            <div class="bot-form-grid">
+              <!-- Create Bot Form -->
+              <div class="bot-form-left">
+                <h3>Crear Bot Premium</h3>
+                <div class="bot-limit-info">
+                  <span>Límite: <strong id="manager-used">0</strong> / <strong id="manager-limit">1</strong></span>
+                  <span>Bots Premium Creados</span>
+                </div>
+                
                 <div class="form-group">
-                  <label class="form-label">Canal permisos</label>
-                  <input type="text" class="form-control" placeholder="ID del canal donde funcionará" />
+                  <label class="form-label">Nombre del bot</label>
+                  <input type="text" id="manager-bot-name" class="form-control" placeholder="Mi Bot Premium" />
                 </div>
+                
                 <div class="form-group">
-                  <label class="form-label">Canal de logs</label>
-                  <input type="text" class="form-control" placeholder="ID del canal de registros" />
+                  <label class="form-label">Aplicación</label>
+                  <select id="manager-app-select" class="form-control">
+                    <option value="">Seleccionar aplicación</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Guild ID / Servidor</label>
+                  <input type="text" id="manager-guild-id" class="form-control" placeholder="ID del servidor Discord" />
+                </div>
+                
+                <div class="bot-grid">
+                  <div class="form-group">
+                    <label class="form-label">Canal de comandos</label>
+                    <input type="text" id="manager-command-channel" class="form-control" placeholder="ID del canal" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Canal de logs</label>
+                    <input type="text" id="manager-log-channel" class="form-control" placeholder="ID del canal de logs" />
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Bot Token</label>
+                  <input type="password" id="manager-bot-token" class="form-control" placeholder="Token del bot Discord" />
+                </div>
+                
+                <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;padding:12px;" onclick="createManagerBot()">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+                  Crear Bot Premium
+                </button>
+                
+                <div class="bot-info-box">
+                  <div class="bot-info-title">
+                    <span>ℹ</span>
+                    <span>Información Premium</span>
+                  </div>
+                  <div class="bot-info-text">Para crear más de 1 bot premium, contacta: WhatsApp +51 959311108</div>
                 </div>
               </div>
               
-              <div class="form-group" style="margin-bottom:20px;">
-                <label class="form-label">Bot Token</label>
-                <input type="password" class="form-control" placeholder="Pegar token completo del bot" />
-              </div>
-              
-              <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;padding:12px;">
-                Crear Bot
-              </button>
-              
-              <div style="margin-top:12px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:6px;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <span style="font-size:12px;color:#3b82f6;font-weight:600;">✓</span>
-                  <span style="font-size:12px;color:#3b82f6;">Si deseas crear más de 2 bots, debes adquirir Bot Managers.</span>
+              <!-- Bots List -->
+              <div class="bot-form-right">
+                <h3>Bots Premium Activos</h3>
+                <div class="bot-list" id="manager-bots-list">
+                  <div class="empty-bots">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg>
+                    <p>No hay bots premium creados</p>
+                  </div>
                 </div>
-                <div style="font-size:12px;color:#3b82f6;">Whatsapp: +51 959311108</div>
-              </div>
-            </div>
-            
-            <!-- Bots List -->
-            <div>
-              <div style="text-align:center;color:var(--text3);margin-top:60px;">
-                <p>Aún no hay bots creados.</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Bot Mode Free Section -->
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:linear-gradient(135deg, #eab308, #ca8a04);border-radius:12px 12px 0 0;margin:-1px -1px 0 -1px;">
-            <div style="display:flex;align-items:center;gap:12px;">
+        <div class="bot-section">
+          <div class="bot-section-header bot-free-header">
+            <div class="bot-section-title">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              <span style="color:white;font-size:18px;font-weight:700;">Bot Mode Free</span>
+              Bot Mode Free
             </div>
+            <span style="color:rgba(255,255,255,0.8);font-size:12px;">Licencias Gratis de 1 Día</span>
           </div>
           
-          <div style="padding:24px;">
-            <div style="text-align:center;color:var(--text3);">
-              <p>Aún no hay bots creados.</p>
+          <div class="bot-section-content">
+            <div class="bot-form-grid">
+              <div class="bot-form-left">
+                <h3>Configurar Bot Gratuito</h3>
+                <div class="bot-limit-info">
+                  <span>Estado: <strong id="free-status">Inactivo</strong></span>
+                  <span>Bot Modo Gratuito</span>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Aplicación</label>
+                  <select id="free-app-select" class="form-control">
+                    <option value="">Seleccionar aplicación</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Guild ID / Servidor</label>
+                  <input type="text" id="free-guild-id" class="form-control" placeholder="ID del servidor Discord" />
+                </div>
+                
+                <div class="bot-grid">
+                  <div class="form-group">
+                    <label class="form-label">Canal de comandos</label>
+                    <input type="text" id="free-command-channel" class="form-control" placeholder="ID del canal" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Canal de logs</label>
+                    <input type="text" id="free-log-channel" class="form-control" placeholder="ID del canal de logs" />
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Bot Token</label>
+                  <input type="password" id="free-bot-token" class="form-control" placeholder="Token del bot Discord" />
+                </div>
+                
+                <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,var(--accent),#ca8a04);border:none;padding:12px;" onclick="toggleFreeBot()">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2L2 7l4 3 6-6" stroke="black" stroke-width="1.5"/></svg>
+                  <span id="free-btn-text">Activar Bot Gratuito</span>
+                </button>
+                
+                <div class="bot-info-box" style="background:rgba(234,179,8,0.1);border-color:rgba(234,179,8,0.3);">
+                  <div class="bot-info-title">
+                    <span style="color:var(--accent);">🎁</span>
+                    <span style="color:var(--accent);">Modo Gratuito</span>
+                  </div>
+                  <div style="color:var(--accent);font-size:12px;">Los usuarios podrán obtener licencias gratuitas de 1 día usando comandos del bot</div>
+                </div>
+              </div>
+              
+              <div class="bot-form-right">
+                <h3>Estado Modo Gratuito</h3>
+                <div class="bot-list" id="free-bot-stats">
+                  <div class="empty-bots">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L4 14l20 10 20-10-20-10z" stroke="currentColor" stroke-width="2"/><path d="M4 34l20 10 20-10" stroke="currentColor" stroke-width="2"/><path d="M4 24l20 10 20-10" stroke="currentColor" stroke-width="2"/></svg>
+                    <p>Bot gratuito no configurado</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -118,13 +219,129 @@
 
   <div id="toast-container"></div>
   <script src="/admin/js/app.js"></script>
-  <script src="/admin/js/icons.js"></script>
   <script src="/admin/js/sidebar.js"></script>
   <script>
+    var managerBots = [];
+    var freeBotActive = false;
+    var apps = [];
+
+    function esc(s) { 
+      if (!s) return ''; 
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); 
+    }
+
     (async function() {
       injectSidebar('discord');
       await requireAuth();
+      loadApps();
+      loadBots();
     })();
+
+    async function loadApps() {
+      var res = await apiFetch(API + '/apps');
+      if (res && res.success && res.apps) {
+        apps = res.apps;
+        var managerSelect = document.getElementById('manager-app-select');
+        var freeSelect = document.getElementById('free-app-select');
+        
+        var options = apps.map(function(app) {
+          return '<option value="' + app.id + '">' + esc(app.name) + '</option>';
+        }).join('');
+        
+        managerSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
+        freeSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
+      }
+    }
+
+    function loadBots() {
+      renderManagerBots();
+      renderFreeBotStats();
+    }
+
+    function renderManagerBots() {
+      var container = document.getElementById('manager-bots-list');
+      document.getElementById('manager-used').textContent = managerBots.length;
+      
+      if (!managerBots.length) {
+        container.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg><p>No hay bots premium creados</p></div>';
+        return;
+      }
+    }
+
+    function renderFreeBotStats() {
+      var container = document.getElementById('free-bot-stats');
+      var statusEl = document.getElementById('free-status');
+      var btnTextEl = document.getElementById('free-btn-text');
+      
+      if (freeBotActive) {
+        statusEl.textContent = 'Activo';
+        statusEl.style.color = '#22c55e';
+        btnTextEl.textContent = 'Desactivar Bot Gratuito';
+        
+        container.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><h4 style="color:var(--accent);margin:0 0 12px 0;">Bot Gratuito Activo</h4><p style="color:var(--text2);font-size:12px;margin:0;">Usuarios pueden obtener licencias de 1 día gratis</p></div>';
+      } else {
+        statusEl.textContent = 'Inactivo';
+        statusEl.style.color = '#ef4444';
+        btnTextEl.textContent = 'Activar Bot Gratuito';
+        
+        container.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L4 14l20 10 20-10-20-10z" stroke="currentColor" stroke-width="2"/><path d="M4 34l20 10 20-10" stroke="currentColor" stroke-width="2"/><path d="M4 24l20 10 20-10" stroke="currentColor" stroke-width="2"/></svg><p>Bot gratuito no configurado</p></div>';
+      }
+    }
+
+    async function createManagerBot() {
+      var name = document.getElementById('manager-bot-name').value.trim();
+      var appId = document.getElementById('manager-app-select').value;
+      var guildId = document.getElementById('manager-guild-id').value.trim();
+      var token = document.getElementById('manager-bot-token').value.trim();
+      
+      if (!name || !appId || !guildId || !token) {
+        toast('Todos los campos son requeridos', 'error');
+        return;
+      }
+      
+      if (managerBots.length >= 1) {
+        toast('Límite de bots premium alcanzado. Contacta para obtener más slots.', 'error');
+        return;
+      }
+      
+      toast('Bot premium creado exitosamente', 'success');
+      
+      // Limpiar formulario
+      document.getElementById('manager-bot-name').value = '';
+      document.getElementById('manager-app-select').value = '';
+      document.getElementById('manager-guild-id').value = '';
+      document.getElementById('manager-command-channel').value = '';
+      document.getElementById('manager-log-channel').value = '';
+      document.getElementById('manager-bot-token').value = '';
+    }
+
+    function toggleFreeBot() {
+      var appId = document.getElementById('free-app-select').value;
+      var guildId = document.getElementById('free-guild-id').value.trim();
+      var token = document.getElementById('free-bot-token').value.trim();
+      
+      if (!freeBotActive) {
+        if (!appId || !guildId || !token) {
+          toast('Aplicación, Guild ID y Token son requeridos', 'error');
+          return;
+        }
+        freeBotActive = true;
+        toast('Bot gratuito activado exitosamente', 'success');
+      } else {
+        freeBotActive = false;
+        toast('Bot gratuito desactivado', 'info');
+      }
+      
+      renderFreeBotStats();
+    }
+
+    function refreshBots() {
+      toast('Actualizando estado de bots...', 'info');
+      loadBots();
+      setTimeout(function() {
+        toast('Estados actualizados', 'success');
+      }, 1500);
+    }
   </script>
 </body>
 </html>
