@@ -2,417 +2,277 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="/admin/lmax27.png" type="image/png" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LMAx27 — Keys</title>
+  <link rel="icon" href="/admin/lmax27.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMAx27 — Licenses</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    /* Animaciones modernas */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #12121a;
+      --bg3: #1a1a24;
+      --border: rgba(255,255,255,0.06);
+      --text: #e4e4e7;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #8b5cf6;
+      --accent2: #7c3aed;
     }
     
-    @keyframes fadeInLeft {
-      from {
-        opacity: 0;
-        transform: translateX(-30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
     }
     
-    @keyframes fadeInRight {
-      from {
-        opacity: 0;
-        transform: translateX(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
     }
     
-    @keyframes pulse-badge {
-      0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 0.8;
-        transform: scale(1.05);
-      }
-    }
-    
-    @keyframes shimmer {
-      0% {
-        background-position: -1000px 0;
-      }
-      100% {
-        background-position: 1000px 0;
-      }
-    }
-    
-    @keyframes glow {
-      0%, 100% {
-        box-shadow: 0 0 5px rgba(234,179,8,0.2), 0 0 10px rgba(234,179,8,0.1);
-      }
-      50% {
-        box-shadow: 0 0 20px rgba(234,179,8,0.4), 0 0 30px rgba(234,179,8,0.2);
-      }
-    }
-    
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(0px);
-      }
-      50% {
-        transform: translateY(-10px);
-      }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      animation: slideDown 0.5s ease-out;
     }
     
     @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Topbar con animación */
-    .topbar {
-      animation: slideDown 0.5s ease-out;
-      transition: all 0.3s ease;
+    .header-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
     }
     
-    .topbar-title {
-      animation: fadeInLeft 0.6s ease-out 0.2s backwards;
+    .header-actions {
+      display: flex;
+      gap: 12px;
     }
     
-    .topbar-sub {
-      animation: fadeInLeft 0.6s ease-out 0.3s backwards;
-    }
-    
-    .topbar-actions {
-      animation: fadeInRight 0.6s ease-out 0.2s backwards;
-    }
-    
-    .topbar-actions button {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .topbar-actions button::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.5s, height 0.5s;
-    }
-    
-    .topbar-actions button:hover::before {
-      width: 300px;
-      height: 300px;
-    }
-    
-    /* Stats cards con animación */
-    .stats-grid {
-      animation: fadeInUp 0.6s ease-out 0.3s backwards;
-    }
-    
-    .stat-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: fadeInUp 0.6s ease-out backwards;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .stat-card:nth-child(1) { animation-delay: 0.4s; }
-    .stat-card:nth-child(2) { animation-delay: 0.5s; }
-    .stat-card:nth-child(3) { animation-delay: 0.6s; }
-    .stat-card:nth-child(4) { animation-delay: 0.7s; }
-    
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(234,179,8,0.1), transparent);
-      transition: left 0.5s;
-    }
-    
-    .stat-card:hover::before {
-      left: 100%;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 12px 32px rgba(234,179,8,0.25);
-      border: 1px solid rgba(234,179,8,0.4);
-    }
-    
-    .stat-value {
-      animation: float 3s ease-in-out infinite;
-      transition: all 0.3s ease;
-    }
-    
-    .stat-card:hover .stat-value {
-      color: #eab308;
-      transform: scale(1.15);
-      animation: glow 1.5s ease-in-out infinite;
-    }
-    
-    /* Card principal con animación */
-    .card {
-      animation: fadeInUp 0.7s ease-out 0.5s backwards;
-      transition: all 0.3s ease;
-    }
-    
-    .card:hover {
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-    
-    .card-header {
-      animation: fadeInLeft 0.6s ease-out 0.6s backwards;
-      transition: all 0.3s ease;
-    }
-    
-    .card-title {
-      position: relative;
-      display: inline-block;
-    }
-    
-    .card-title::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #eab308, #ca8a04);
-      transition: width 0.4s ease;
-    }
-    
-    .card:hover .card-title::after {
-      width: 100%;
-    }
-    
-    /* Search input con efectos */
-    .search-wrap {
-      transition: all 0.3s ease;
-    }
-    
-    .search-wrap:focus-within {
-      transform: scale(1.05);
-      box-shadow: 0 0 0 3px rgba(234,179,8,0.2);
-    }
-    
-    .search-input {
-      transition: all 0.3s ease;
-    }
-    
-    .search-input:focus {
-      background: rgba(234,179,8,0.05);
-      border-color: rgba(234,179,8,0.3);
-    }
-    
-    /* Botones con efectos mejorados */
     .btn {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .btn::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-    
-    .btn:active::after {
-      width: 400px;
-      height: 400px;
-    }
-    
-    .btn-secondary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.12);
-    }
-    
-    .btn-danger:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(239,68,68,0.4);
-      background: #dc2626;
-    }
-    
-    /* Efecto hover en filas de tabla */
-    #keys-table tbody tr {
-      animation: fadeInUp 0.4s ease-out backwards;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-    }
-    
-    #keys-table tbody tr:nth-child(1) { animation-delay: 0.8s; }
-    #keys-table tbody tr:nth-child(2) { animation-delay: 0.85s; }
-    #keys-table tbody tr:nth-child(3) { animation-delay: 0.9s; }
-    #keys-table tbody tr:nth-child(4) { animation-delay: 0.95s; }
-    #keys-table tbody tr:nth-child(5) { animation-delay: 1s; }
-    #keys-table tbody tr:nth-child(n+6) { animation-delay: 1.05s; }
-    
-    #keys-table tbody tr::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, rgba(234,179,8,0.15), transparent);
-      transition: width 0.3s ease;
-      z-index: 0;
-    }
-    
-    #keys-table tbody tr:hover::before {
-      width: 100%;
-    }
-    
-    #keys-table tbody tr:hover {
-      background: rgba(234,179,8,0.08);
-      transform: translateX(6px);
-      box-shadow: inset 4px 0 0 #eab308, 0 2px 8px rgba(234,179,8,0.1);
-    }
-    
-    #keys-table tbody tr td {
-      position: relative;
-      z-index: 1;
-    }
-    
-    #keys-table tbody tr:hover td {
-      color: var(--text);
-    }
-    
-    /* Efecto glow en badges */
-    .badge {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 0 0 rgba(234,179,8,0);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     
-    .badge:hover {
-      box-shadow: 0 0 20px rgba(234,179,8,0.5);
-      transform: translateY(-2px) scale(1.1);
-    }
-    
-    .badge-green {
-      animation: glow 2s ease-in-out infinite;
-    }
-    
-    /* Efecto shimmer en LICENSE */
-    #keys-table tbody tr td:first-child {
-      background: linear-gradient(90deg, transparent, rgba(234,179,8,0.1), transparent);
-      background-size: 1000px 100%;
-      animation: shimmer 3s infinite linear;
-    }
-    
-    /* Botón actions con efecto mejorado */
-    #keys-table tbody tr td button {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    #keys-table tbody tr td button:hover {
-      background: linear-gradient(135deg, #eab308, #ca8a04);
-      color: #000;
-      transform: scale(1.15) rotate(5deg);
-      box-shadow: 0 6px 20px rgba(234,179,8,0.5);
-    }
-    
-    #keys-table tbody tr td button:active {
-      transform: scale(0.95) rotate(0deg);
-    }
-    
-    /* Efecto ripple en botones */
-    #keys-table tbody tr td button::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.6);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-    
-    #keys-table tbody tr td button:active::after {
-      width: 300px;
-      height: 300px;
-    }
-    
-    /* Botón primario amarillo */
     .btn-primary {
-      background: linear-gradient(135deg, #eab308, #ca8a04) !important;
-      border: none !important;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      animation: glow 3s ease-in-out infinite;
-    }
-    
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      transition: left 0.5s;
-    }
-    
-    .btn-primary:hover::before {
-      left: 100%;
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+      box-shadow: 0 4px 12px rgba(139,92,246,0.3);
     }
     
     .btn-primary:hover {
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 10px 30px rgba(234,179,8,0.5);
-      animation: none;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139,92,246,0.4);
     }
     
-    .btn-primary:active {
-      transform: translateY(-1px) scale(1.02);
+    .btn-secondary {
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
     
-    /* Modal con animaciones */
+    .btn-secondary:hover {
+      background: var(--bg2);
+      border-color: rgba(255,255,255,0.1);
+    }
+    
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.6s ease-out 0.2s backwards;
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .toolbar-left {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .search-box {
+      position: relative;
+    }
+    
+    .search-box input {
+      padding: 10px 16px 10px 40px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      width: 300px;
+      transition: all 0.3s ease;
+    }
+    
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+    }
+    
+    .table-container {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease-out 0.4s backwards;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    th {
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+    }
+    
+    th:first-child {
+      width: 40px;
+    }
+    
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    tbody tr:hover {
+      background: rgba(139,92,246,0.05);
+    }
+    
+    td {
+      padding: 16px 20px;
+      font-size: 14px;
+    }
+    
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+    
+    .license-code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    .badge {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .badge-unused {
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    
+    .badge-used {
+      background: rgba(251,191,36,0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+    }
+    
+    .text-muted {
+      color: var(--text3);
+    }
+    
+    .text-purple {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    
+    .pagination-info {
+      font-size: 14px;
+      color: var(--text2);
+    }
+    
+    .pagination-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Modal */
     .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
       animation: fadeIn 0.3s ease-out;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
     }
     
     @keyframes fadeIn {
@@ -421,6 +281,13 @@
     }
     
     .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
       animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
@@ -435,343 +302,437 @@
       }
     }
     
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+    
+    .modal-body {
+      padding: 24px 28px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    
+    .form-label .required {
+      color: #ef4444;
+      margin-left: 4px;
+    }
+    
     .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
       transition: all 0.3s ease;
     }
     
     .form-control:focus {
-      transform: scale(1.02);
-      box-shadow: 0 0 0 3px rgba(234,179,8,0.2);
-      border-color: #eab308;
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
     }
     
-    /* Table header con efecto */
-    #keys-table thead tr {
-      animation: fadeInDown 0.6s ease-out 0.7s backwards;
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
     
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .form-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text3);
     }
     
-    #keys-table thead th {
-      transition: all 0.3s ease;
-      position: relative;
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px 28px;
+      border-top: 1px solid var(--border);
     }
     
-    #keys-table thead th::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: #eab308;
-      transition: width 0.3s ease;
+    select.form-control {
+      cursor: pointer;
     }
     
-    #keys-table thead th:hover::after {
-      width: 100%;
-    }
-    
-    #keys-table thead th:hover {
-      color: #eab308;
-      transform: translateY(-2px);
-    }
-    
-    /* Empty state con animación */
     .empty-state {
-      animation: float 3s ease-in-out infinite;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text3);
     }
     
-    /* Particles background animado */
-    #particles {
-      animation: fadeIn 1s ease-out;
+    .empty-state p {
+      font-size: 15px;
+      margin-bottom: 8px;
     }
   </style>
 </head>
 <body>
-<div id="particles"></div>
-<div class="layout">
   <div id="sidebar-container"></div>
-  <main class="main">
-    <div class="topbar">
-      <div><div class="topbar-title">Licencias / Keys</div><div class="topbar-sub" id="topbar-sub">Selecciona una aplicacion desde la pagina de Apps</div></div>
-      <div class="topbar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="window.location.href='/apps'" id="btn-change-app">Cambiar App</button>
-        <button class="btn btn-primary" id="btn-gen" disabled onclick="openModal('modal-gen')">+ Generar Keys</button>
+  
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="header-title">Licenses</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="window.location.href='/apps'">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Change App
+        </button>
+        <button class="btn btn-primary" id="btn-create" onclick="openCreateModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Create License
+        </button>
       </div>
     </div>
-    <div class="content">
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
-        <div class="stat-card"><div><div class="stat-value" id="ks-total">0</div><div class="stat-label">Total</div></div></div>
-        <div class="stat-card"><div><div class="stat-value" id="ks-used">0</div><div class="stat-label">Usadas</div></div></div>
-        <div class="stat-card"><div><div class="stat-value" id="ks-free">0</div><div class="stat-label">Disponibles</div></div></div>
-        <div class="stat-card"><div><div class="stat-value" id="ks-exp">0</div><div class="stat-label">Expiradas</div></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Lista de Keys</div>
-          <div style="display:flex;gap:8px;">
-            <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M9 9l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span><input type="text" class="search-input" id="search-keys" placeholder="Buscar key..." /></div>
-            <button class="btn btn-secondary btn-sm" id="btn-export" disabled onclick="exportKeys()">Exportar</button>
-            <button class="btn btn-danger btn-sm" id="btn-del-used" disabled onclick="deleteAllUsed()">Borrar Usadas</button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table id="keys-table" style="width:100%;">
-            <thead>
-              <tr style="background:var(--bg3);">
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">LICENSE</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">STATUS</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">GENERATED BY</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">CREATED AT</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">HWID</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">EXPIRACION</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">NOTE</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">USED</th>
-                <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border);">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody id="keys-tbody">
-              <tr><td colspan="9" style="padding:40px;text-align:center;"><div class="empty-state"><p>Selecciona una app</p></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
 
-<div class="modal-overlay" id="modal-gen">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header">
-      <div class="modal-title">Create a new license</div>
-      <button class="modal-close" onclick="closeModal('modal-gen')">✕</button>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="btn btn-secondary" onclick="exportSelected()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export
+        </button>
+        <button class="btn btn-secondary" onclick="bulkCopy()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+        <button class="btn btn-secondary" onclick="refreshLicenses()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          Refresh
+        </button>
+        <button class="btn btn-secondary" style="background:#dc2626;color:white;" onclick="deleteSelected()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          Delete
+        </button>
+      </div>
+      
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search Licenses..." id="search-input" oninput="filterTable()" />
+      </div>
     </div>
-    
-    <div style="padding:0 20px 20px;">
-      <div class="form-group">
-        <label class="form-label">License Amount <span style="color:#ef4444;">*</span></label>
-        <input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" style="background:var(--bg3);" />
+
+    <div class="table-container">
+      <table id="licenses-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="checkbox" id="select-all" onchange="toggleSelectAll()" /></th>
+            <th>LICENSE</th>
+            <th>SUBSCRIPTION</th>
+            <th>GENERATED BY</th>
+            <th>CREATED AT</th>
+            <th>USED AT</th>
+            <th>USED ON</th>
+            <th>DURATION</th>
+            <th>NOTE</th>
+            <th>USED</th>
+          </tr>
+        </thead>
+        <tbody id="licenses-tbody">
+          <tr>
+            <td colspan="10">
+              <div class="empty-state">
+                <p>No app selected</p>
+                <p class="text-muted" style="font-size:13px;">Go to <a href="/apps" style="color:var(--accent);">Applications</a> and select one</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <div class="pagination-info">Showing page <strong>1</strong> of <strong>1</strong></div>
+      <div class="pagination-buttons">
+        <button class="btn btn-secondary" disabled>Previous</button>
+        <button class="btn btn-secondary" disabled>Next</button>
       </div>
-      
-      <div class="form-group">
-        <label class="form-label">License Mask <span style="color:#ef4444;">*</span></label>
-        <input type="text" id="gen-prefix" class="form-control" value="*****-*****" placeholder="*****-*****" style="background:var(--bg3);font-family:monospace;" />
-        <div class="form-hint">Use * for random characters. Example: KEY-*****-*****</div>
+    </div>
+  </div>
+
+  <!-- Modal Create License -->
+  <div class="modal-overlay" id="modal-create">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Create a new license</h2>
+        <button class="modal-close" onclick="closeModal('modal-create')">×</button>
       </div>
-      
-      <div class="form-group">
-        <label class="form-label">Subscription <span style="color:#ef4444;">*</span></label>
-        <select id="gen-subscription" class="form-control" style="background:var(--bg3);">
-          <option value="default">Default</option>
-          <option value="premium">Premium</option>
-          <option value="vip">VIP</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label class="form-label">License Note</label>
-        <input type="text" id="gen-note" class="form-control" placeholder="Note for the license..." style="background:var(--bg3);" />
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group" style="flex:1;">
-          <label class="form-label">Expiry Unit <span style="color:#ef4444;">*</span></label>
-          <select id="gen-expiry-unit" class="form-control" style="background:var(--bg3);">
-            <option value="seconds">Seconds</option>
-            <option value="minutes">Minutes</option>
-            <option value="hours">Hours</option>
-            <option value="days" selected>Days</option>
-            <option value="weeks">Weeks</option>
-            <option value="months">Months</option>
-            <option value="years">Years</option>
-            <option value="lifetime">Lifetime</option>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">License Amount <span class="required">*</span></label>
+          <input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">License Mask <span class="required">*</span></label>
+          <input type="text" id="gen-mask" class="form-control" value="*****-*****" placeholder="*****-*****" style="font-family:monospace;" />
+          <div class="form-hint">Use * for random characters. Example: KEY-*****-*****</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Subscription <span class="required">*</span></label>
+          <select id="gen-subscription" class="form-control">
+            <option value="default">Default</option>
+            <option value="premium">Premium</option>
+            <option value="vip">VIP</option>
           </select>
         </div>
         
-        <div class="form-group" style="flex:1;">
-          <label class="form-label">Expiry Duration <span style="color:#ef4444;">*</span></label>
-          <input type="number" id="gen-expiry-duration" class="form-control" value="30" min="0" style="background:var(--bg3);" />
+        <div class="form-group">
+          <label class="form-label">License Note</label>
+          <input type="text" id="gen-note" class="form-control" placeholder="Note for the license..." />
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Expiry Unit <span class="required">*</span></label>
+            <select id="gen-unit" class="form-control">
+              <option value="seconds">Seconds</option>
+              <option value="minutes">Minutes</option>
+              <option value="hours">Hours</option>
+              <option value="days" selected>Days</option>
+              <option value="weeks">Weeks</option>
+              <option value="months">Months</option>
+              <option value="years">Years</option>
+              <option value="lifetime">Lifetime</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Expiry Duration <span class="required">*</span></label>
+            <input type="number" id="gen-duration" class="form-control" value="1" min="0" />
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="modal-footer" style="border-top:1px solid var(--border);padding-top:16px;">
-      <button class="btn btn-secondary" onclick="closeModal('modal-gen')">Cancel</button>
-      <button class="btn btn-primary" onclick="generateKeys()" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;">Create License</button>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancel</button>
+        <button class="btn btn-primary" onclick="createLicense()">Create License</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="modal-overlay" id="modal-result">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header"><div class="modal-title">Keys Generadas</div><button class="modal-close" onclick="closeModal('modal-result')">✕</button></div>
-    <div class="code-block" style="max-height:280px;overflow-y:auto;white-space:pre-wrap;padding-right:80px;" id="result-keys"></div>
-    <button class="copy-btn" style="top:56px;" onclick="copyText(document.getElementById('result-keys').textContent, this)">Copiar</button>
-    <div class="modal-footer"><button class="btn btn-secondary btn-sm" onclick="dlKeys()">.txt</button><button class="btn btn-primary" onclick="closeModal('modal-result')">Cerrar</button></div>
-  </div>
-</div>
+  <script src="/admin/js/app.js"></script>
+  <script src="/admin/js/sidebar.js"></script>
+  <script>
+    var currentAppId = null;
+    var licensesData = [];
+    var selectedLicenses = new Set();
 
-<div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
-<script src="/admin/js/icons.js"></script><script src="/admin/js/sidebar.js"></script>
-<script>
-var currentAppId = null, keysData = [];
-(async function() {
-  injectSidebar('keys');
-  await requireAuth();
-  // Usar la app guardada en localStorage (seleccionada desde Apps)
-  var savedApp = getSavedAppId();
-  if (savedApp) {
-    currentAppId = savedApp;
-    document.getElementById('btn-gen').disabled = false;
-    document.getElementById('btn-export').disabled = false;
-    document.getElementById('btn-del-used').disabled = false;
-    // Obtener nombre de la app
-    var ar = await apiFetch(API + '/apps');
-    if (ar && ar.success) {
-      var found = ar.apps.find(function(a){ return a.id === savedApp; });
-      if (found) document.getElementById('topbar-sub').textContent = found.name;
+    (async function() {
+      injectSidebar('keys');
+      await requireAuth();
+      
+      const savedApp = localStorage.getItem('selected_app_id');
+      if (savedApp) {
+        currentAppId = savedApp;
+        loadLicenses(currentAppId);
+      }
+    })();
+
+    async function loadLicenses(appId) {
+      const r = await apiFetch(API + '/apps/' + appId + '/keys');
+      if (!r || !r.success) {
+        document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>Error loading licenses</p></div></td></tr>';
+        return;
+      }
+      
+      licensesData = r.keys;
+      renderTable();
     }
-    loadKeys(currentAppId);
-  } else {
-    document.getElementById('keys-tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Sin app seleccionada. Ve a <a href="/apps" style="color:var(--accent);">Aplicaciones</a> y selecciona una.</p></div></td></tr>';
-  }
-  filterTable('search-keys','keys-table');
 
-function getSavedAppId() {
-  return localStorage.getItem('selected_app_id');
-}
-})();
+    function renderTable() {
+      const tbody = document.getElementById('licenses-tbody');
+      if (!licensesData.length) {
+        tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>No licenses yet. Create your first one!</p></div></td></tr>';
+        return;
+      }
 
-async function loadKeys(appId) {
-  const r = await apiFetch(API+'/apps/'+appId+'/keys');
-  const tbody = document.getElementById('keys-tbody');
-  if (!r||!r.success) { tbody.innerHTML='<tr><td colspan="9" style="padding:40px;text-align:center;"><div class="empty-state"><p>Error cargando keys</p></div></td></tr>'; return; }
-  keysData = r.keys;
-  const now = Math.floor(Date.now()/1000);
-  
-  document.getElementById('ks-total').textContent = keysData.length;
-  document.getElementById('ks-used').textContent  = keysData.filter(function(k){return k.used>0;}).length;
-  document.getElementById('ks-free').textContent  = keysData.filter(function(k){return k.used<1;}).length;
-  document.getElementById('ks-exp').textContent   = keysData.filter(function(k){return k.expiry&&k.expiry<now;}).length;
-  
-  if (!keysData.length) { tbody.innerHTML='<tr><td colspan="9" style="padding:40px;text-align:center;"><div class="empty-state"><p>Sin keys. Genera las primeras!</p></div></td></tr>'; return; }
-  
-  tbody.innerHTML = keysData.map(function(k) {
-    const exp = k.expiry&&k.expiry<now;
-    const used = k.used > 0;
-    
-    // Badge de estado (Active o Expired)
-    const statusBadge = exp 
-      ? '<span class="badge badge-red" style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;">Expired</span>' 
-      : '<span class="badge badge-green" style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;">Active</span>';
-    
-    // Badge de USED (amarillo)
-    const usedBadge = '<span class="badge" style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3);animation:pulse-badge 2s ease-in-out infinite;">USED</span>';
-    
-    // Fecha de creación
-    const createdDate = k.created_at ? new Date(k.created_at * 1000).toLocaleString('es-ES', {
-      year: 'numeric',
-      month: '2-digit', 
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }) : '-';
-    
-    // Fecha de expiración
-    const expDate = k.expiry ? new Date(k.expiry * 1000).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }) : '-';
-    
-    return '<tr style="border-bottom:1px solid rgba(255,255,255,0.03);">' +
-      '<td style="padding:14px 16px;font-family:monospace;font-size:12px;color:var(--text);font-weight:600;">' + esc(k.key_value) + '</td>' +
-      '<td style="padding:14px 16px;">' + statusBadge + '</td>' +
-      '<td style="padding:14px 16px;font-size:12px;color:#eab308;font-weight:600;">' + (k.used_by || 'LMAx27') + '</td>' +
-      '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + createdDate + '</td>' +
-      '<td style="padding:14px 16px;font-size:11px;color:var(--text3);font-family:monospace;">' + (k.hwid || '-') + '</td>' +
-      '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + expDate + '</td>' +
-      '<td style="padding:14px 16px;font-size:12px;color:var(--text3);">' + (k.note || '-') + '</td>' +
-      '<td style="padding:14px 16px;">' + (used ? usedBadge : '-') + '</td>' +
-      '<td style="padding:14px 16px;"><button class="btn btn-secondary btn-sm" onclick="showKeyActions(\''+k.id+'\',\''+esc(k.key_value)+'\')">...</button></td>' +
-      '</tr>';
-  }).join('');
-}
+      tbody.innerHTML = licensesData.map(function(k) {
+        const isUsed = k.used > 0;
+        const checked = selectedLicenses.has(k.id) ? 'checked' : '';
+        
+        return '<tr>' +
+          '<td><input type="checkbox" class="checkbox" ' + checked + ' onchange="toggleSelect(\'' + k.id + '\')" /></td>' +
+          '<td><span class="license-code">' + esc(k.key_value) + '</span></td>' +
+          '<td><span class="text-purple">ByPassMega</span></td>' +
+          '<td><span class="text-purple">LMAx27</span></td>' +
+          '<td><span class="text-muted">' + formatDate(k.created_at) + '</span></td>' +
+          '<td><span class="text-muted">' + (k.used_at ? formatDate(k.used_at) : '-') + '</span></td>' +
+          '<td><span class="text-muted">' + (k.used_by || 'Not used') + '</span></td>' +
+          '<td><span class="text-muted">' + (k.duration ? k.duration + ' Day(s)' : 'Lifetime') + '</span></td>' +
+          '<td><span class="text-muted">' + (k.note || '-') + '</span></td>' +
+          '<td><span class="badge ' + (isUsed ? 'badge-used' : 'badge-unused') + '">' + (isUsed ? 'USED' : 'UNUSED') + '</span></td>' +
+          '</tr>';
+      }).join('');
+    }
 
-function showKeyActions(keyId, keyValue) {
-  copyText(keyValue, event.target);
-}
+    function toggleSelect(id) {
+      if (selectedLicenses.has(id)) {
+        selectedLicenses.delete(id);
+      } else {
+        selectedLicenses.add(id);
+      }
+      updateSelectAll();
+    }
 
-async function generateKeys() {
-  if (!currentAppId) return;
-  
-  // Obtener valores del modal
-  const amount = parseInt(document.getElementById('gen-amount').value) || 1;
-  const prefix = document.getElementById('gen-prefix').value || '*****-*****';
-  const subscription = document.getElementById('gen-subscription').value || 'default';
-  const note = document.getElementById('gen-note').value || '';
-  const expiryUnit = document.getElementById('gen-expiry-unit').value;
-  const expiryDuration = parseInt(document.getElementById('gen-expiry-duration').value) || 0;
-  
-  // Calcular duración en días según la unidad seleccionada
-  let durationInDays = 0;
-  if (expiryUnit === 'lifetime') {
-    durationInDays = null; // Sin expiración
-  } else {
-    const unitToDays = {
-      'seconds': 1 / 86400,
-      'minutes': 1 / 1440,
-      'hours': 1 / 24,
-      'days': 1,
-      'weeks': 7,
-      'months': 30,
-      'years': 365
-    };
-    durationInDays = Math.floor(expiryDuration * (unitToDays[expiryUnit] || 1));
-  }
-  
-  const body = {
-    amount: amount,
-    prefix: prefix,
-    level: subscription === 'premium' ? 2 : subscription === 'vip' ? 3 : 1,
-    note: note
-  };
-  
-  // Solo agregar duration si no es lifetime
-  if (durationInDays !== null) {
-    body.duration = durationInDays;
-  }
-  
-  const r = await apiFetch(API+'/apps/'+currentAppId+'/keys', {method:'POST', body});
-  if (r && r.success) {
-    toast(r.message,'success');
-    closeModal('modal-gen');
-    document.getElementById('result-keys').textContent = r.keys.join('\n');
-    openModal('modal-result');
-    loadKeys(currentAppId);
-  } else if (r) {
-    toast(r.message,'error');
-  }
-}
+    function toggleSelectAll() {
+      const checkbox = document.getElementById('select-all');
+      if (checkbox.checked) {
+        licensesData.forEach(function(k) { selectedLicenses.add(k.id); });
+      } else {
+        selectedLicenses.clear();
+      }
+      renderTable();
+    }
 
-async function resetKey(id) { const r=await apiFetch(API+'/apps/'+currentAppId+'/keys/'+id+'/reset',{method:'POST'}); if(r&&r.success){toast('Reseteada','success');loadKeys(currentAppId);} }
-async function delKey(id) { confirmAction('¿Eliminar key?',async function(){const r=await apiFetch(API+'/apps/'+currentAppId+'/keys/'+id,{method:'DELETE'});if(r&&r.success){toast('Eliminada','success');loadKeys(currentAppId);}});}
-async function deleteAllUsed() { confirmAction('¿Borrar TODAS las keys usadas?',async function(){const used=keysData.filter(function(k){return k.used>=k.max_uses;});for(const k of used)await apiFetch(API+'/apps/'+currentAppId+'/keys/'+k.id,{method:'DELETE'});toast('Listo','success');loadKeys(currentAppId);});}
-function exportKeys() { if(!keysData.length)return; const b=new Blob([keysData.map(function(k){return k.key_value+'\t'+(k.used>=k.max_uses?'USADA':'OK');}).join('\n')],{type:'text/plain'}); const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='keys.txt';a.click(); }
-function dlKeys() { const t=document.getElementById('result-keys').textContent; const b=new Blob([t],{type:'text/plain'}); const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='keys-nuevas.txt';a.click(); }
-function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');}
-</script>
+    function updateSelectAll() {
+      const checkbox = document.getElementById('select-all');
+      checkbox.checked = licensesData.length > 0 && selectedLicenses.size === licensesData.length;
+    }
+
+    function openCreateModal() {
+      document.getElementById('modal-create').classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    async function createLicense() {
+      if (!currentAppId) return;
+      
+      const amount = parseInt(document.getElementById('gen-amount').value) || 1;
+      const mask = document.getElementById('gen-mask').value || '*****-*****';
+      const subscription = document.getElementById('gen-subscription').value;
+      const note = document.getElementById('gen-note').value;
+      const unit = document.getElementById('gen-unit').value;
+      const duration = parseInt(document.getElementById('gen-duration').value) || 0;
+      
+      let durationInDays = 0;
+      if (unit === 'lifetime') {
+        durationInDays = null;
+      } else {
+        const unitToDays = {
+          'seconds': 1/86400, 'minutes': 1/1440, 'hours': 1/24,
+          'days': 1, 'weeks': 7, 'months': 30, 'years': 365
+        };
+        durationInDays = Math.floor(duration * (unitToDays[unit] || 1));
+      }
+      
+      const body = {
+        amount: amount,
+        prefix: mask,
+        level: subscription === 'premium' ? 2 : subscription === 'vip' ? 3 : 1,
+        note: note
+      };
+      
+      if (durationInDays !== null) body.duration = durationInDays;
+      
+      const r = await apiFetch(API + '/apps/' + currentAppId + '/keys', {method: 'POST', body});
+      if (r && r.success) {
+        toast(r.message, 'success');
+        closeModal('modal-create');
+        loadLicenses(currentAppId);
+      } else if (r) {
+        toast(r.message, 'error');
+      }
+    }
+
+    function refreshLicenses() {
+      if (currentAppId) loadLicenses(currentAppId);
+    }
+
+    function filterTable() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const rows = document.querySelectorAll('#licenses-tbody tr');
+      rows.forEach(function(row) {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(search) ? '' : 'none';
+      });
+    }
+
+    function exportSelected() {
+      if (selectedLicenses.size === 0) return toast('Select licenses first', 'error');
+      const selected = licensesData.filter(function(k) { return selectedLicenses.has(k.id); });
+      const text = selected.map(function(k) { return k.key_value; }).join('\n');
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'licenses.txt';
+      a.click();
+      toast('Exported ' + selected.length + ' licenses', 'success');
+    }
+
+    function bulkCopy() {
+      if (selectedLicenses.size === 0) return toast('Select licenses first', 'error');
+      const selected = licensesData.filter(function(k) { return selectedLicenses.has(k.id); });
+      const text = selected.map(function(k) { return k.key_value; }).join('\n');
+      navigator.clipboard.writeText(text);
+      toast('Copied ' + selected.length + ' licenses', 'success');
+    }
+
+    async function deleteSelected() {
+      if (selectedLicenses.size === 0) return toast('Select licenses first', 'error');
+      if (!confirm('Delete ' + selectedLicenses.size + ' selected licenses?')) return;
+      
+      for (const id of selectedLicenses) {
+        await apiFetch(API + '/apps/' + currentAppId + '/keys/' + id, {method: 'DELETE'});
+      }
+      
+      selectedLicenses.clear();
+      toast('Licenses deleted', 'success');
+      loadLicenses(currentAppId);
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return '-';
+      const d = new Date(timestamp * 1000);
+      return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + 
+             pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+
+    function pad(n) { return n < 10 ? '0' + n : n; }
+    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+  </script>
 </body>
 </html>
