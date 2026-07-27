@@ -180,34 +180,51 @@
     var selectedLicenses = new Set();
 
     (async function() {
+      console.log('Initializing licenses page...');
       injectSidebar('keys');
       await requireAuth();
       
+      console.log('Auth completed, checking saved app...');
       const savedApp = localStorage.getItem('selected_app_id');
+      console.log('savedApp from localStorage:', savedApp);
+      
       if (savedApp) {
         currentAppId = savedApp;
+        console.log('Setting currentAppId:', currentAppId);
         
         // Get app name
+        console.log('Fetching apps list...');
         const ar = await apiFetch(API + '/apps');
+        console.log('Apps response:', ar);
+        
         if (ar && ar.success) {
           const found = ar.apps.find(function(a) { return a.id === savedApp; });
+          console.log('Found app:', found);
           if (found) document.getElementById('app-name').textContent = found.name;
         }
         
+        console.log('Loading licenses...');
         loadLicenses(currentAppId);
       } else {
+        console.log('No app selected');
         document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">No app selected. Go to <a href="/apps" style="color:#eab308;">Applications</a> and select one.</p></div></td></tr>';
       }
     })();
 
     async function loadLicenses(appId) {
+      console.log('loadLicenses called with:', appId);
+      
       const r = await apiFetch(API + '/apps/' + appId + '/keys');
+      console.log('loadLicenses response:', r);
+      
       if (!r || !r.success) {
+        console.error('Failed to load licenses:', r);
         document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">Error loading licenses</p></div></td></tr>';
         return;
       }
       
       licensesData = r.keys || [];
+      console.log('licensesData:', licensesData);
       renderTable();
     }
 
@@ -271,7 +288,14 @@
     }
 
     async function createLicense() {
-      if (!currentAppId) return toast('No app selected', 'error');
+      console.log('createLicense called');
+      
+      if (!currentAppId) {
+        console.error('No currentAppId');
+        return toast('No app selected', 'error');
+      }
+      
+      console.log('currentAppId:', currentAppId);
       
       const amount = parseInt(document.getElementById('gen-amount').value) || 1;
       const mask = document.getElementById('gen-mask').value || '*****-*****';
@@ -279,6 +303,8 @@
       const note = document.getElementById('gen-note').value;
       const unit = document.getElementById('gen-unit').value;
       const duration = parseInt(document.getElementById('gen-duration').value) || 0;
+      
+      console.log('Form values:', { amount, mask, subscription, note, unit, duration });
       
       let durationInDays = 0;
       if (unit === 'lifetime') {
@@ -300,21 +326,32 @@
       
       if (durationInDays !== null && durationInDays > 0) body.duration = durationInDays;
       
-      const r = await apiFetch(API + '/apps/' + currentAppId + '/keys', {method: 'POST', body: body});
-      if (r && r.success) {
-        toast(r.message || 'Licenses created successfully', 'success');
-        closeModal('modal-create');
-        loadLicenses(currentAppId);
+      console.log('Request body:', body);
+      console.log('API URL:', API + '/apps/' + currentAppId + '/keys');
+      
+      try {
+        const r = await apiFetch(API + '/apps/' + currentAppId + '/keys', {method: 'POST', body: body});
+        console.log('API response:', r);
         
-        // Reset form
-        document.getElementById('gen-amount').value = '1';
-        document.getElementById('gen-mask').value = '*****-*****';
-        document.getElementById('gen-subscription').value = 'ByPassMega';
-        document.getElementById('gen-note').value = '';
-        document.getElementById('gen-unit').value = 'days';
-        document.getElementById('gen-duration').value = '1';
-      } else if (r) {
-        toast(r.message || 'Error creating licenses', 'error');
+        if (r && r.success) {
+          toast(r.message || 'Licenses created successfully', 'success');
+          closeModal('modal-create');
+          loadLicenses(currentAppId);
+          
+          // Reset form
+          document.getElementById('gen-amount').value = '1';
+          document.getElementById('gen-mask').value = '*****-*****';
+          document.getElementById('gen-subscription').value = 'ByPassMega';
+          document.getElementById('gen-note').value = '';
+          document.getElementById('gen-unit').value = 'days';
+          document.getElementById('gen-duration').value = '1';
+        } else {
+          console.error('API error:', r);
+          toast(r?.message || 'Error creating licenses', 'error');
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        toast('Network error: ' + error.message, 'error');
       }
     }
 
