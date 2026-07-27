@@ -46,22 +46,64 @@
 </div>
 
 <div class="modal-overlay" id="modal-gen">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header"><div class="modal-title">Generar Licencias</div><button class="modal-close" onclick="closeModal('modal-gen')">✕</button></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Cantidad (max 500)</label><input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" /></div>
-      <div class="form-group"><label class="form-label">Prefijo</label><input type="text" id="gen-prefix" class="form-control" value="KEY" maxlength="10" /></div>
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title">Create a new license</div>
+      <button class="modal-close" onclick="closeModal('modal-gen')">✕</button>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Duracion (dias, 0=permanente)</label><input type="number" id="gen-duration" class="form-control" value="30" min="0" /></div>
-      <div class="form-group"><label class="form-label">Nivel</label><select id="gen-level" class="form-control"><option value="1">Nivel 1 — Basic</option><option value="2">Nivel 2 — Premium</option><option value="3">Nivel 3 — VIP</option></select></div>
+    
+    <div style="padding:0 20px 20px;">
+      <div class="form-group">
+        <label class="form-label">License Amount <span style="color:#ef4444;">*</span></label>
+        <input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" style="background:var(--bg3);" />
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">License Mask <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="gen-prefix" class="form-control" value="*****-*****" placeholder="*****-*****" style="background:var(--bg3);font-family:monospace;" />
+        <div class="form-hint">Use * for random characters. Example: KEY-*****-*****</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Subscription <span style="color:#ef4444;">*</span></label>
+        <select id="gen-subscription" class="form-control" style="background:var(--bg3);">
+          <option value="default">Default</option>
+          <option value="premium">Premium</option>
+          <option value="vip">VIP</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">License Note</label>
+        <input type="text" id="gen-note" class="form-control" placeholder="Note for the license..." style="background:var(--bg3);" />
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Expiry Unit <span style="color:#ef4444;">*</span></label>
+          <select id="gen-expiry-unit" class="form-control" style="background:var(--bg3);">
+            <option value="seconds">Seconds</option>
+            <option value="minutes">Minutes</option>
+            <option value="hours">Hours</option>
+            <option value="days" selected>Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+            <option value="years">Years</option>
+            <option value="lifetime">Lifetime</option>
+          </select>
+        </div>
+        
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Expiry Duration <span style="color:#ef4444;">*</span></label>
+          <input type="number" id="gen-expiry-duration" class="form-control" value="30" min="0" style="background:var(--bg3);" />
+        </div>
+      </div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Max usos</label><input type="number" id="gen-maxuses" class="form-control" value="1" min="1" /></div>
-      <div class="form-group"><label class="form-label">Expira en fecha (opcional)</label><input type="date" id="gen-expiry" class="form-control" /></div>
+    
+    <div class="modal-footer" style="border-top:1px solid var(--border);padding-top:16px;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-gen')">Cancel</button>
+      <button class="btn btn-primary" onclick="generateKeys()" style="background:linear-gradient(135deg,#a855f7,#9333ea);border:none;">Create License</button>
     </div>
-    <div class="form-group"><label class="form-label">Nota interna</label><input type="text" id="gen-note" class="form-control" placeholder="Batch enero 2025..." /></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-gen')">Cancelar</button><button class="btn btn-primary" onclick="generateKeys()">Generar</button></div>
   </div>
 </div>
 
