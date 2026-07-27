@@ -692,38 +692,40 @@ router.post('/owner/partners', requireAdmin, async function(req, res) {
     const count = (existingCount && existingCount.c) || 0;
     if (count >= maxPartners) return res.json({ success: false, message: 'Limite alcanzado: puedes crear maximo ' + maxPartners + ' partner(s). Tienes ' + count + '.' });
 
-    const { username, password, display_name, app_ids, permissions } = req.body;
+    const { username, password, display_name, permissions } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
     const ex = await db.get('SELECT id FROM partners WHERE username=?', [username]);
     if (ex) return res.json({ success: false, message: 'Username ya existe' });
 
-    // Solo puede asignar apps que EL MISMO tiene asignadas
-    const myApps = await db.all('SELECT app_id FROM partner_apps WHERE partner_id=?', [me.id]);
-    const myAppIds = myApps.map(function(a) { return a.app_id; });
-    const filteredAppIds = (app_ids || []).filter(function(id) { return myAppIds.includes(id); });
+    // OBTENER TODAS LAS APPS DEL OWNER (automáticamente)
+    const myApps = await db.all('SELECT * FROM partner_apps WHERE partner_id=?', [me.id]);
+    if (!myApps.length) return res.json({ success: false, message: 'No tienes apps asignadas. No puedes crear sub-partners sin apps.' });
 
     const id = uuidv4();
     const hashed = await bcrypt.hash(password, 10);
     await db.run('INSERT INTO partners (id,username,password,display_name,role,owner_id) VALUES (?,?,?,?,?,?)',
       [id, username, hashed, display_name || username, 'partner', me.id]);
 
-    for (const appId of filteredAppIds) {
-      const perm = (permissions && permissions[appId]) || {};
-      // Sub-partner solo puede tener permisos que el owner tiene
-      const myPerm = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [me.id, appId]);
-      const can_genkeys = myPerm && myPerm.can_genkeys ? (perm.can_genkeys !== undefined ? (perm.can_genkeys ? 1 : 0) : 1) : 0;
-      const can_users   = myPerm && myPerm.can_users   ? (perm.can_users   !== undefined ? (perm.can_users   ? 1 : 0) : 1) : 0;
-      const can_logs    = myPerm && myPerm.can_logs    ? (perm.can_logs    !== undefined ? (perm.can_logs    ? 1 : 0) : 1) : 0;
-      // key_limit del sub-partner no puede superar el restante del owner
-      const ownerLimit  = myPerm ? (myPerm.key_limit || 0) : 0;
-      const ownerUsed   = myPerm ? (myPerm.keys_used || 0) : 0;
+    // COPIAR TODAS LAS APPS DEL OWNER al sub-partner con los mismos permisos
+    for (const ownerApp of myApps) {
+      const perm = (permissions && permissions[ownerApp.app_id]) || {};
+      // Sub-partner hereda permisos del owner (o se pueden personalizar desde el frontend)
+      const can_genkeys = perm.can_genkeys !== undefined ? (perm.can_genkeys ? 1 : 0) : (ownerApp.can_genkeys || 1);
+      const can_users   = perm.can_users   !== undefined ? (perm.can_users   ? 1 : 0) : (ownerApp.can_users || 1);
+      const can_logs    = perm.can_logs    !== undefined ? (perm.can_logs    ? 1 : 0) : (ownerApp.can_logs || 1);
+      
+      // key_limit del sub-partner: si el owner tiene límite, el sub-partner puede tener hasta lo que queda disponible
+      const ownerLimit  = ownerApp.key_limit || 0;
+      const ownerUsed   = ownerApp.keys_used || 0;
       const ownerLeft   = ownerLimit > 0 ? Math.max(0, ownerLimit - ownerUsed) : 0;
       const reqLimit    = parseInt(perm.key_limit) || 0;
       const key_limit   = ownerLimit > 0 ? Math.min(reqLimit || ownerLeft, ownerLeft) : reqLimit;
+      
       await db.run('INSERT OR REPLACE INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,?,?,?,?,0)',
-        [id, appId, can_genkeys, can_users, can_logs, key_limit]);
+        [id, ownerApp.app_id, can_genkeys, can_users, can_logs, key_limit]);
     }
-    res.json({ success: true, message: 'Sub-partner "' + username + '" creado (' + (count+1) + '/' + maxPartners + ')' });
+    
+    res.json({ success: true, message: 'Sub-partner "' + username + '" creado con ' + myApps.length + ' app(s) asignada(s) (' + (count+1) + '/' + maxPartners + ')' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
