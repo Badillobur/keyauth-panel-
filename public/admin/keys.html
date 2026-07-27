@@ -108,11 +108,11 @@
   </div>
 
   <!-- Modal Create License -->
-  <div class="modal-overlay" id="modal-create">
-    <div class="modal" style="max-width:580px;">
-      <div class="modal-header">
-        <div class="modal-title">Create a new license</div>
-        <button class="modal-close" onclick="closeModal('modal-create')">×</button>
+  <div id="modal-create" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;" onclick="if(event.target === this) closeModal('modal-create')">
+    <div style="max-width:580px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:90%;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+      <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:24px 28px;border-bottom:1px solid var(--border);">
+        <div class="modal-title" style="font-size:20px;font-weight:700;">Create a new license</div>
+        <button class="modal-close" onclick="closeModal('modal-create')" style="width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-size:24px;cursor:pointer;">×</button>
       </div>
       
       <div style="padding:24px 28px;">
@@ -163,7 +163,7 @@
         </div>
       </div>
       
-      <div class="modal-footer">
+      <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:12px;padding:20px 28px;border-top:1px solid var(--border);">
         <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancel</button>
         <button class="btn btn-primary" onclick="createLicense()" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;">Create License</button>
       </div>
@@ -263,13 +263,16 @@
     }
 
     function openCreateModal() {
-      openModal('modal-create');
+      const modal = document.getElementById('modal-create');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
     }
 
     function closeModal(id) {
       const modal = document.getElementById(id);
       if (modal) {
-        modal.classList.remove('active');
+        modal.style.display = 'none';
       }
     }
 
