@@ -90,8 +90,8 @@
                 Crear Bot Premium
               </h3>
               <div class="bot-limit-info">
-                <span>Límite: <strong id="manager-used">0</strong> / <strong id="manager-limit">1</strong></span>
-                <span>Bots Premium Creados</span>
+                <span>Creados: <strong id="manager-used">0</strong></span>
+                <span>Acceso Ilimitado - Admin</span>
               </div>
               
               <div class="form-group">
@@ -134,10 +134,10 @@
               
               <div class="bot-info-box manager-info-box">
                 <div class="bot-info-title">
-                  <span>ℹ</span>
-                  <span>Información Premium</span>
+                  <span>👑</span>
+                  <span>Acceso Administrativo</span>
                 </div>
-                <div class="bot-info-text">Para crear más de 1 bot premium, contacta: WhatsApp +51 928140884</div>
+                <div class="bot-info-text">Tienes acceso ilimitado para crear bots. Puedes configurar límites para owners y partners desde el panel de administración.</div>
               </div>
             </div>
             
@@ -289,9 +289,27 @@
       document.getElementById('manager-used').textContent = managerBots.length;
       
       if (!managerBots.length) {
-        container.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg><p>No hay bots premium creados</p></div>';
+        container.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg><p>No hay bots premium creados</p><small style="color:var(--text3);font-size:11px;">Acceso ilimitado - Crea los bots que necesites</small></div>';
         return;
       }
+      
+      // Renderizar bots existentes
+      container.innerHTML = managerBots.map(function(bot) {
+        return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+            '<div style="font-size:14px;font-weight:600;color:var(--text);">' + esc(bot.name) + '</div>' +
+            '<div style="padding:4px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);">ONLINE</div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;">' +
+            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Aplicación</div><div style="font-size:11px;color:var(--text2);">' + esc(bot.app) + '</div></div>' +
+            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Guild</div><div style="font-size:11px;color:var(--text2);">' + esc(bot.guild) + '</div></div>' +
+          '</div>' +
+          '<div style="display:flex;gap:6px;">' +
+            '<button onclick="editBot(\'' + bot.id + '\')" style="padding:6px 12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);border-radius:var(--radius);font-size:11px;cursor:pointer;">Config</button>' +
+            '<button onclick="deleteBot(\'' + bot.id + '\')" style="padding:6px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:var(--radius);font-size:11px;cursor:pointer;">Delete</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
     function renderFreeBotStats() {
@@ -325,12 +343,22 @@
         return;
       }
       
-      if (managerBots.length >= 1) {
-        toast('Límite de bots premium alcanzado. Contacta para obtener más slots.', 'error');
-        return;
-      }
-      
+      // No hay límites para admin - acceso ilimitado
       toast('Bot premium creado exitosamente', 'success');
+      
+      // Agregar bot a la lista (simulación)
+      var app = apps.find(function(a) { return a.id === appId; });
+      var newBot = {
+        id: 'bot' + Date.now(),
+        name: name,
+        app: app ? app.name : 'Unknown',
+        status: 'online',
+        guild: guildId,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      
+      managerBots.push(newBot);
+      renderManagerBots();
       
       // Limpiar formulario
       document.getElementById('manager-bot-name').value = '';
@@ -367,6 +395,18 @@
       setTimeout(function() {
         toast('Estados actualizados', 'success');
       }, 1500);
+    }
+
+    function editBot(id) {
+      toast('Función de configuración próximamente disponible', 'info');
+    }
+
+    function deleteBot(id) {
+      if (!confirm('¿Eliminar este bot premium?')) return;
+      
+      managerBots = managerBots.filter(function(bot) { return bot.id !== id; });
+      renderManagerBots();
+      toast('Bot eliminado correctamente', 'success');
     }
   </script>
 </body>
