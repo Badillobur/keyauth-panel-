@@ -10,14 +10,9 @@ var SVG = {
   docs:      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2.5" y="1" width="10" height="13" rx="1.5" stroke="#f5c518" stroke-width="1.4"/><path d="M5 5h5M5 7.5h5M5 10h3" stroke="#f5c518" stroke-width="1.4" stroke-linecap="round"/></svg>',
 };
 
-function buildSidebar(activePage, role) {
+function buildSidebar(activePage, role, partnerRole) {
   role = role || 'superadmin';
-
-  // Items visibles por rol
-  // superadmin: todo
-  // partner con role=owner: apps, keys, users, logs, discord (sin docs, partners, vars)
-  // partner normal: apps, keys, users, logs, discord (sin docs, partners, vars)
-  var adminOnly = ['partners', 'docs', 'vars'];
+  partnerRole = partnerRole || 'partner';
 
   var nav = [
     { section: 'General' },
@@ -29,7 +24,7 @@ function buildSidebar(activePage, role) {
     { page: 'logs',      label: 'Logs',             href: '/logs' },
     { section: 'Config' },
     { page: 'vars',      label: 'Variables',        href: '/vars',     adminOnly: true },
-    { page: 'partners',  label: 'Partners',         href: '/partners', adminOnly: true },
+    { page: 'partners',  label: 'Partners',         href: '/partners', adminOnly: true, ownerAllowed: true },
     { page: 'discord',   label: 'Bot Discord',      href: '/discord' },
     { page: 'docs',      label: 'API Docs',         href: '/docs',     adminOnly: true },
   ];
@@ -39,6 +34,8 @@ function buildSidebar(activePage, role) {
   html += '<nav class="sidebar-nav">';
 
   var isPartner = role === 'partner';
+  var isOwner = isPartner && partnerRole === 'owner';
+  var isSuperAdmin = role === 'superadmin' || role === 'admin';
   var lastWasSection = false;
   var pendingSection = null;
 
@@ -48,8 +45,11 @@ function buildSidebar(activePage, role) {
       pendingSection = item.section;
       continue;
     }
-    // Ocultar items adminOnly para partners
-    if (isPartner && item.adminOnly) continue;
+    
+    // Control de visibilidad por rol
+    if (item.adminOnly && !item.ownerAllowed && isPartner) continue;  // Solo admin
+    if (item.adminOnly && item.ownerAllowed && isPartner && !isOwner) continue;  // Admin + Owner
+    if (item.adminOnly && !isSuperAdmin && !isOwner) continue;  // Protección general
 
     // Imprimir sección solo si hay items visibles
     if (pendingSection) {
@@ -64,7 +64,10 @@ function buildSidebar(activePage, role) {
 
   html += '</nav>';
   html += '<div class="sidebar-footer">';
-  var roleLabel = role === 'superadmin' ? 'Admin' : role === 'partner' ? 'Partner' : role === 'owner' ? 'Owner' : role;
+  var roleLabel = role === 'superadmin' ? 'Admin' : 
+                  role === 'admin' ? 'Admin' :
+                  role === 'partner' && partnerRole === 'owner' ? 'Owner' :
+                  role === 'partner' ? 'Partner' : role;
   html += '<div class="user-info"><div class="user-avatar" id="admin-avatar">L</div><div><div class="user-name" id="admin-name">Admin</div><div class="user-role" id="admin-role">' + roleLabel + '</div></div></div>';
   html += '<button class="btn-logout" onclick="logout()"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M5 2H2.5A1.5 1.5 0 001 3.5v6A1.5 1.5 0 002.5 11H5M8.5 4l3 2.5-3 2.5M11.5 6.5H4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Cerrar Sesion</button>';
   html += '</div></aside>';
@@ -75,17 +78,18 @@ function injectSidebar(activePage) {
   var container = document.getElementById('sidebar-container');
   if (!container) return;
   // Primero renderizar con role desconocido, luego actualizar cuando llega el rol real
-  container.innerHTML = buildSidebar(activePage, 'superadmin');
+  container.innerHTML = buildSidebar(activePage, 'superadmin', 'admin');
   // Actualizar sidebar cuando requireAuth resuelva el rol real
   var _orig = window._sidebarRole;
   if (window._sidebarRole) {
-    container.innerHTML = buildSidebar(activePage, window._sidebarRole);
+    container.innerHTML = buildSidebar(activePage, window._sidebarRole, window._sidebarPartnerRole);
   }
 }
 
 // Llamado desde requireAuth después de conocer el rol
-function updateSidebarRole(role, activePage) {
+function updateSidebarRole(role, partnerRole, activePage) {
   window._sidebarRole = role;
+  window._sidebarPartnerRole = partnerRole;
   var container = document.getElementById('sidebar-container');
-  if (container) container.innerHTML = buildSidebar(activePage, role);
+  if (container) container.innerHTML = buildSidebar(activePage, role, partnerRole);
 }

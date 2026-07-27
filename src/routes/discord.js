@@ -656,7 +656,24 @@ router.post('/partner-bots', requireAdmin, async function(req, res) {
     const { bot_token, app_id, guild_id, log_channel_id, chan_online_id, chan_users_id, chan_keys_id } = req.body;
     if (!bot_token || !app_id) return res.json({ success: false, message: 'Token y app_id requeridos' });
 
-    if (req.admin.role === 'partner') {
+    let partnerId = req.admin.id;
+
+    // Si es super admin, necesitamos crear/obtener un registro de partner para él
+    if (req.admin.role === 'superadmin' || req.admin.role === 'admin') {
+      // Verificar si ya existe como partner
+      let adminAsPartner = await db.get('SELECT id FROM partners WHERE username=?', [req.admin.username]);
+      if (!adminAsPartner) {
+        // Crear registro de partner para el admin
+        const bcrypt = require('bcryptjs');
+        const adminPartnerId = uuidv4();
+        const hashedPass = await bcrypt.hash('admin_partner', 10);
+        await db.run('INSERT INTO partners (id, username, password, email, role, max_bots, active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [adminPartnerId, req.admin.username + '_partner', hashedPass, 'admin@local.dev', 'admin_partner', 999, 1]);
+        partnerId = adminPartnerId;
+      } else {
+        partnerId = adminAsPartner.id;
+      }
+    } else if (req.admin.role === 'partner') {
       // Verificar que tiene acceso a esa app
       const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, app_id]);
       if (!pa) return res.status(403).json({ success: false, message: 'No tienes acceso a esa app' });
@@ -670,7 +687,7 @@ router.post('/partner-bots', requireAdmin, async function(req, res) {
 
     const id = uuidv4();
     const cleanToken = bot_token.replace(/[\s\n\r\t\u0000-\u001F\u007F-\u009F]/g, '');
-    const partnerId = req.admin.role === 'partner' ? req.admin.id : req.body.partner_id || req.admin.id;
+    
     await db.run('INSERT INTO partner_discord_bots (id,partner_id,app_id,bot_token,guild_id,log_channel_id,chan_online_id,chan_users_id,chan_keys_id) VALUES (?,?,?,?,?,?,?,?,?)',
       [id, partnerId, app_id, cleanToken, guild_id||'', log_channel_id||'', chan_online_id||'', chan_users_id||'', chan_keys_id||'']);
 
@@ -714,6 +731,25 @@ router.post('/partner-bots/:id/reconnect', requireAdmin, async function(req, res
       return res.json({ success: true, message: 'Bot reconectado: ' + r.tag });
     }
     return res.json({ success: false, message: 'Error: ' + r.error });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+// GET /discord/partner-bots/:id/invite — obtener link de invitación para bot de partner
+router.get('/partner-bots/:id/invite', requireAdmin, async function(req, res) {
+  try {
+    const bot = req.admin.role === 'partner'
+      ? await db.get('SELECT * FROM partner_discord_bots WHERE id=? AND partner_id=?', [req.params.id, req.admin.id])
+      : await db.get('SELECT * FROM partner_discord_bots WHERE id=?', [req.params.id]);
+    if (!bot) return res.json({ success: false, message: 'Bot no encontrado' });
+    
+    // Verificar si el bot está online y obtener su client_id
+    if (partnerBots[bot.id] && partnerBots[bot.id].ready && partnerBots[bot.id].client) {
+      const client = partnerBots[bot.id].client;
+      const link = 'https://discord.com/api/oauth2/authorize?client_id=' + client.user.id + '&permissions=8&scope=bot%20applications.commands';
+      return res.json({ success: true, link });
+    } else {
+      return res.json({ success: false, message: 'Bot offline - reconéctalo primero' });
+    }
   } catch(e) { res.json({ success: false, message: e.message }); }
 });
 

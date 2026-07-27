@@ -72,7 +72,8 @@ async function requireAuth() {
     var activePage = document.querySelector('.nav-item.active');
     var page = activePage ? activePage.dataset.page : '';
     var sidebarRole = res.admin.role || 'superadmin';
-    updateSidebarRole(sidebarRole, page);
+    var partnerRole = res.admin.partner_role || 'partner';
+    updateSidebarRole(sidebarRole, partnerRole, page);
   }
   return res.admin;
 }

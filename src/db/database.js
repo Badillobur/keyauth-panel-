@@ -172,6 +172,10 @@ const SCHEMA = `
 
 exec(SCHEMA).then(function() {
   console.log('[DB] Base de datos inicializada correctamente en', dbPath);
+  // Ejecutar migración v2 de forma segura
+  setTimeout(function() {
+    require('./migration_v2');
+  }, 1000);
 }).catch(function(err) {
   console.error('[DB] Error inicializando schema:', err);
 });
