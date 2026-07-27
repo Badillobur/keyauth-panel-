@@ -6,515 +6,133 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LMAx27 — Licenses</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    :root {
-      --bg: #0a0a0f;
-      --bg2: #12121a;
-      --bg3: #1a1a24;
-      --border: rgba(255,255,255,0.06);
-      --text: #e4e4e7;
-      --text2: #a1a1aa;
-      --text3: #71717a;
-      --accent: #8b5cf6;
-      --accent2: #7c3aed;
-    }
-    
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      line-height: 1.6;
-    }
-    
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      animation: slideDown 0.5s ease-out;
-    }
-    
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .header-title {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    
-    .header-actions {
-      display: flex;
-      gap: 12px;
-    }
-    
-    .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-      color: white;
-      box-shadow: 0 4px 12px rgba(139,92,246,0.3);
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139,92,246,0.4);
-    }
-    
-    .btn-secondary {
-      background: var(--bg3);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    
-    .btn-secondary:hover {
-      background: var(--bg2);
-      border-color: rgba(255,255,255,0.1);
-    }
-    
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-bottom: 20px;
-      animation: fadeInUp 0.6s ease-out 0.2s backwards;
-    }
-    
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .toolbar-left {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    
-    .search-box {
-      position: relative;
-    }
-    
-    .search-box input {
-      padding: 10px 16px 10px 40px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 14px;
-      width: 300px;
-      transition: all 0.3s ease;
-    }
-    
-    .search-box input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
-    }
-    
-    .search-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text3);
-    }
-    
-    .table-container {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      animation: fadeInUp 0.6s ease-out 0.4s backwards;
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    thead {
-      background: var(--bg3);
-      border-bottom: 1px solid var(--border);
-    }
-    
-    th {
-      padding: 16px 20px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text3);
-    }
-    
-    th:first-child {
-      width: 40px;
-    }
-    
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: all 0.3s ease;
-    }
-    
-    tbody tr:hover {
-      background: rgba(139,92,246,0.05);
-    }
-    
-    td {
-      padding: 16px 20px;
-      font-size: 14px;
-    }
-    
-    .checkbox {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-      accent-color: var(--accent);
-    }
-    
-    .license-code {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 600;
-    }
-    
-    .badge {
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    
-    .badge-unused {
-      background: rgba(34,197,94,0.15);
-      color: #22c55e;
-      border: 1px solid rgba(34,197,94,0.3);
-    }
-    
-    .badge-used {
-      background: rgba(251,191,36,0.15);
-      color: #fbbf24;
-      border: 1px solid rgba(251,191,36,0.3);
-    }
-    
-    .text-muted {
-      color: var(--text3);
-    }
-    
-    .text-purple {
-      color: var(--accent);
-      font-weight: 600;
-    }
-    
-    .pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-top: 20px;
-    }
-    
-    .pagination-info {
-      font-size: 14px;
-      color: var(--text2);
-    }
-    
-    .pagination-buttons {
-      display: flex;
-      gap: 8px;
-    }
-    
-    /* Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease-out;
-    }
-    
-    .modal-overlay.active {
-      display: flex;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    .modal {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      width: 90%;
-      max-width: 580px;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-50px) scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-    
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 28px;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .modal-title {
-      font-size: 20px;
-      font-weight: 700;
-    }
-    
-    .modal-close {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      color: var(--text2);
-      font-size: 24px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .modal-close:hover {
-      background: var(--bg3);
-      color: var(--text);
-    }
-    
-    .modal-body {
-      padding: 24px 28px;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text2);
-    }
-    
-    .form-label .required {
-      color: #ef4444;
-      margin-left: 4px;
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: 12px 16px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-    
-    .form-control:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
-    }
-    
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    
-    .form-hint {
-      margin-top: 6px;
-      font-size: 12px;
-      color: var(--text3);
-    }
-    
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      padding: 20px 28px;
-      border-top: 1px solid var(--border);
-    }
-    
-    select.form-control {
-      cursor: pointer;
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text3);
-    }
-    
-    .empty-state p {
-      font-size: 15px;
-      margin-bottom: 8px;
-    }
-  </style>
 </head>
 <body>
-  <div id="sidebar-container"></div>
-  
-  <div class="container">
-    <div class="header">
-      <div>
-        <h1 class="header-title">Licenses</h1>
+  <div id="particles"></div>
+  <div class="layout">
+    <div id="sidebar-container"></div>
+    <main class="main">
+      <!-- Header -->
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">Licenses</div>
+          <div class="topbar-sub" id="app-name">Manage your licenses for your projects</div>
+        </div>
+        <div class="topbar-actions" style="display:flex;gap:12px;">
+          <button class="btn btn-secondary" onclick="window.location.href='/apps'" style="display:flex;align-items:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Change App
+          </button>
+          <button class="btn btn-primary" id="btn-create" onclick="openCreateModal()" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;display:flex;align-items:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Create License
+          </button>
+        </div>
       </div>
-      <div class="header-actions">
-        <button class="btn btn-secondary" onclick="window.location.href='/apps'">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Change App
-        </button>
-        <button class="btn btn-primary" id="btn-create" onclick="openCreateModal()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Create License
-        </button>
-      </div>
-    </div>
 
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <button class="btn btn-secondary" onclick="exportSelected()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Export
-        </button>
-        <button class="btn btn-secondary" onclick="bulkCopy()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy
-        </button>
-        <button class="btn btn-secondary" onclick="refreshLicenses()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
-          Refresh
-        </button>
-        <button class="btn btn-secondary" style="background:#dc2626;color:white;" onclick="deleteSelected()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-          Delete
-        </button>
-      </div>
-      
-      <div class="search-box">
-        <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" placeholder="Search Licenses..." id="search-input" oninput="filterTable()" />
-      </div>
-    </div>
+      <div class="content">
+        <!-- Toolbar -->
+        <div class="card" style="padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:12px;">
+            <button class="btn btn-secondary btn-sm" onclick="exportSelected()" style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Export
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="bulkCopy()" style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="refreshLicenses()" style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+              Refresh
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSelected()" style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              Delete
+            </button>
+          </div>
+          
+          <div class="search-wrap">
+            <span class="search-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </span>
+            <input type="text" class="search-input" id="search-input" placeholder="Search Licenses..." oninput="filterTable()" />
+          </div>
+        </div>
 
-    <div class="table-container">
-      <table id="licenses-table">
-        <thead>
-          <tr>
-            <th><input type="checkbox" class="checkbox" id="select-all" onchange="toggleSelectAll()" /></th>
-            <th>LICENSE</th>
-            <th>SUBSCRIPTION</th>
-            <th>GENERATED BY</th>
-            <th>CREATED AT</th>
-            <th>USED AT</th>
-            <th>USED ON</th>
-            <th>DURATION</th>
-            <th>NOTE</th>
-            <th>USED</th>
-          </tr>
-        </thead>
-        <tbody id="licenses-tbody">
-          <tr>
-            <td colspan="10">
-              <div class="empty-state">
-                <p>No app selected</p>
-                <p class="text-muted" style="font-size:13px;">Go to <a href="/apps" style="color:var(--accent);">Applications</a> and select one</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        <!-- Table -->
+        <div class="card">
+          <div class="table-wrap">
+            <table id="licenses-table" style="width:100%;">
+              <thead>
+                <tr style="background:var(--bg3);">
+                  <th style="padding:12px 16px;width:40px;">
+                    <input type="checkbox" id="select-all" onchange="toggleSelectAll()" style="cursor:pointer;" />
+                  </th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">LICENSE</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">SUBSCRIPTION</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">GENERATED BY</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">CREATED AT</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">USED AT</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">USED ON</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">DURATION</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">NOTE</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);">USED</th>
+                </tr>
+              </thead>
+              <tbody id="licenses-tbody">
+                <tr>
+                  <td colspan="10" style="padding:60px;text-align:center;">
+                    <div class="empty-state">
+                      <p style="color:var(--text3);font-size:15px;">No licenses yet. Create your first one!</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-    <div class="pagination">
-      <div class="pagination-info">Showing page <strong>1</strong> of <strong>1</strong></div>
-      <div class="pagination-buttons">
-        <button class="btn btn-secondary" disabled>Previous</button>
-        <button class="btn btn-secondary" disabled>Next</button>
+        <!-- Pagination -->
+        <div class="card" style="padding:16px 20px;margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:14px;color:var(--text2);">
+            Showing page <strong id="page-current">1</strong> of <strong id="page-total">1</strong>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="btn-prev" disabled>Previous</button>
+            <button class="btn btn-secondary btn-sm" id="btn-next" disabled>Next</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- Modal Create License -->
   <div class="modal-overlay" id="modal-create">
-    <div class="modal">
+    <div class="modal" style="max-width:580px;">
       <div class="modal-header">
-        <h2 class="modal-title">Create a new license</h2>
+        <div class="modal-title">Create a new license</div>
         <button class="modal-close" onclick="closeModal('modal-create')">×</button>
       </div>
-      <div class="modal-body">
+      
+      <div style="padding:24px 28px;">
         <div class="form-group">
-          <label class="form-label">License Amount <span class="required">*</span></label>
+          <label class="form-label">License Amount <span style="color:#ef4444;">*</span></label>
           <input type="number" id="gen-amount" class="form-control" value="1" min="1" max="500" />
         </div>
         
         <div class="form-group">
-          <label class="form-label">License Mask <span class="required">*</span></label>
+          <label class="form-label">License Mask <span style="color:#ef4444;">*</span></label>
           <input type="text" id="gen-mask" class="form-control" value="*****-*****" placeholder="*****-*****" style="font-family:monospace;" />
           <div class="form-hint">Use * for random characters. Example: KEY-*****-*****</div>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Subscription <span class="required">*</span></label>
+          <label class="form-label">Subscription <span style="color:#ef4444;">*</span></label>
           <select id="gen-subscription" class="form-control">
-            <option value="default">Default</option>
-            <option value="premium">Premium</option>
-            <option value="vip">VIP</option>
+            <option value="ByPassMega">ByPassMega</option>
+            <option value="Premium">Premium</option>
+            <option value="VIP">VIP</option>
           </select>
         </div>
         
@@ -523,9 +141,9 @@
           <input type="text" id="gen-note" class="form-control" placeholder="Note for the license..." />
         </div>
         
-        <div class="form-row">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="form-group">
-            <label class="form-label">Expiry Unit <span class="required">*</span></label>
+            <label class="form-label">Expiry Unit <span style="color:#ef4444;">*</span></label>
             <select id="gen-unit" class="form-control">
               <option value="seconds">Seconds</option>
               <option value="minutes">Minutes</option>
@@ -539,19 +157,22 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Expiry Duration <span class="required">*</span></label>
+            <label class="form-label">Expiry Duration <span style="color:#ef4444;">*</span></label>
             <input type="number" id="gen-duration" class="form-control" value="1" min="0" />
           </div>
         </div>
       </div>
+      
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancel</button>
-        <button class="btn btn-primary" onclick="createLicense()">Create License</button>
+        <button class="btn btn-primary" onclick="createLicense()" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;">Create License</button>
       </div>
     </div>
   </div>
 
+  <div id="toast-container"></div>
   <script src="/admin/js/app.js"></script>
+  <script src="/admin/js/icons.js"></script>
   <script src="/admin/js/sidebar.js"></script>
   <script>
     var currentAppId = null;
@@ -565,25 +186,35 @@
       const savedApp = localStorage.getItem('selected_app_id');
       if (savedApp) {
         currentAppId = savedApp;
+        
+        // Get app name
+        const ar = await apiFetch(API + '/apps');
+        if (ar && ar.success) {
+          const found = ar.apps.find(function(a) { return a.id === savedApp; });
+          if (found) document.getElementById('app-name').textContent = found.name;
+        }
+        
         loadLicenses(currentAppId);
+      } else {
+        document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">No app selected. Go to <a href="/apps" style="color:#eab308;">Applications</a> and select one.</p></div></td></tr>';
       }
     })();
 
     async function loadLicenses(appId) {
       const r = await apiFetch(API + '/apps/' + appId + '/keys');
       if (!r || !r.success) {
-        document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>Error loading licenses</p></div></td></tr>';
+        document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">Error loading licenses</p></div></td></tr>';
         return;
       }
       
-      licensesData = r.keys;
+      licensesData = r.keys || [];
       renderTable();
     }
 
     function renderTable() {
       const tbody = document.getElementById('licenses-tbody');
       if (!licensesData.length) {
-        tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>No licenses yet. Create your first one!</p></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);font-size:15px;">No licenses yet. Create your first one!</p></div></td></tr>';
         return;
       }
 
@@ -591,17 +222,17 @@
         const isUsed = k.used > 0;
         const checked = selectedLicenses.has(k.id) ? 'checked' : '';
         
-        return '<tr>' +
-          '<td><input type="checkbox" class="checkbox" ' + checked + ' onchange="toggleSelect(\'' + k.id + '\')" /></td>' +
-          '<td><span class="license-code">' + esc(k.key_value) + '</span></td>' +
-          '<td><span class="text-purple">ByPassMega</span></td>' +
-          '<td><span class="text-purple">LMAx27</span></td>' +
-          '<td><span class="text-muted">' + formatDate(k.created_at) + '</span></td>' +
-          '<td><span class="text-muted">' + (k.used_at ? formatDate(k.used_at) : '-') + '</span></td>' +
-          '<td><span class="text-muted">' + (k.used_by || 'Not used') + '</span></td>' +
-          '<td><span class="text-muted">' + (k.duration ? k.duration + ' Day(s)' : 'Lifetime') + '</span></td>' +
-          '<td><span class="text-muted">' + (k.note || '-') + '</span></td>' +
-          '<td><span class="badge ' + (isUsed ? 'badge-used' : 'badge-unused') + '">' + (isUsed ? 'USED' : 'UNUSED') + '</span></td>' +
+        return '<tr style="border-bottom:1px solid rgba(255,255,255,0.03);">' +
+          '<td style="padding:14px 16px;"><input type="checkbox" ' + checked + ' onchange="toggleSelect(\'' + k.id + '\')" style="cursor:pointer;" /></td>' +
+          '<td style="padding:14px 16px;font-family:monospace;font-size:12px;color:var(--text);font-weight:600;">' + esc(k.key_value) + '</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:#eab308;font-weight:600;">ByPassMega</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:#eab308;font-weight:600;">LMAx27</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + formatDate(k.created_at) + '</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + (k.used_at ? formatDate(k.used_at) : '-') + '</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:var(--text3);">' + (k.used_by || 'Not used') + '</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + (k.duration ? k.duration + ' Day(s)' : 'Lifetime') + '</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:var(--text3);">' + (k.note || '-') + '</td>' +
+          '<td style="padding:14px 16px;"><span style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;background:' + (isUsed ? 'rgba(251,191,36,0.15)' : 'rgba(34,197,94,0.15)') + ';color:' + (isUsed ? '#fbbf24' : '#22c55e') + ';border:1px solid ' + (isUsed ? 'rgba(251,191,36,0.3)' : 'rgba(34,197,94,0.3)') + ';">' + (isUsed ? 'USED' : 'UNUSED') + '</span></td>' +
           '</tr>';
       }).join('');
     }
@@ -612,6 +243,7 @@
       } else {
         selectedLicenses.add(id);
       }
+      renderTable();
       updateSelectAll();
     }
 
@@ -631,15 +263,15 @@
     }
 
     function openCreateModal() {
-      document.getElementById('modal-create').classList.add('active');
+      openModal('modal-create');
     }
 
     function closeModal(id) {
-      document.getElementById(id).classList.remove('active');
+      closeModal(id);
     }
 
     async function createLicense() {
-      if (!currentAppId) return;
+      if (!currentAppId) return toast('No app selected', 'error');
       
       const amount = parseInt(document.getElementById('gen-amount').value) || 1;
       const mask = document.getElementById('gen-mask').value || '*****-*****';
@@ -662,24 +294,39 @@
       const body = {
         amount: amount,
         prefix: mask,
-        level: subscription === 'premium' ? 2 : subscription === 'vip' ? 3 : 1,
+        level: subscription === 'Premium' ? 2 : subscription === 'VIP' ? 3 : 1,
         note: note
       };
       
-      if (durationInDays !== null) body.duration = durationInDays;
+      if (durationInDays !== null && durationInDays > 0) body.duration = durationInDays;
       
-      const r = await apiFetch(API + '/apps/' + currentAppId + '/keys', {method: 'POST', body});
-      if (r && r.success) {
-        toast(r.message, 'success');
-        closeModal('modal-create');
-        loadLicenses(currentAppId);
-      } else if (r) {
-        toast(r.message, 'error');
+      try {
+        const r = await apiFetch(API + '/apps/' + currentAppId + '/keys', {method: 'POST', body: body});
+        
+        if (r && r.success) {
+          toast(r.message || 'Licenses created successfully', 'success');
+          closeModal('modal-create');
+          loadLicenses(currentAppId);
+          
+          // Reset form
+          document.getElementById('gen-amount').value = '1';
+          document.getElementById('gen-mask').value = '*****-*****';
+          document.getElementById('gen-subscription').value = 'ByPassMega';
+          document.getElementById('gen-note').value = '';
+          document.getElementById('gen-unit').value = 'days';
+          document.getElementById('gen-duration').value = '1';
+        } else {
+          toast(r?.message || 'Error creating licenses', 'error');
+        }
+      } catch (error) {
+        toast('Network error: ' + error.message, 'error');
       }
     }
 
     function refreshLicenses() {
-      if (currentAppId) loadLicenses(currentAppId);
+      if (currentAppId) {
+        loadLicenses(currentAppId);
+      }
     }
 
     function filterTable() {
@@ -698,7 +345,7 @@
       const blob = new Blob([text], {type: 'text/plain'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'licenses.txt';
+      a.download = 'licenses-' + Date.now() + '.txt';
       a.click();
       toast('Exported ' + selected.length + ' licenses', 'success');
     }
@@ -707,20 +354,25 @@
       if (selectedLicenses.size === 0) return toast('Select licenses first', 'error');
       const selected = licensesData.filter(function(k) { return selectedLicenses.has(k.id); });
       const text = selected.map(function(k) { return k.key_value; }).join('\n');
-      navigator.clipboard.writeText(text);
-      toast('Copied ' + selected.length + ' licenses', 'success');
+      navigator.clipboard.writeText(text).then(function() {
+        toast('Copied ' + selected.length + ' licenses to clipboard', 'success');
+      }).catch(function() {
+        toast('Failed to copy to clipboard', 'error');
+      });
     }
 
     async function deleteSelected() {
       if (selectedLicenses.size === 0) return toast('Select licenses first', 'error');
-      if (!confirm('Delete ' + selectedLicenses.size + ' selected licenses?')) return;
+      if (!confirm('Delete ' + selectedLicenses.size + ' selected licenses? This action cannot be undone.')) return;
       
+      let deleted = 0;
       for (const id of selectedLicenses) {
-        await apiFetch(API + '/apps/' + currentAppId + '/keys/' + id, {method: 'DELETE'});
+        const r = await apiFetch(API + '/apps/' + currentAppId + '/keys/' + id, {method: 'DELETE'});
+        if (r && r.success) deleted++;
       }
       
       selectedLicenses.clear();
-      toast('Licenses deleted', 'success');
+      toast('Deleted ' + deleted + ' licenses', 'success');
       loadLicenses(currentAppId);
     }
 
@@ -732,7 +384,10 @@
     }
 
     function pad(n) { return n < 10 ? '0' + n : n; }
-    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+    function esc(s) { 
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); 
+    }
   </script>
 </body>
 </html>
