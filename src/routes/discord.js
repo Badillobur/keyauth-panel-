@@ -535,14 +535,14 @@ var partnerBots = {};
 
 // Permisos por defecto (admin puede cambiar)
 const DEFAULT_PERMISSIONS = {
-  can_genkeys: true,      // Puede generar keys
-  can_view_users: true,   // Puede ver usuarios
-  can_ban_users: false,   // Puede banear (solo admin por defecto)
-  can_view_logs: false,   // Puede ver logs (solo admin)
-  can_reset_hwid: false,  // Puede resetear HWID (solo admin)
-  can_extend_sub: false,  // Puede extender suscripciones (solo admin)
-  max_keys_per_day: 50,   // Máximo keys por día
-  max_key_duration: 30    // Máximo días por key
+  can_genkeys: true,       // Puede generar keys
+  can_view_users: true,    // Puede ver usuarios
+  can_ban_users: true,     // Puede banear
+  can_view_logs: true,     // Puede ver logs
+  can_reset_hwid: true,    // Puede resetear HWID
+  can_extend_sub: true,    // Puede extender suscripciones
+  max_keys_per_day: 100,   // Máximo keys por día
+  max_key_duration: 365    // Máximo días por key (1 año)
 };
 
 async function getPartnerPermissions(partnerId, appId) {
@@ -774,6 +774,68 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           const embed = new EmbedBuilder().setColor(0xEF4444).setTitle('🚫 Usuario Baneado')
             .addFields({name:'Usuario',value:username,inline:true},{name:'Razón',value:razon,inline:false})
             .setTimestamp().setFooter({text:'LMAx27 Partner Bot'});
+          return interaction.editReply({ embeds: [embed] });
+        }
+        
+        if (cmd === 'unban' && perms.can_ban_users) {
+          const username = interaction.options.getString('usuario');
+          
+          const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
+          if (!user) return interaction.editReply({ content: '❌ Usuario no encontrado' });
+          
+          await db.run('UPDATE users SET banned=0, ban_reason="" WHERE id=?', [user.id]);
+          
+          // Log
+          await db.run('INSERT INTO logs (id,app_id,username,action,ip,created_at) VALUES (?,?,?,?,?,?)', [
+            uuidv4(), appId, `Partner-${partnerId}`, `Desbaneó a ${username}`, 'Discord Bot', Math.floor(Date.now()/1000)
+          ]);
+          
+          const embed = goldEmbed('✅ Usuario Desbaneado', `**${username}** fue desbaneado correctamente`);
+          return interaction.editReply({ embeds: [embed] });
+        }
+        
+        if (cmd === 'reset-hwid' && perms.can_reset_hwid) {
+          const username = interaction.options.getString('usuario');
+          
+          const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
+          if (!user) return interaction.editReply({ content: '❌ Usuario no encontrado' });
+          
+          await db.run("UPDATE users SET hwid='' WHERE id=?", [user.id]);
+          
+          // Log
+          await db.run('INSERT INTO logs (id,app_id,username,action,ip,created_at) VALUES (?,?,?,?,?,?)', [
+            uuidv4(), appId, `Partner-${partnerId}`, `Reseteó HWID de ${username}`, 'Discord Bot', Math.floor(Date.now()/1000)
+          ]);
+          
+          const embed = goldEmbed('🖥️ HWID Reseteado', `HWID de **${username}** reseteado correctamente`);
+          return interaction.editReply({ embeds: [embed] });
+        }
+        
+        if (cmd === 'extender' && perms.can_extend_sub) {
+          const username = interaction.options.getString('usuario');
+          const dias = interaction.options.getInteger('dias');
+          
+          const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
+          if (!user) return interaction.editReply({ content: '❌ Usuario no encontrado' });
+          
+          const now = Math.floor(Date.now()/1000);
+          const sub = await db.get('SELECT * FROM subscriptions WHERE user_id=? AND app_id=?', [user.id, appId]);
+          
+          if (sub) {
+            const base = (sub.expiry && sub.expiry > now) ? sub.expiry : now;
+            await db.run('UPDATE subscriptions SET expiry=? WHERE id=?', [base + (dias * 86400), sub.id]);
+          } else {
+            await db.run("INSERT INTO subscriptions (id,user_id,app_id,name,expiry) VALUES (?,?,?,'default',?)", [
+              uuidv4(), user.id, appId, now + (dias * 86400)
+            ]);
+          }
+          
+          // Log
+          await db.run('INSERT INTO logs (id,app_id,username,action,ip,created_at) VALUES (?,?,?,?,?,?)', [
+            uuidv4(), appId, `Partner-${partnerId}`, `Extendió ${dias} días a ${username}`, 'Discord Bot', Math.floor(Date.now()/1000)
+          ]);
+          
+          const embed = goldEmbed('⏳ Suscripción Extendida', `**${username}** recibió **${dias} días** adicionales`);
           return interaction.editReply({ embeds: [embed] });
         }
         
