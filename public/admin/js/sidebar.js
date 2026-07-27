@@ -19,7 +19,7 @@ function buildSidebar(activePage, role, partnerRole) {
     { page: 'dashboard', label: 'Dashboard',        href: '/panel' },
     { page: 'apps',      label: 'Aplicaciones',     href: '/apps' },
     { section: 'Gestion' },
-    { page: 'keys',      label: 'Licencias / Keys', href: '/keys' },
+    { page: 'keys',      label: 'Licencias / Keys', href: '/licenses' },
     { page: 'users',     label: 'Usuarios',         href: '/users' },
     { page: 'logs',      label: 'Logs',             href: '/logs' },
     { section: 'Config' },
