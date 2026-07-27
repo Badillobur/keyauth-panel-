@@ -6,6 +6,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LMAx27 — Licenses</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
+  <style>
+    /* Modal styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .modal-overlay.active {
+      display: flex !important;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #eab308;
+      box-shadow: 0 0 0 3px rgba(234,179,8,0.1);
+    }
+    
+    .form-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text3);
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px 28px;
+      border-top: 1px solid var(--border);
+    }
+    
+    select.form-control {
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <div id="particles"></div>
@@ -108,8 +233,8 @@
   </div>
 
   <!-- Modal Create License -->
-  <div class="modal-overlay" id="modal-create">
-    <div class="modal" style="max-width:580px;">
+  <div class="modal-overlay" id="modal-create" onclick="if(event.target === this) closeModal('modal-create')">
+    <div class="modal" style="max-width:580px;" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title">Create a new license</div>
         <button class="modal-close" onclick="closeModal('modal-create')">×</button>
@@ -280,11 +405,26 @@
     }
 
     function openCreateModal() {
-      document.getElementById('modal-create').classList.add('active');
+      console.log('openCreateModal called');
+      const modal = document.getElementById('modal-create');
+      console.log('Modal element:', modal);
+      if (modal) {
+        modal.classList.add('active');
+        console.log('Modal classes after adding active:', modal.classList);
+      } else {
+        console.error('Modal not found!');
+      }
     }
 
     function closeModal(id) {
-      document.getElementById(id).classList.remove('active');
+      console.log('closeModal called for:', id);
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('active');
+        console.log('Modal closed');
+      } else {
+        console.error('Modal not found:', id);
+      }
     }
 
     async function createLicense() {
