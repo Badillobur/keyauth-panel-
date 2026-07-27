@@ -4,452 +4,127 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/admin/lmax27.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LMAx27 — Bot Discord</title>
+  <title>LMAx27 — Bot Control</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
-  <style>
-    .bot-card { background:linear-gradient(135deg,rgba(88,101,242,.12),rgba(88,101,242,.04)); border:1px solid rgba(88,101,242,.3); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:14px; display:flex; align-items:center; gap:16px; }
-    .bot-avatar { width:52px;height:52px;background:linear-gradient(135deg,#5865f2,#4752c4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 18px rgba(88,101,242,.4); }
-    .bot-name  { font-size:15px;font-weight:800;color:var(--text); }
-    .bot-tag   { font-size:11px;color:#7289da;margin-top:2px; }
-    .bot-stats { display:flex;gap:16px;margin-top:8px; }
-    .bot-stat  { text-align:center; }
-    .bot-stat-v{ font-size:20px;font-weight:800;color:var(--accent); }
-    .bot-stat-l{ font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px; }
-    .section-title { font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid rgba(245,197,24,.1); }
-    .bot-row { display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;gap:12px; }
-    .bot-row-info { flex:1; }
-    .bot-row-name { font-weight:700;font-size:13px;color:var(--text); }
-    .bot-row-meta { font-size:11px;color:var(--text3);margin-top:2px;font-family:monospace; }
-    .bot-row-actions { display:flex;gap:6px;flex-shrink:0; }
-    .limit-pill { display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(245,197,24,.2); }
-    .offline-banner { background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:16px; }
-    .notify-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
-    .notify-item { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius); }
-    .cmd-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px; }
-    .cmd-card { background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px; }
-    .cmd-name { font-family:monospace;color:var(--accent);font-size:12px;font-weight:700; }
-    .cmd-desc { font-size:10px;color:var(--text3);margin-top:3px; }
-    .tab-bar { display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0; }
-    .tab-btn { padding:8px 16px;font-size:12px;font-weight:700;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;margin-bottom:-1px; }
-    .tab-btn.active { color:var(--accent);border-bottom-color:var(--accent); }
-    .tab-pane { display:none; }
-    .tab-pane.active { display:block; }
-    .btn-accent { background:linear-gradient(135deg,#5865f2,#4752c4);color:white;border:1px solid #5865f2; }
-    .btn-accent:hover { background:linear-gradient(135deg,#4752c4,#3c4bb5);border-color:#4752c4; }
-  </style>
 </head>
 <body>
-<div id="particles"></div>
-<div class="layout">
-  <div id="sidebar-container"></div>
-  <main class="main">
-    <div class="topbar">
-      <div>
-        <div class="topbar-title">Bot Discord</div>
-        <div class="topbar-sub" id="topbar-sub">Configuracion y gestion de bots</div>
-      </div>
-      <div class="topbar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="reload()">Actualizar</button>
-        <button class="btn btn-primary btn-sm" id="btn-add-bot" onclick="openModal('modal-add-bot')">+ Agregar Bot</button>
-      </div>
-    </div>
-
-    <div class="content">
-      <!-- TABS: Admin ve todo, partner ve solo su tab -->
-      <div class="tab-bar" id="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('tab-bots',this)">Mis Bots</button>
-        <button class="tab-btn" id="tab-admin-btn" onclick="switchTab('tab-admin',this)" style="display:none;">Bot Principal (Admin)</button>
-      </div>
-
-      <!-- TAB: Bots de partner/owner -->
-      <div class="tab-pane active" id="tab-bots">
-        <div id="partner-bots-list"><div class="empty-state"><div class="loader"></div></div></div>
-      </div>
-
-      <!-- TAB: Bot principal (solo admin) -->
-      <div class="tab-pane" id="tab-admin">
-        <div id="bot-status-wrap">
-          <div class="offline-banner" id="offline-banner">Bot offline — Configura el token para activarlo</div>
+  <div id="particles"></div>
+  <div class="layout">
+    <div id="sidebar-container"></div>
+    <main class="main">
+      <!-- Header -->
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">Bot Control</div>
+          <div class="topbar-sub">Administra tus bots premium y tus bots de modo gratis desde una sola sección.</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-          <div>
-            <div class="card">
-              <div class="card-header"><div class="card-title">Configuracion del Bot Principal</div></div>
-              <div class="section-title">Token y Servidor</div>
-              <div class="form-group"><label class="form-label">Bot Token</label>
-                <textarea id="bot-token" class="form-control" rows="2" style="resize:none;font-family:monospace;font-size:11px;" placeholder="Pega tu token aqui..."></textarea>
-                <div style="font-size:10px;color:var(--text3);margin-top:3px;" id="token-preview"></div>
-              </div>
-              <div class="form-group"><label class="form-label">Guild ID</label><input type="text" id="guild-id" class="form-control" placeholder="123456789012345678" /></div>
-              <div class="section-title">Canales de Notificaciones</div>
-              <div class="form-group"><label class="form-label">Canal de Logs</label><input type="text" id="log-channel" class="form-control" placeholder="ID del canal" /></div>
-              <div class="form-group"><label class="form-label">Canal de Bienvenida</label><input type="text" id="welcome-channel" class="form-control" placeholder="ID del canal" /></div>
-              <div class="section-title">Canales RPC Stats</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div class="form-group" style="margin:0;"><label class="form-label">Online</label><input type="text" id="chan-online" class="form-control" placeholder="ID canal de voz" /></div>
-                <div class="form-group" style="margin:0;"><label class="form-label">Usuarios</label><input type="text" id="chan-users" class="form-control" placeholder="ID canal de voz" /></div>
-                <div class="form-group" style="margin:0;"><label class="form-label">Keys</label><input type="text" id="chan-keys" class="form-control" placeholder="ID canal de voz" /></div>
-                <div class="form-group" style="margin:0;"><label class="form-label">Apps</label><input type="text" id="chan-apps" class="form-control" placeholder="ID canal de voz" /></div>
-              </div>
-              <div style="margin-top:14px;display:flex;gap:8px;">
-                <button class="btn btn-primary" style="flex:1;" onclick="saveConfig()">Guardar y Conectar</button>
-                <button class="btn btn-secondary" onclick="reconnectBot()">Reconectar</button>
-                <button class="btn btn-accent" onclick="inviteBot()">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                    <path d="M6.5 1L8.09 4.91L12 6.5L8.09 8.09L6.5 12L4.91 8.09L1 6.5L4.91 4.91L6.5 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-                  </svg>
-                  Invitar al Servidor
-                </button>
-              </div>
+        <div class="topbar-actions">
+          <a href="#" class="btn btn-secondary btn-sm">Learn More</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Bot Manager Section -->
+        <div class="card" style="margin-bottom:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:linear-gradient(135deg, #8b5cf6, #7c3aed);border-radius:12px 12px 0 0;margin:-1px -1px 0 -1px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <span style="color:white;font-size:18px;font-weight:700;">Bot Manager</span>
             </div>
           </div>
-          <div>
-            <div class="card">
-              <div class="card-header"><div class="card-title">Stats Tiempo Real</div><button class="btn btn-secondary btn-sm" onclick="loadAdminStatus()">Refresh</button></div>
-              <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:0;">
-                <div class="stat-card" style="padding:14px;"><div><div class="stat-value" id="rt-online" style="font-size:22px;">—</div><div class="stat-label">Online</div></div></div>
-                <div class="stat-card" style="padding:14px;"><div><div class="stat-value" id="rt-users" style="font-size:22px;">—</div><div class="stat-label">Usuarios</div></div></div>
-                <div class="stat-card" style="padding:14px;"><div><div class="stat-value" id="rt-keys" style="font-size:22px;">—</div><div class="stat-label">Keys</div></div></div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;">
+            <!-- Create Bot Form -->
+            <div>
+              <h3 style="margin:0 0 16px 0;font-size:16px;font-weight:600;">Crear bot</h3>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span style="font-size:14px;color:var(--text2);">Límite: 0 / 1</span>
+                <span style="font-size:14px;color:var(--text2);">Bots creados</span>
+              </div>
+              
+              <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Nombre del bot</label>
+                <input type="text" class="form-control" placeholder="Bot Free Pro" value="Bot Free Pro" />
+              </div>
+              
+              <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Aplicación</label>
+                <select class="form-control">
+                  <option>Proyecto ByPass</option>
+                </select>
+              </div>
+              
+              <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Guild ID / Servidor</label>
+                <input type="text" class="form-control" placeholder="ID del canal donde funcionará" />
+              </div>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                <div class="form-group">
+                  <label class="form-label">Canal permisos</label>
+                  <input type="text" class="form-control" placeholder="ID del canal donde funcionará" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Canal de logs</label>
+                  <input type="text" class="form-control" placeholder="ID del canal de registros" />
+                </div>
+              </div>
+              
+              <div class="form-group" style="margin-bottom:20px;">
+                <label class="form-label">Bot Token</label>
+                <input type="password" class="form-control" placeholder="Pegar token completo del bot" />
+              </div>
+              
+              <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;padding:12px;">
+                Crear Bot
+              </button>
+              
+              <div style="margin-top:12px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:6px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:12px;color:#3b82f6;font-weight:600;">✓</span>
+                  <span style="font-size:12px;color:#3b82f6;">Si deseas crear más de 2 bots, debes adquirir Bot Managers.</span>
+                </div>
+                <div style="font-size:12px;color:#3b82f6;">Whatsapp: +51 959311108</div>
               </div>
             </div>
-            <div class="card">
-              <div class="card-header"><div class="card-title">Notificaciones Automaticas</div></div>
-              <div class="notify-grid">
-                <div class="notify-item"><span style="font-size:12px;color:var(--text2);">Login exitoso</span><div class="toggle-switch" id="tog-login" onclick="toggleNotify('login')"></div></div>
-                <div class="notify-item"><span style="font-size:12px;color:var(--text2);">Registro nuevo</span><div class="toggle-switch" id="tog-register" onclick="toggleNotify('register')"></div></div>
-                <div class="notify-item"><span style="font-size:12px;color:var(--text2);">Usuario baneado</span><div class="toggle-switch" id="tog-ban" onclick="toggleNotify('ban')"></div></div>
-                <div class="notify-item"><span style="font-size:12px;color:var(--text2);">Keys generadas</span><div class="toggle-switch" id="tog-keygen" onclick="toggleNotify('keygen')"></div></div>
-              </div>
-              <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%;" onclick="saveNotifySettings()">Guardar preferencias</button>
-            </div>
-            <div class="card">
-              <div class="card-header"><div class="card-title">Comandos Slash</div></div>
-              <div class="cmd-grid">
-                <div class="cmd-card"><div class="cmd-name">/stats</div><div class="cmd-desc">Estadisticas globales</div></div>
-                <div class="cmd-card"><div class="cmd-name">/keys [app] [n] [dias]</div><div class="cmd-desc">Generar keys</div></div>
-                <div class="cmd-card"><div class="cmd-name">/ban [user] [app]</div><div class="cmd-desc">Banear usuario</div></div>
-                <div class="cmd-card"><div class="cmd-name">/unban [user] [app]</div><div class="cmd-desc">Desbanear usuario</div></div>
-                <div class="cmd-card"><div class="cmd-name">/extender [user] [dias]</div><div class="cmd-desc">Extender suscripcion</div></div>
-                <div class="cmd-card"><div class="cmd-name">/ping</div><div class="cmd-desc">Latencia del bot</div></div>
+            
+            <!-- Bots List -->
+            <div>
+              <div style="text-align:center;color:var(--text3);margin-top:60px;">
+                <p>Aún no hay bots creados.</p>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Bot Mode Free Section -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:linear-gradient(135deg, #eab308, #ca8a04);border-radius:12px 12px 0 0;margin:-1px -1px 0 -1px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              <span style="color:white;font-size:18px;font-weight:700;">Bot Mode Free</span>
+            </div>
+          </div>
+          
+          <div style="padding:24px;">
+            <div style="text-align:center;color:var(--text3);">
+              <p>Aún no hay bots creados.</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
-</div>
-
-<!-- Modal: Agregar bot de partner -->
-<div class="modal-overlay" id="modal-add-bot">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header"><div class="modal-title">Agregar Bot Discord</div><button class="modal-close" onclick="closeModal('modal-add-bot')">✕</button></div>
-    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">El bot solo podra operar en la app que selecciones. Un bot = una app.</p>
-    <div class="form-group">
-      <label class="form-label">App *</label>
-      <select id="ab-app" class="form-control"><option value="">Seleccionar app...</option></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Bot Token *</label>
-      <textarea id="ab-token" class="form-control" rows="2" style="resize:none;font-family:monospace;font-size:11px;" placeholder="Pega el token completo del bot..."></textarea>
-    </div>
-    <div class="form-group"><label class="form-label">Guild ID (ID del servidor Discord)</label><input type="text" id="ab-guild" class="form-control" placeholder="123456789012345678" /></div>
-    <div class="form-group"><label class="form-label">Canal de Logs (opcional)</label><input type="text" id="ab-log" class="form-control" placeholder="ID del canal" /></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div class="form-group" style="margin:0;"><label class="form-label">Canal Online</label><input type="text" id="ab-online" class="form-control" placeholder="ID canal voz" /></div>
-      <div class="form-group" style="margin:0;"><label class="form-label">Canal Users</label><input type="text" id="ab-users" class="form-control" placeholder="ID canal voz" /></div>
-      <div class="form-group" style="margin:0;"><label class="form-label">Canal Keys</label><input type="text" id="ab-keys" class="form-control" placeholder="ID canal voz" /></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-add-bot')">Cancelar</button>
-      <button class="btn btn-primary" onclick="addPartnerBot()">Conectar Bot</button>
-    </div>
+    </main>
   </div>
-</div>
 
-<!-- Modal: Anuncio (admin) -->
-<div class="modal-overlay" id="modal-send">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-header"><div class="modal-title">Enviar Anuncio</div><button class="modal-close" onclick="closeModal('modal-send')">✕</button></div>
-    <div class="form-group"><label class="form-label">Titulo</label><input type="text" id="send-title" class="form-control" placeholder="Titulo" /></div>
-    <div class="form-group"><label class="form-label">Mensaje</label><textarea id="send-msg" class="form-control" rows="4" style="resize:vertical;"></textarea></div>
-    <div class="form-group"><label class="form-label">Canal ID (vacio = canal de logs)</label><input type="text" id="send-channel" class="form-control" /></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-send')">Cancelar</button><button class="btn btn-primary" onclick="sendAnnouncement()">Enviar</button></div>
-  </div>
-</div>
-
-<div id="toast-container"></div>
-<script src="/admin/js/app.js"></script>
-<script src="/admin/js/sidebar.js"></script>
-<script>
-var currentRole = 'superadmin';
-var myApps = [];
-var notifyState = { login:true, register:true, ban:true, keygen:true };
-
-(async function() {
-  injectSidebar('discord');
-  var admin = await requireAuth();
-  if (!admin) return;
-  currentRole = admin.role || 'superadmin';
-
-  if (currentRole === 'partner') {
-    // Detectar sub-rol (owner o partner)
-    var me = await apiFetch(API + '/owner/me');
-    var partnerRole = (me && me.me && me.me.role) || 'partner';
-    document.getElementById('topbar-sub').textContent = 'Tu bot de Discord — solo para tus apps';
-
-    // Ocultar boton anuncio
-    document.getElementById('btn-add-bot').style.display = 'inline-flex';
-
-    // Si es owner, mostrar tab de partners
-    if (partnerRole === 'owner') {
-      // Owner partners should go to partners.html for sub-partner management
-      // This section is now handled by partners.html
-    }
-
-    // Cargar apps disponibles para el selector del modal
-    if (me && me.me && me.me.apps) {
-      myApps = me.me.apps;
-      populateAppSelector('ab-app', myApps);
-    }
-
-    loadPartnerBots();
-    if (partnerRole === 'owner') {
-      // Sub-partner management moved to partners.html
-    }
-
-  } else {
-    // Admin: ver todo
-    document.getElementById('tab-admin-btn').style.display = '';
-    // Cargar apps para el modal de agregar bot (admin puede agregar bot para cualquier partner)
-    var ar = await apiFetch(API + '/apps');
-    if (ar && ar.success) {
-      myApps = ar.apps;
-      populateAppSelector('ab-app', myApps);
-    }
-    loadPartnerBots();
-    loadAdminStatus();
-    loadAdminConfig();
-    setInterval(loadAdminStatus, 30000);
-  }
-})();
-
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-}
-
-function populateAppSelector(selId, apps) {
-  var sel = document.getElementById(selId);
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Seleccionar app...</option>';
-  apps.forEach(function(a) {
-    var o = document.createElement('option');
-    o.value = a.id || a.app_id;
-    o.textContent = a.name;
-    sel.appendChild(o);
-  });
-}
-
-async function reload() {
-  loadPartnerBots();
-  if (currentRole !== 'partner') { loadAdminStatus(); }
-}
-
-// ─── BOTS DE PARTNER ─────────────────────────────────────────────────────────
-async function loadPartnerBots() {
-  var res = await apiFetch(API + '/discord/partner-bots');
-  var el = document.getElementById('partner-bots-list');
-  if (!res || !res.success || !res.bots.length) {
-    el.innerHTML = '<div class="empty-state"><p>Sin bots configurados. Agrega el primero con el boton de arriba.</p></div>';
-    return;
-  }
-  el.innerHTML = res.bots.map(function(b) {
-    var statusBadge = b.online
-      ? '<span class="badge badge-green" style="font-size:10px;">Online</span>'
-      : '<span class="badge badge-red" style="font-size:10px;">Offline</span>';
-    var metaLine = b.partner_username
-      ? 'Partner: ' + esc(b.partner_username) + ' · App: ' + esc(b.app_name)
-      : 'App: ' + esc(b.app_name);
-    return '<div class="bot-row">'
-      + '<div style="width:38px;height:38px;background:linear-gradient(135deg,#5865f2,#4752c4);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">D</div>'
-      + '<div class="bot-row-info">'
-        + '<div class="bot-row-name">' + esc(b.bot_name || 'Bot de Partner') + ' ' + statusBadge + '</div>'
-        + '<div class="bot-row-meta">' + metaLine + (b.guild_id ? ' · Server: '+esc(b.guild_id) : '') + '</div>'
-      + '</div>'
-      + '<div class="bot-row-actions">'
-        + '<button class="btn btn-accent btn-sm" onclick="invitePartnerBot(\''+b.id+'\')">Invitar</button>'
-        + '<button class="btn btn-secondary btn-sm" onclick="reconnectPartnerBot(\''+b.id+'\')">Reconectar</button>'
-        + '<button class="btn btn-danger btn-sm" onclick="deletePartnerBot(\''+b.id+'\',\''+esc(b.bot_name||'bot')+'\')">Eliminar</button>'
-      + '</div>'
-    + '</div>';
-  }).join('');
-}
-
-async function addPartnerBot() {
-  var appId = document.getElementById('ab-app').value;
-  var token = document.getElementById('ab-token').value.trim();
-  var guild  = document.getElementById('ab-guild').value.trim();
-  var log    = document.getElementById('ab-log').value.trim();
-  var online = document.getElementById('ab-online').value.trim();
-  var users  = document.getElementById('ab-users').value.trim();
-  var keys   = document.getElementById('ab-keys').value.trim();
-  if (!appId || !token) { toast('App y token requeridos', 'error'); return; }
-  var btn = event.target; btn.disabled = true; btn.textContent = 'Conectando...';
-  var res = await apiFetch(API + '/discord/partner-bots', {
-    method: 'POST',
-    body: { app_id:appId, bot_token:token, guild_id:guild, log_channel_id:log, chan_online_id:online, chan_users_id:users, chan_keys_id:keys }
-  });
-  btn.disabled = false; btn.textContent = 'Conectar Bot';
-  if (res && res.success) {
-    toast(res.message, 'success');
-    closeModal('modal-add-bot');
-    document.getElementById('ab-token').value = '';
-    loadPartnerBots();
-  } else if (res) toast(res.message, 'error');
-}
-
-async function reconnectPartnerBot(id) {
-  var res = await apiFetch(API + '/discord/partner-bots/' + id + '/reconnect', { method: 'POST' });
-  if (res && res.success) { toast(res.message, 'success'); loadPartnerBots(); }
-  else if (res) toast(res.message, 'error');
-}
-
-async function deletePartnerBot(id, name) {
-  confirmAction('Eliminar bot "' + name + '"?', async function() {
-    var res = await apiFetch(API + '/discord/partner-bots/' + id, { method: 'DELETE' });
-    if (res && res.success) { toast('Bot eliminado', 'success'); loadPartnerBots(); }
-    else if (res) toast(res.message, 'error');
-  });
-}
-
-// ─── BOT ADMIN PRINCIPAL ─────────────────────────────────────────────────────
-async function loadAdminConfig() {
-  var res = await apiFetch(API + '/discord/config');
-  if (!res || !res.success) return;
-  var c = res.config;
-  document.getElementById('guild-id').value = c.guild_id || '';
-  document.getElementById('log-channel').value = c.log_channel_id || '';
-  document.getElementById('welcome-channel').value = c.welcome_channel_id || '';
-  document.getElementById('chan-online').value = c.chan_online_id || '';
-  document.getElementById('chan-users').value = c.chan_users_id || '';
-  document.getElementById('chan-keys').value = c.chan_keys_id || '';
-  document.getElementById('chan-apps').value = c.chan_apps_id || '';
-  if (c.has_token) document.getElementById('token-preview').textContent = 'Token guardado: ' + c.bot_token_preview;
-  notifyState = { login:!!c.notify_login, register:!!c.notify_register, ban:!!c.notify_ban, keygen:!!c.notify_keygen };
-  updateToggles();
-}
-
-async function loadAdminStatus() {
-  var res = await apiFetch(API + '/discord/status');
-  if (!res) return;
-  var wrap = document.getElementById('bot-status-wrap');
-  var banner = document.getElementById('offline-banner');
-  if (res.online && res.tag) {
-    if (banner) banner.style.display = 'none';
-    wrap.innerHTML = '<div class="bot-card">'
-      + '<div class="bot-avatar">D</div>'
-      + '<div style="flex:1;">'
-        + '<div class="bot-name">Bot Conectado</div>'
-        + '<div class="bot-tag">'+esc(res.tag)+' · Ping: '+(res.ping||'—')+'ms</div>'
-        + '<div class="bot-stats">'
-          + '<div class="bot-stat"><div class="bot-stat-v">'+(res.stats.online||0)+'</div><div class="bot-stat-l">Online</div></div>'
-          + '<div class="bot-stat"><div class="bot-stat-v">'+(res.stats.users||0)+'</div><div class="bot-stat-l">Usuarios</div></div>'
-          + '<div class="bot-stat"><div class="bot-stat-v">'+(res.stats.keys||0)+'</div><div class="bot-stat-l">Keys</div></div>'
-          + '<div class="bot-stat"><div class="bot-stat-v">'+(res.stats.apps||0)+'</div><div class="bot-stat-l">Apps</div></div>'
-        + '</div>'
-      + '</div>'
-      + '<span class="badge badge-green">Online</span>'
-    + '</div>';
-  } else {
-    wrap.innerHTML = '<div class="offline-banner">Bot offline — Configura el token para activarlo</div>';
-  }
-  if (res.stats) {
-    document.getElementById('rt-online').textContent = res.stats.online || 0;
-    document.getElementById('rt-users').textContent  = res.stats.users  || 0;
-    document.getElementById('rt-keys').textContent   = res.stats.keys   || 0;
-  }
-}
-
-async function saveConfig() {
-  var token = document.getElementById('bot-token').value.replace(/[\s\n\r\t]/g,'').trim();
-  var body = {
-    guild_id: document.getElementById('guild-id').value.trim(),
-    log_channel_id: document.getElementById('log-channel').value.trim(),
-    welcome_channel_id: document.getElementById('welcome-channel').value.trim(),
-    chan_online_id: document.getElementById('chan-online').value.trim(),
-    chan_users_id: document.getElementById('chan-users').value.trim(),
-    chan_keys_id: document.getElementById('chan-keys').value.trim(),
-    chan_apps_id: document.getElementById('chan-apps').value.trim(),
-  };
-  if (token) body.bot_token = token;
-  var res = await apiFetch(API + '/discord/config', { method:'POST', body });
-  if (res && res.success) {
-    toast(res.message, 'success');
-    document.getElementById('bot-token').value = '';
-    if (token) document.getElementById('token-preview').textContent = 'Token actualizado';
-    setTimeout(loadAdminStatus, 2000);
-  } else if (res) toast(res.message, 'error');
-}
-
-async function reconnectBot() {
-  var res = await apiFetch(API + '/discord/reconnect', { method:'POST' });
-  if (res && res.success) { toast(res.message, 'success'); setTimeout(loadAdminStatus, 3000); }
-  else if (res) toast(res.message, 'error');
-}
-
-async function sendAnnouncement() {
-  var title = document.getElementById('send-title').value.trim();
-  var message = document.getElementById('send-msg').value.trim();
-  var channel_id = document.getElementById('send-channel').value.trim();
-  if (!message) { toast('Escribe un mensaje', 'error'); return; }
-  var res = await apiFetch(API + '/discord/send', { method:'POST', body:{title,message,channel_id} });
-  if (res && res.success) { toast(res.message, 'success'); closeModal('modal-send'); }
-  else if (res) toast(res.message, 'error');
-}
-
-function toggleNotify(t) { notifyState[t] = !notifyState[t]; updateToggles(); }
-function updateToggles() {
-  ['login','register','ban','keygen'].forEach(function(k) {
-    var el = document.getElementById('tog-'+k);
-    if (el) { if (notifyState[k]) el.classList.add('on'); else el.classList.remove('on'); }
-  });
-}
-async function saveNotifySettings() {
-  var res = await apiFetch(API + '/discord/config', { method:'POST', body:{ notify_login:notifyState.login, notify_register:notifyState.register, notify_ban:notifyState.ban, notify_keygen:notifyState.keygen } });
-  if (res && res.success) toast('Guardado', 'success');
-  else if (res) toast(res.message, 'error');
-}
-
-function esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ─── FUNCIONES DE INVITACIÓN DE BOTS ────────────────────────────────────────
-async function inviteBot() {
-  // Invitar bot principal (admin)
-  var res = await apiFetch(API + '/discord/invite');
-  if (res && res.success && res.link) {
-    window.open(res.link, '_blank');
-    toast('Abriendo enlace de invitación...', 'success');
-  } else if (res) {
-    toast(res.message || 'Bot no disponible para invitar', 'error');
-  }
-}
-
-async function invitePartnerBot(botId) {
-  // Para bots de partners, necesitamos obtener el link desde el backend
-  var res = await apiFetch(API + '/discord/partner-bots/' + botId + '/invite');
-  if (res && res.success && res.link) {
-    window.open(res.link, '_blank');
-    toast('Abriendo enlace de invitación...', 'success');
-  } else if (res) {
-    toast(res.message || 'Bot no disponible para invitar', 'error');
-  } else {
-    // Fallback: mostrar instrucciones manuales
-    toast('Ve a Discord Developer Portal → Tu aplicación → OAuth2 → URL Generator', 'info');
-  }
-}
-</script>
+  <div id="toast-container"></div>
+  <script src="/admin/js/app.js"></script>
+  <script src="/admin/js/icons.js"></script>
+  <script src="/admin/js/sidebar.js"></script>
+  <script>
+    (async function() {
+      injectSidebar('discord');
+      await requireAuth();
+    })();
+  </script>
 </body>
 </html>

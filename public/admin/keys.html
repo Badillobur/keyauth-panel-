@@ -123,8 +123,8 @@
         
         <div class="form-group">
           <label class="form-label">License Mask <span style="color:#ef4444;">*</span></label>
-          <input type="text" id="gen-mask" class="form-control" value="LMAX27-5-5" placeholder="PREFIX-5-5" style="font-family:monospace;" />
-          <div class="form-hint">Format: PREFIX-numbers. Example: "LMAX27-5-5" = LMAX27-ABCDE-12345. Each number = random letters/numbers.</div>
+          <input type="text" id="gen-mask" class="form-control" value="LMAx27-******" placeholder="PREFIX-******" style="font-family:monospace;" />
+          <div class="form-hint">Format: PREFIX-numbers. Example: "LMAx27-5-5" = LMAx27-ABCDE-12345. Each number = random letters/numbers.</div>
         </div>
         
         <div class="form-group">
@@ -166,6 +166,24 @@
       <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:12px;padding:20px 28px;border-top:1px solid var(--border);">
         <button class="btn btn-secondary" onclick="closeModal('modal-create')">Cancel</button>
         <button class="btn btn-primary" onclick="createLicense()" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;">Create License</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Result -->
+  <div id="modal-result" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;" onclick="if(event.target === this) closeModal('modal-result')">
+    <div style="max-width:500px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:90%;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:24px 28px;border-bottom:1px solid var(--border);">
+        <div style="font-size:20px;font-weight:700;color:#22c55e;">✓ NEW LICENSE(S) CREATED</div>
+        <button onclick="closeModal('modal-result')" style="width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-size:24px;cursor:pointer;">×</button>
+      </div>
+      
+      <div style="padding:24px 28px;">
+        <div id="result-licenses" style="font-family:monospace;font-size:14px;color:var(--text);background:var(--bg3);padding:16px;border-radius:8px;margin-bottom:16px;max-height:200px;overflow-y:auto;"></div>
+        <button onclick="copyResultLicenses()" style="width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy new license(s)
+        </button>
       </div>
     </div>
   </div>
@@ -276,6 +294,26 @@
       }
     }
 
+    function showResultModal(licenses) {
+      const resultDiv = document.getElementById('result-licenses');
+      resultDiv.textContent = licenses.join('\n');
+      
+      const modal = document.getElementById('modal-result');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    }
+
+    function copyResultLicenses() {
+      const text = document.getElementById('result-licenses').textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        toast('Licenses copied to clipboard!', 'success');
+        closeModal('modal-result');
+      }).catch(function() {
+        toast('Failed to copy to clipboard', 'error');
+      });
+    }
+
     async function createLicense() {
       if (!currentAppId) return toast('No app selected', 'error');
       
@@ -286,17 +324,22 @@
       const unit = document.getElementById('gen-unit').value;
       const duration = parseInt(document.getElementById('gen-duration').value) || 0;
       
-      // Convert mask pattern like "LMAX27-5-5" to "LMAX27-*****-*****"
-      const maskParts = maskPattern.split('-');
-      const prefix = maskParts.map(function(part, index) {
-        // First part can be text (prefix), others are numbers for length
-        if (index === 0 && isNaN(parseInt(part))) {
-          return part; // Keep custom prefix as-is
-        } else {
-          const count = parseInt(part) || 5;
-          return '*'.repeat(count); // Convert numbers to asterisks
-        }
-      }).join('-');
+      // Handle mask like "LMAx27-******" where * = random characters
+      let prefix = maskPattern;
+      
+      // If contains asterisks, use as-is for the backend
+      if (!maskPattern.includes('*')) {
+        // Convert numbers to asterisks if user put numbers
+        const maskParts = maskPattern.split('-');
+        prefix = maskParts.map(function(part, index) {
+          if (index === 0 && isNaN(parseInt(part))) {
+            return part; // Keep prefix as-is
+          } else {
+            const count = parseInt(part) || 6;
+            return '*'.repeat(count);
+          }
+        }).join('-');
+      }
       
       let durationInDays = 0;
       if (unit === 'lifetime') {
@@ -324,11 +367,15 @@
         if (r && r.success) {
           toast(r.message || 'Licenses created successfully', 'success');
           closeModal('modal-create');
+          
+          // Show result modal with copy button
+          showResultModal(r.keys || []);
+          
           loadLicenses(currentAppId);
           
           // Reset form
           document.getElementById('gen-amount').value = '1';
-          document.getElementById('gen-mask').value = 'LMAX27-5-5';
+          document.getElementById('gen-mask').value = 'LMAx27-******';
           document.getElementById('gen-subscription').value = 'default';
           document.getElementById('gen-note').value = '';
           document.getElementById('gen-unit').value = 'days';
