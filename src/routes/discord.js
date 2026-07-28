@@ -30,6 +30,22 @@ async function initDiscordTable() {
   )`);
   const ex = await db.get('SELECT id FROM discord_config LIMIT 1');
   if (!ex) await db.run('INSERT INTO discord_config (id) VALUES (?)', [uuidv4()]);
+
+  // Tabla para bots de partners/admin (múltiples bots)
+  await db.run(`CREATE TABLE IF NOT EXISTS partner_discord_bots (
+    id          TEXT PRIMARY KEY,
+    partner_id  TEXT NOT NULL,
+    app_id      TEXT NOT NULL,
+    bot_name    TEXT DEFAULT '',
+    bot_token   TEXT DEFAULT '',
+    guild_id    TEXT DEFAULT '',
+    log_channel_id  TEXT DEFAULT '',
+    chan_online_id  TEXT DEFAULT '',
+    chan_users_id   TEXT DEFAULT '',
+    chan_keys_id    TEXT DEFAULT '',
+    active      INTEGER DEFAULT 1,
+    created_at  INTEGER DEFAULT (strftime('%s','now'))
+  )`);
 }
 initDiscordTable();
 
