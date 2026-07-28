@@ -261,7 +261,7 @@
           '<td style="padding:14px 16px;"><input type="checkbox" ' + checked + ' onchange="toggleSelect(\'' + k.id + '\')" style="cursor:pointer;" /></td>' +
           '<td style="padding:14px 16px;font-family:monospace;font-size:12px;color:var(--text);font-weight:600;">' + esc(k.key_value) + '</td>' +
           '<td style="padding:14px 16px;font-size:12px;color:#eab308;font-weight:600;">Default</td>' +
-          '<td style="padding:14px 16px;font-size:12px;color:#eab308;font-weight:600;">LMAx27</td>' +
+          '<td style="padding:14px 16px;font-size:12px;color:var(--accent);font-weight:600;">' + esc(k.generated_by || 'LMAx27') + '</td>' +
           '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + formatDate(k.created_at) + '</td>' +
           '<td style="padding:14px 16px;font-size:12px;color:var(--text2);">' + (k.used_at ? formatDate(k.used_at) : '-') + '</td>' +
           '<td style="padding:14px 16px;font-size:12px;color:var(--text3);">' + (k.used_by || 'Not used') + '</td>' +

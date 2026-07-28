@@ -7,10 +7,21 @@ const db = require('../db/database');
 const { requireAdmin, SECRET } = require('../middleware/auth');
 
 function genKey(prefix) {
-  prefix = prefix || 'KEY';
+  // prefix can be a mask like "LMAx27-*****" or "LMAx27-***-***"
+  // Each * gets replaced by a random uppercase letter or digit
   const c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const seg = function(n) { let s = ''; for (let i = 0; i < n; i++) s += c[Math.floor(Math.random() * c.length)]; return s; };
-  return prefix + '-' + seg(5) + '-' + seg(5) + '-' + seg(5) + '-' + seg(5);
+  const rand = function() { return c[Math.floor(Math.random() * c.length)]; };
+
+  if (prefix && prefix.includes('*')) {
+    // Replace every * with a random char
+    return prefix.replace(/\*/g, rand);
+  }
+
+  // Legacy fallback: prefix-XXXXX
+  prefix = prefix || 'KEY';
+  let seg = '';
+  for (let i = 0; i < 5; i++) seg += rand();
+  return prefix + '-' + seg;
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -335,11 +346,20 @@ router.post('/apps/:appId/keys', requireAdmin, async function(req, res) {
     const max_uses = parseInt(req.body.max_uses) || 1;
     const expiry   = req.body.expiry_date ? Math.floor(new Date(req.body.expiry_date).getTime() / 1000) : null;
 
+    // generated_by: use display_name or username of creator
+    let generatedBy = 'LMAx27';
+    if (req.admin.role === 'partner') {
+      const partnerInfo = await db.get('SELECT display_name, username FROM partners WHERE id=?', [req.admin.id]);
+      if (partnerInfo) generatedBy = partnerInfo.display_name || partnerInfo.username;
+    } else if (req.admin.username) {
+      generatedBy = req.admin.username;
+    }
+
     const created = [];
     for (let i = 0; i < amount; i++) {
       const kv = genKey(prefix);
-      await db.run('INSERT INTO licenses (id,app_id,key_value,note,expiry,duration,level,max_uses) VALUES (?,?,?,?,?,?,?,?)',
-        [uuidv4(), appId, kv, note, expiry, duration, level, max_uses]);
+      await db.run('INSERT INTO licenses (id,app_id,key_value,note,expiry,duration,level,max_uses,generated_by) VALUES (?,?,?,?,?,?,?,?,?)',
+        [uuidv4(), appId, kv, note, expiry, duration, level, max_uses, generatedBy]);
       created.push(kv);
     }
     res.json({ success: true, message: amount + ' key(s) generada(s)', keys: created });
@@ -369,6 +389,18 @@ router.post('/apps/:appId/users', requireAdmin, async function(req, res) {
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
     const app = await db.get('SELECT id FROM apps WHERE id=?', [req.params.appId]);
     if (!app) return res.json({ success: false, message: 'App no encontrada' });
+
+    // Check user_limit for partners
+    if (req.admin.role === 'partner') {
+      const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, req.params.appId]);
+      if (pa && pa.user_limit > 0) {
+        const currentUsers = ((await db.get('SELECT COUNT(*) as c FROM users WHERE app_id=?', [req.params.appId])) || {}).c || 0;
+        if (currentUsers >= pa.user_limit) {
+          return res.json({ success: false, message: 'Límite de usuarios alcanzado (' + currentUsers + '/' + pa.user_limit + ')' });
+        }
+      }
+    }
+
     const ex = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [req.params.appId, username]);
     if (ex) return res.json({ success: false, message: 'El usuario ya existe' });
     const now = Math.floor(Date.now() / 1000);
@@ -517,6 +549,8 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   // agregar columnas si no existen (migracion)
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN key_limit INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN keys_used INTEGER DEFAULT 0'); } catch(_) {}
+  try { await db.run('ALTER TABLE partner_apps ADD COLUMN user_limit INTEGER DEFAULT 0'); } catch(_) {}
+  try { await db.run('ALTER TABLE licenses ADD COLUMN generated_by TEXT DEFAULT NULL'); } catch(_) {}
   try { await db.run("ALTER TABLE partners ADD COLUMN role TEXT DEFAULT 'partner'"); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_bots INTEGER DEFAULT 1'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_partners INTEGER DEFAULT 0'); } catch(_) {}
