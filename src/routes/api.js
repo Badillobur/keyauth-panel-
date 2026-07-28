@@ -105,11 +105,20 @@ router.post('/1.2/', async function(req, res) {
 
     // ── Verificar firma HMAC (todas las calls excepto init) ───────────────────
     // init no puede verificar porque aún no tenemos el secret en el cliente
-    // (podría ser un primer init sin secret, pero lo protegemos con libver)
     if (type !== 'init') {
+      if (!sig || !ts) {
+        // Sin firma — puede ser llamada desde tool antigua, rechazar
+        await addLog(app.id, 'system',
+          'Intento sin firma [' + type + '] desde ' + ip, ip);
+        return res.status(403).json({
+          success: false,
+          message: 'Firma invalida. Solo se permite acceso desde LMAx27Auth.hpp oficial.'
+        });
+      }
+      // Verificar firma
       if (!verifyLibSignature(app.secret, ts, ownerid, type, sig)) {
         await addLog(app.id, 'system',
-          'Intento de acceso sin firma valida [' + type + '] desde ' + ip, ip);
+          'Firma incorrecta [' + type + '] desde ' + ip, ip);
         return res.status(403).json({
           success: false,
           message: 'Firma invalida. Solo se permite acceso desde LMAx27Auth.hpp oficial.'
@@ -133,11 +142,6 @@ router.post('/1.2/', async function(req, res) {
     // INIT
     // ─────────────────────────────────────────────────────────────────────────
     if (type === 'init') {
-      // Para init verificamos solo que venga con libver correcto
-      if (!libver || !VALID_LIB_VERSIONS.includes(libver)) {
-        return fail(res, 'Lib no autorizada. Usa LMAx27Auth.hpp oficial.');
-      }
-
       const ver = body.ver;
       if (ver && app.version !== ver) {
         return fail(res, 'Version desactualizada. Version actual: ' + app.version,
