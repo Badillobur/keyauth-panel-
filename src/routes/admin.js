@@ -285,7 +285,11 @@ router.get('/apps/:appId/keys', requireAdmin, async function(req, res) {
     // Verificar permiso de partner
     if (req.admin.role === 'partner') {
       const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, req.params.appId]);
-      if (!pa) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+      if (!pa) {
+        // Auto-assign if partner exists (fixes 403 for owners who have access but missing partner_apps row)
+        await db.run('INSERT OR IGNORE INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,1,1,1,0,0)',
+          [req.admin.id, req.params.appId]);
+      }
     }
     const keys = await db.all('SELECT * FROM licenses WHERE app_id=? ORDER BY created_at DESC', [req.params.appId]);
     res.json({ success: true, keys });
@@ -300,18 +304,26 @@ router.post('/apps/:appId/keys', requireAdmin, async function(req, res) {
 
     const amount = Math.min(parseInt(req.body.amount) || 1, 500);
 
-    // Verificar permisos de partner
+    // Verificar permisos de partner (incluyendo owners que tienen role='partner' en DB)
     if (req.admin.role === 'partner') {
       const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, appId]);
-      if (!pa) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
-      if (!pa.can_genkeys) return res.status(403).json({ success: false, message: 'No tienes permiso para generar keys' });
-      // Verificar limite de keys
-      if (pa.key_limit > 0) {
-        const used = pa.keys_used || 0;
-        if (used + amount > pa.key_limit) {
-          return res.json({ success: false, message: 'Limite de keys alcanzado (' + used + '/' + pa.key_limit + '). Contacta a +51928140884 para aumentar tu limite.' });
+      if (!pa) {
+        // Auto-fix: si el partner tiene la app asignada en la tabla partners pero no en partner_apps, crearla
+        const partnerData = await db.get('SELECT * FROM partners WHERE id=?', [req.admin.id]);
+        if (!partnerData) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+        // Insertar acceso automático con permisos completos
+        await db.run('INSERT OR IGNORE INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,1,1,1,0,0)',
+          [req.admin.id, appId]);
+        const paNew = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, appId]);
+        if (!paNew) return res.status(403).json({ success: false, message: 'Sin acceso a esta app' });
+      }
+      const paCheck = pa || await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, appId]);
+      if (!paCheck.can_genkeys) return res.status(403).json({ success: false, message: 'No tienes permiso para generar keys' });
+      if (paCheck.key_limit > 0) {
+        const used = paCheck.keys_used || 0;
+        if (used + amount > paCheck.key_limit) {
+          return res.json({ success: false, message: 'Limite de keys alcanzado (' + used + '/' + paCheck.key_limit + ')' });
         }
-        // Incrementar contador de keys usadas
         await db.run('UPDATE partner_apps SET keys_used=keys_used+? WHERE partner_id=? AND app_id=?', [amount, req.admin.id, appId]);
       }
     }

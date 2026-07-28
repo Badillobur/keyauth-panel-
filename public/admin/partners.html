@@ -132,6 +132,12 @@
       <label class="form-label">Max Bots permitidos</label>
       <input type="number" id="new-partner-commission" class="form-control" placeholder="1" min="1" max="100" value="1" />
     </div>
+    <div class="form-group">
+      <label class="form-label">Apps Asignadas *</label>
+      <div id="new-apps-checkboxes" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px;max-height:150px;overflow-y:auto;">
+        <div style="color:var(--text3);font-size:12px;">Cargando apps...</div>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-create-partner')">Cancelar</button>
       <button class="btn btn-primary" onclick="createPartner()">Crear Partner</button>
@@ -169,6 +175,12 @@
     <div class="form-group" id="edit-max-bots-group">
       <label class="form-label">Max Bots permitidos</label>
       <input type="number" id="edit-partner-commission" class="form-control" min="1" max="100" value="1" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Apps Asignadas</label>
+      <div id="edit-apps-checkboxes" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px;max-height:150px;overflow-y:auto;">
+        <div style="color:var(--text3);font-size:12px;">Cargando apps...</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-partner')">Cancelar</button>
@@ -223,9 +235,34 @@ function esc(s) {
 
   // Load apps for assignment dropdowns
   var ar = await apiFetch(API + '/apps');
-  if (ar && ar.success) allApps = ar.apps;
+  if (ar && ar.success) {
+    allApps = ar.apps;
+    renderAppCheckboxes('new-apps-checkboxes', [], allApps);
+  }
   loadPartners();
 })();
+
+function renderAppCheckboxes(containerId, selectedIds, apps) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  if (!apps || !apps.length) {
+    container.innerHTML = '<div style="color:var(--text3);font-size:12px;">No hay apps disponibles</div>';
+    return;
+  }
+  container.innerHTML = apps.map(function(a) {
+    var checked = selectedIds.indexOf(a.id) !== -1 ? 'checked' : '';
+    return '<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:var(--text2);">' +
+      '<input type="checkbox" value="' + a.id + '" ' + checked + ' style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;" />' +
+      esc(a.name) +
+    '</label>';
+  }).join('');
+}
+
+function getCheckedApps(containerId) {
+  var container = document.getElementById(containerId);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('input[type=checkbox]:checked')).map(function(cb) { return cb.value; });
+}
 
 async function loadPartners() {
   var el = document.getElementById('partners-list');
@@ -306,9 +343,12 @@ async function createPartner() {
   var role         = document.getElementById('new-partner-role').value;
   var max_bots     = parseInt(document.getElementById('new-partner-commission').value) || 1;
   var max_partners = role === 'owner' ? (parseInt(document.getElementById('new-partner-max-partners').value) || 5) : 0;
-  if (!username || !password) { toast('Username y contraseña son requeridos', 'error'); return; }
+  var app_ids      = getCheckedApps('new-apps-checkboxes');
 
-  var res = await apiFetch(API + '/partners', { method:'POST', body:{ username, email, password, role, max_bots, max_partners } });
+  if (!username || !password) { toast('Username y contraseña son requeridos', 'error'); return; }
+  if (!app_ids.length) { toast('Debes seleccionar al menos una app', 'error'); return; }
+
+  var res = await apiFetch(API + '/partners', { method:'POST', body:{ username, email, password, role, max_bots, max_partners, app_ids } });
   if (res && res.success) {
     toast('Partner "' + username + '" creado exitosamente', 'success');
     closeModal('modal-create-partner');
@@ -317,6 +357,7 @@ async function createPartner() {
     document.getElementById('new-partner-password').value = '';
     document.getElementById('new-partner-commission').value = '1';
     document.getElementById('new-partner-max-partners').value = '5';
+    renderAppCheckboxes('new-apps-checkboxes', [], allApps);
     loadPartners();
   } else if (res) {
     toast(res.message, 'error');
@@ -347,6 +388,10 @@ function editPartner(id) {
   document.getElementById('edit-partner-max-partners').value = partner.max_partners || 0;
   toggleEditMaxPartners(partner.role || 'partner');
 
+  // Populate app checkboxes with currently assigned apps
+  var assignedIds = (partner.apps || []).map(function(a) { return a.id; });
+  renderAppCheckboxes('edit-apps-checkboxes', assignedIds, allApps);
+
   // Owners cannot change max_bots of sub-partners — only admin can
   var editMaxBotsGroup = document.getElementById('edit-max-bots-group');
   if (editMaxBotsGroup) editMaxBotsGroup.style.display = isOwner ? 'none' : '';
@@ -361,8 +406,12 @@ async function savePartnerEdit() {
   var role         = document.getElementById('edit-partner-role').value;
   var max_bots     = parseInt(document.getElementById('edit-partner-commission').value) || 1;
   var max_partners = role === 'owner' ? (parseInt(document.getElementById('edit-partner-max-partners').value) || 0) : 0;
+  var app_ids      = getCheckedApps('edit-apps-checkboxes');
+
   if (!display_name) { toast('El nombre es requerido', 'error'); return; }
-  var res = await apiFetch(API + '/partners/' + id, { method:'PUT', body:{ display_name, email, role, max_bots, max_partners } });
+  if (!app_ids.length) { toast('Debes seleccionar al menos una app', 'error'); return; }
+
+  var res = await apiFetch(API + '/partners/' + id, { method:'PUT', body:{ display_name, email, role, max_bots, max_partners, app_ids } });
   if (res && res.success) {
     toast('Partner actualizado', 'success');
     closeModal('modal-edit-partner');
