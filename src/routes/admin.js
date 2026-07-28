@@ -633,10 +633,10 @@ router.post('/partners', requireAdmin, async function(req, res) {
     if (ex) return res.json({ success: false, message: 'Username ya existe' });
     const id = uuidv4();
     const hashed = await bcrypt.hash(password, 10);
-    // Owners solo pueden crear 'partner', no 'owner'
+    // Owners only create partners, not owners — and sub-partners always get max_bots=1 (only admin can change this)
     const partnerRole = (!isOwner && role === 'owner') ? 'owner' : 'partner';
     const ownerId = isOwner ? req.admin.id : null;
-    const botLimit = parseInt(max_bots) || 1;
+    const botLimit = isOwner ? 1 : (parseInt(max_bots) || 1); // sub-partners always get 1 bot max, only admin can set more
     const partnerLimit = parseInt(max_partners) || 0;
 
     await db.run('INSERT INTO partners (id,username,password,display_name,email,role,owner_id,max_bots,max_partners) VALUES (?,?,?,?,?,?,?,?,?)',
