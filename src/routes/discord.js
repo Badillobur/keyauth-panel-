@@ -671,8 +671,35 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
               [uuidv4(), appId, kv, 'Discord /keys', dias||null, 1, 1, Math.floor(Date.now()/1000), client.user.username]);
             created.push(kv);
           }
+
+          // Notificar automaticamente al canal de logs
+          const botData = await db.get('SELECT log_channel_id FROM partner_discord_bots WHERE id=?', [botId]);
+          if (botData && botData.log_channel_id) {
+            try {
+              const logCh = await client.channels.fetch(botData.log_channel_id).catch(function(){return null;});
+              if (logCh) {
+                const logEmbed = new EmbedBuilder()
+                  .setColor(0xF5C518)
+                  .setTitle('Nuevas Keys Generadas')
+                  .setDescription('**' + interaction.user.username + '** genero ' + amount + ' key(s)')
+                  .addFields(
+                    {name:'App', value: appName, inline:true},
+                    {name:'Cantidad', value: String(amount), inline:true},
+                    {name:'Duracion', value: dias ? dias+' dias' : 'Permanente', inline:true},
+                    {name:'Keys', value: '```\n' + created.join('\n') + '\n```', inline:false}
+                  )
+                  .setFooter({text:'LMAx27 - ' + appName})
+                  .setTimestamp();
+                await logCh.send({ embeds: [logEmbed] });
+              }
+            } catch(_) {}
+          }
+
           const embed = goldEmbed(amount + ' key(s) generada(s) - ' + appName, '```\n' + created.join('\n') + '\n```')
-            .addFields({name:'Duracion', value: dias ? dias+' dias' : 'Permanente', inline:true});
+            .addFields(
+              {name:'Duracion', value: dias ? dias+' dias' : 'Permanente', inline:true},
+              {name:'Generado por', value: interaction.user.username, inline:true}
+            );
           return interaction.editReply({ embeds: [embed] });
         }
         if (cmd === 'usuarios') {
@@ -688,6 +715,20 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
           if (!user) return interaction.editReply({ content: 'Usuario no encontrado' });
           await db.run('UPDATE users SET banned=1, ban_reason=? WHERE id=?', [razon, user.id]);
+
+          // Log al canal
+          const botData = await db.get('SELECT log_channel_id FROM partner_discord_bots WHERE id=?', [botId]);
+          if (botData && botData.log_channel_id) {
+            try {
+              const logCh = await client.channels.fetch(botData.log_channel_id).catch(function(){return null;});
+              if (logCh) await logCh.send({ embeds: [
+                new EmbedBuilder().setColor(0xEF4444).setTitle('Usuario Baneado')
+                  .addFields({name:'Usuario',value:username,inline:true},{name:'Razon',value:razon,inline:true},{name:'App',value:appName,inline:true})
+                  .setFooter({text:'Por: '+interaction.user.username}).setTimestamp()
+              ]});
+            } catch(_) {}
+          }
+
           const embed = new EmbedBuilder().setColor(0xEF4444).setTitle('Usuario Baneado')
             .addFields({name:'Usuario',value:username,inline:true},{name:'Razon',value:razon}).setTimestamp();
           return interaction.editReply({ embeds: [embed] });
@@ -697,6 +738,15 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
           if (!user) return interaction.editReply({ content: 'Usuario no encontrado' });
           await db.run("UPDATE users SET banned=0, ban_reason='' WHERE id=?", [user.id]);
+
+          const botData = await db.get('SELECT log_channel_id FROM partner_discord_bots WHERE id=?', [botId]);
+          if (botData && botData.log_channel_id) {
+            try {
+              const logCh = await client.channels.fetch(botData.log_channel_id).catch(function(){return null;});
+              if (logCh) await logCh.send({ embeds: [goldEmbed('Usuario Desbaneado', '**'+username+'** desbaneado por **'+interaction.user.username+'**').setFooter({text:appName}).setTimestamp()] });
+            } catch(_) {}
+          }
+
           return interaction.editReply({ embeds: [goldEmbed('Usuario Desbaneado', '**'+username+'** fue desbaneado')] });
         }
         if (cmd === 'reset-hwid') {
@@ -704,6 +754,15 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           const user = await db.get('SELECT id FROM users WHERE app_id=? AND username=?', [appId, username]);
           if (!user) return interaction.editReply({ content: 'Usuario no encontrado' });
           await db.run("UPDATE users SET hwid='' WHERE id=?", [user.id]);
+
+          const botData = await db.get('SELECT log_channel_id FROM partner_discord_bots WHERE id=?', [botId]);
+          if (botData && botData.log_channel_id) {
+            try {
+              const logCh = await client.channels.fetch(botData.log_channel_id).catch(function(){return null;});
+              if (logCh) await logCh.send({ embeds: [goldEmbed('HWID Reseteado', 'HWID de **'+username+'** reseteado por **'+interaction.user.username+'**').setFooter({text:appName}).setTimestamp()] });
+            } catch(_) {}
+          }
+
           return interaction.editReply({ embeds: [goldEmbed('HWID Reseteado', 'HWID de **'+username+'** reseteado')] });
         }
         if (cmd === 'extender') {
@@ -719,6 +778,15 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           } else {
             await db.run("INSERT INTO subscriptions (id,user_id,app_id,name,expiry) VALUES (?,?,?,'default',?)", [uuidv4(), user.id, appId, now + (dias * 86400)]);
           }
+
+          const botData = await db.get('SELECT log_channel_id FROM partner_discord_bots WHERE id=?', [botId]);
+          if (botData && botData.log_channel_id) {
+            try {
+              const logCh = await client.channels.fetch(botData.log_channel_id).catch(function(){return null;});
+              if (logCh) await logCh.send({ embeds: [goldEmbed('Suscripcion Extendida', '**'+username+'** recibio **'+dias+' dias** por **'+interaction.user.username+'**').setFooter({text:appName}).setTimestamp()] });
+            } catch(_) {}
+          }
+
           return interaction.editReply({ embeds: [goldEmbed('Suscripcion Extendida', '**'+username+'** extendida '+dias+' dias')] });
         }
         if (cmd === 'logs') {
@@ -734,6 +802,15 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           const lic = await db.get('SELECT id FROM licenses WHERE app_id=? AND key_value=?', [appId, key]);
           if (!lic) return interaction.editReply({ content: 'Key no encontrada' });
           await db.run('UPDATE licenses SET used=0,used_by=NULL,used_at=NULL,used_ip=NULL WHERE id=?', [lic.id]);
+
+          const botData = await db.get('SELECT log_channel_id FROM partner_discord_bots WHERE id=?', [botId]);
+          if (botData && botData.log_channel_id) {
+            try {
+              const logCh = await client.channels.fetch(botData.log_channel_id).catch(function(){return null;});
+              if (logCh) await logCh.send({ embeds: [goldEmbed('Key Reseteada', 'Key `'+key+'` reseteada por **'+interaction.user.username+'**').setFooter({text:appName}).setTimestamp()] });
+            } catch(_) {}
+          }
+
           return interaction.editReply({ embeds: [goldEmbed('Key Reseteada', '`'+key+'` fue reseteada')] });
         }
       });
