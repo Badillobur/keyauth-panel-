@@ -297,7 +297,6 @@ router.get('/apps/:appId/keys', requireAdmin, async function(req, res) {
     if (req.admin.role === 'partner') {
       const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, req.params.appId]);
       if (!pa) {
-        // Auto-assign if partner exists (fixes 403 for owners who have access but missing partner_apps row)
         await db.run('INSERT OR IGNORE INTO partner_apps (partner_id,app_id,can_genkeys,can_users,can_logs,key_limit,keys_used) VALUES (?,?,1,1,1,0,0)',
           [req.admin.id, req.params.appId]);
       }
@@ -375,7 +374,11 @@ router.delete('/apps/:appId/keys/:keyId', requireAdmin, async function(req, res)
 
 router.post('/apps/:appId/keys/:keyId/reset', requireAdmin, async function(req, res) {
   try {
-    await db.run('UPDATE licenses SET used=0,used_by=NULL,used_at=NULL WHERE id=? AND app_id=?', [req.params.keyId, req.params.appId]);
+    // Todos pueden resetear: admin, owner, partner, sub-partner
+    await db.run(
+      'UPDATE licenses SET used=0,used_by=NULL,used_at=NULL,used_ip=NULL WHERE id=? AND app_id=?',
+      [req.params.keyId, req.params.appId]
+    );
     res.json({ success: true, message: 'Key reseteada' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -551,6 +554,7 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN keys_used INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN user_limit INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE licenses ADD COLUMN generated_by TEXT DEFAULT NULL'); } catch(_) {}
+  try { await db.run('ALTER TABLE licenses ADD COLUMN used_ip TEXT DEFAULT NULL'); } catch(_) {}
   try { await db.run("ALTER TABLE partners ADD COLUMN role TEXT DEFAULT 'partner'"); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_bots INTEGER DEFAULT 1'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_partners INTEGER DEFAULT 0'); } catch(_) {}

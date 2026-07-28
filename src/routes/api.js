@@ -283,8 +283,8 @@ router.post('/1.2/', async function(req, res) {
         [uuidv4(), userId, app.id, 'default', expiry, license.level]
       );
       await db.run(
-        'UPDATE licenses SET used=used+1,used_by=?,used_at=? WHERE id=?',
-        [username, now, license.id]
+        'UPDATE licenses SET used=used+1,used_by=?,used_at=?,used_ip=? WHERE id=?',
+        [username, now, ip, license.id]
       );
       await db.run(
         'UPDATE sessions SET user_id=?,hwid=? WHERE session_key=?',
@@ -332,8 +332,8 @@ router.post('/1.2/', async function(req, res) {
       if (license.used >= license.max_uses) return fail(res, 'Licencia agotada');
 
       await db.run(
-        'UPDATE licenses SET used=used+1,used_by=?,used_at=? WHERE id=?',
-        ['key-only', now, license.id]
+        'UPDATE licenses SET used=used+1,used_by=?,used_at=?,used_ip=? WHERE id=?',
+        ['key-only', now, ip, license.id]
       );
       await db.run(
         'UPDATE sessions SET hwid=? WHERE session_key=?',
