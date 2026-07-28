@@ -123,8 +123,8 @@
         
         <div class="form-group">
           <label class="form-label">License Mask <span style="color:#ef4444;">*</span></label>
-          <input type="text" id="gen-mask" class="form-control" value="LMAx27-******" placeholder="PREFIX-******" style="font-family:monospace;" />
-          <div class="form-hint">Format: PREFIX-numbers. Example: "LMAx27-5-5" = LMAx27-ABCDE-12345. Each number = random letters/numbers.</div>
+          <input type="text" id="gen-mask" class="form-control" value="LMAx27-*****" placeholder="PREFIX-*****" style="font-family:monospace;" />
+          <div class="form-hint">Format: PREFIX-*****. Example: "LMAx27-*****" = LMAx27-494UK. Each * = random letter/number.</div>
         </div>
         
         <div class="form-group">
@@ -324,18 +324,20 @@
       const unit = document.getElementById('gen-unit').value;
       const duration = parseInt(document.getElementById('gen-duration').value) || 0;
       
-      // Handle mask like "LMAx27-******" where * = random characters
+      // Handle mask like "LMAx27-*****" where each * = 1 random character
       let prefix = maskPattern;
       
-      // If contains asterisks, use as-is for the backend
-      if (!maskPattern.includes('*')) {
-        // Convert numbers to asterisks if user put numbers
+      // Si el usuario usa formato con asteriscos, mantenerlo así
+      if (maskPattern.includes('*')) {
+        prefix = maskPattern; // Use as-is: "LMAx27-*****"
+      } else {
+        // Si no tiene asteriscos, convertir números a asteriscos
         const maskParts = maskPattern.split('-');
         prefix = maskParts.map(function(part, index) {
           if (index === 0 && isNaN(parseInt(part))) {
-            return part; // Keep prefix as-is
+            return part; // Keep prefix as-is (LMAx27)
           } else {
-            const count = parseInt(part) || 6;
+            const count = parseInt(part) || 5;
             return '*'.repeat(count);
           }
         }).join('-');
@@ -375,7 +377,7 @@
           
           // Reset form
           document.getElementById('gen-amount').value = '1';
-          document.getElementById('gen-mask').value = 'LMAx27-******';
+          document.getElementById('gen-mask').value = 'LMAx27-*****';
           document.getElementById('gen-subscription').value = 'default';
           document.getElementById('gen-note').value = '';
           document.getElementById('gen-unit').value = 'days';
