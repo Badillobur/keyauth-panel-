@@ -555,6 +555,7 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   try { await db.run('ALTER TABLE partner_apps ADD COLUMN user_limit INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE licenses ADD COLUMN generated_by TEXT DEFAULT NULL'); } catch(_) {}
   try { await db.run('ALTER TABLE licenses ADD COLUMN used_ip TEXT DEFAULT NULL'); } catch(_) {}
+  try { await db.run('ALTER TABLE licenses ADD COLUMN used_by_hwid TEXT DEFAULT NULL'); } catch(_) {}
   try { await db.run("ALTER TABLE partners ADD COLUMN role TEXT DEFAULT 'partner'"); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_bots INTEGER DEFAULT 1'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_partners INTEGER DEFAULT 0'); } catch(_) {}

@@ -31,6 +31,13 @@ function genSession() {
   return crypto.randomBytes(32).toString('hex');
 }
 
+// Calcular expiry real: usa expiry fijo si existe, sino duration desde ahora, sino permanente
+function getLicenseExpiry(now, license) {
+  if (license.expiry && license.expiry > 0) return license.expiry;
+  if (license.duration && license.duration > 0) return now + (license.duration * 86400);
+  return null;
+}
+
 function ok(res, msg, extra)   { return res.json(Object.assign({ success: true,  message: msg }, extra || {})); }
 function fail(res, msg, extra) { return res.json(Object.assign({ success: false, message: msg }, extra || {})); }
 
@@ -259,7 +266,7 @@ router.post('/1.2/', async function(req, res) {
         [app.id, key]
       );
       if (!license) return fail(res, 'Licencia invalida');
-      if (license.used >= license.max_uses) return fail(res, 'Licencia ya fue usada');
+      if (!shouldConsumeLicenseUse(license, 'register')) return fail(res, 'Licencia ya fue usada');
 
       const existing = await db.get(
         'SELECT id FROM users WHERE app_id=? AND username=?',
@@ -274,9 +281,7 @@ router.post('/1.2/', async function(req, res) {
         [userId, app.id, username, hashed, email || '', ip, hwid || '', now]
       );
 
-      let expiry = null;
-      if (license.duration) expiry = now + (license.duration * 86400);
-      else if (license.expiry) expiry = license.expiry;
+      const expiry = getLicenseExpiry(now, license);
 
       await db.run(
         'INSERT INTO subscriptions (id,user_id,app_id,name,expiry,level) VALUES (?,?,?,?,?,?)',
@@ -315,7 +320,7 @@ router.post('/1.2/', async function(req, res) {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // LICENSE (activar por key)
+    // LICENSE (activar por key — uso ilimitado hasta que expire)
     // ─────────────────────────────────────────────────────────────────────────
     if (type === 'license') {
       const { key, hwid } = body;
@@ -328,26 +333,43 @@ router.post('/1.2/', async function(req, res) {
         [app.id, key]
       );
       if (!license) return fail(res, 'Licencia invalida');
-      if (license.expiry && license.expiry < now) return fail(res, 'Licencia expirada');
-      if (license.used >= license.max_uses) return fail(res, 'Licencia agotada');
 
+      // Calcular expiry real (fijo o por duracion)
+      const expiry = getLicenseExpiry(now, license);
+
+      // Solo verificar si expiró — NO verificar max_uses (uso ilimitado hasta expirar)
+      if (expiry && expiry < now) return fail(res, 'Licencia expirada');
+
+      // HWID check — si ya tiene HWID asignado, verificar que coincida
+      const storedHwid = license.used_by_hwid || '';
+      if (hwid && storedHwid && storedHwid !== hwid) {
+        return fail(res, 'HWID no coincide - usa el dispositivo original');
+      }
+
+      // Guardar HWID la primera vez que se usa
+      if (hwid && !storedHwid) {
+        await db.run('UPDATE licenses SET used_by_hwid=? WHERE id=?', [hwid, license.id]);
+      }
+
+      // Actualizar stats de uso
       await db.run(
-        'UPDATE licenses SET used=used+1,used_by=?,used_at=?,used_ip=? WHERE id=?',
-        ['key-only', now, ip, license.id]
+        'UPDATE licenses SET used=used+1, used_by=?, used_at=?, used_ip=? WHERE id=?',
+        [key, now, ip, license.id]
       );
       await db.run(
         'UPDATE sessions SET hwid=? WHERE session_key=?',
         [hwid || '', sessionid]
       );
-      await addLog(app.id, 'key-only', 'Licencia activada', ip);
+      await addLog(app.id, key, 'Licencia activada', ip);
 
       return ok(res, 'Licencia valida', {
         info: {
-          username: 'key-only', ip,
+          username: key,  // Mostrar la key como username
+          ip,
           hwid: hwid || '',
-          createdate: String(now),
+          createdate: String(license.created_at || now),
           lastlogin: String(now),
-          subscriptions: [{ name: 'default', expiry: license.expiry ? String(license.expiry) : '0' }]
+          subscriptions: [{ name: 'default', expiry: expiry ? String(expiry) : '0' }]
         }
       });
     }
