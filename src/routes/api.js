@@ -364,6 +364,19 @@ router.post('/1.2/', async function(req, res) {
       );
       await addLog(app.id, key, 'Licencia activada', ip);
 
+      // Notificar al bot de Discord — igual que login/registro
+      notifyDiscord('license', {
+        title: 'Licencia Activada',
+        description: '**' + key + '** activo su licencia',
+        fields: [
+          { name: 'App',  value: app.name, inline: true },
+          { name: 'Key',  value: key,      inline: true },
+          { name: 'IP',   value: ip,       inline: true }
+        ],
+        app: app.name,
+        appId: app.id
+      });
+
       return ok(res, 'Licencia valida', {
         info: {
           username: key,  // Mostrar la key como username

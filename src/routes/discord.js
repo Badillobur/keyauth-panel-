@@ -477,9 +477,9 @@ async function notifyDiscord(type, data) {
     // 1. Enviar al bot principal (discord_config)
     if (botClient && botReady) {
       const config = await getConfig();
-      if (config && config.log_channel_id && config['notify_'+type]) {
-        const colors = {login:0x22C55E, register:0xF5C518, ban:0xEF4444, keygen:0x3B82F6};
-        const titles = {login:'Login Exitoso', register:'Nuevo Registro', ban:'Usuario Baneado', keygen:'Keys Generadas'};
+      if (config && config.log_channel_id && (config['notify_'+type] || type === 'license')) {
+        const colors = {login:0x22C55E, register:0xF5C518, ban:0xEF4444, keygen:0x3B82F6, license:0xF59E0B};
+        const titles = {login:'Login Exitoso', register:'Nuevo Registro', ban:'Usuario Baneado', keygen:'Keys Generadas', license:'Licencia Activada'};
         const embed = new EmbedBuilder()
           .setColor(colors[type] || 0xF5C518)
           .setTitle(titles[type] || data.title || type)
