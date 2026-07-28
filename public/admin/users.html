@@ -88,15 +88,22 @@ var currentAppId = null, usersData = [];
 (async function() {
   injectSidebar('users');
   await requireAuth();
-  var savedApp = getSavedAppId();
+  var savedApp = localStorage.getItem('selected_app_id');
   if (savedApp) {
     currentAppId = savedApp;
     document.getElementById('btn-add-user').disabled = false;
-    var ar = await apiFetch(API + '/apps');
-    if (ar && ar.success) {
-      var found = ar.apps.find(function(a){ return a.id === savedApp; });
-      if (found) document.getElementById('topbar-sub').textContent = found.name;
+
+    // Load app name from localStorage first
+    var appName = 'Aplicación';
+    var savedApps = localStorage.getItem('lmax27_apps');
+    if (savedApps) {
+      try {
+        var apps = JSON.parse(savedApps);
+        var found = apps.find(function(a){ return a.id === savedApp; });
+        if (found) appName = found.name;
+      } catch(e) {}
     }
+    document.getElementById('topbar-sub').textContent = appName;
     loadUsers(currentAppId);
   } else {
     document.getElementById('users-tbody').innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>Sin app seleccionada. Ve a <a href="/apps" style="color:var(--accent);">Aplicaciones</a> y selecciona una.</p></div></td></tr>';

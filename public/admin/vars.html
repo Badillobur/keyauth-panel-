@@ -53,8 +53,55 @@
 <script src="/admin/js/icons.js"></script><script src="/admin/js/sidebar.js"></script>
 <script>
 var currentAppId=null;
-(async function(){injectSidebar('vars');await requireAuth();await loadSel();filterTable('search-vars','vars-table');const a=getParam('app');if(a){document.getElementById('app-selector').value=a;onAppChange();}})();
-async function loadSel(){const r=await apiFetch(API+'/apps');if(!r||!r.success)return;const sel=document.getElementById('app-selector');r.apps.forEach(function(a){const o=document.createElement('option');o.value=a.id;o.textContent=a.name;sel.appendChild(o);});}
+(async function(){
+  injectSidebar('vars');
+  await requireAuth();
+  loadSelFromStorage();
+  filterTable('search-vars','vars-table');
+  var a=getParam('app');
+  if(a){document.getElementById('app-selector').value=a;onAppChange();}
+})();
+
+function loadSelFromStorage() {
+  var sel = document.getElementById('app-selector');
+  sel.innerHTML = '<option value="">Seleccionar App...</option>';
+
+  // Load from localStorage first
+  var savedApps = localStorage.getItem('lmax27_apps');
+  if (savedApps) {
+    try {
+      var apps = JSON.parse(savedApps);
+      if (apps && apps.length) {
+        apps.forEach(function(a) {
+          var o = document.createElement('option');
+          o.value = a.id;
+          o.textContent = a.name;
+          sel.appendChild(o);
+        });
+        // Auto-select saved app
+        var savedId = localStorage.getItem('selected_app_id');
+        if (savedId) {
+          sel.value = savedId;
+          onAppChange();
+        }
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Fallback: API
+  apiFetch(API+'/apps').then(function(r) {
+    if (!r || !r.success) return;
+    r.apps.forEach(function(a) {
+      var o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = a.name;
+      sel.appendChild(o);
+    });
+    var savedId = localStorage.getItem('selected_app_id');
+    if (savedId) { sel.value = savedId; onAppChange(); }
+  });
+}
 function onAppChange(){const sel=document.getElementById('app-selector');currentAppId=sel.value||null;document.getElementById('btn-new').disabled=!currentAppId;if(currentAppId)loadVars(currentAppId);}
 async function loadVars(appId){const r=await apiFetch(API+'/apps/'+appId+'/vars');const tbody=document.getElementById('vars-tbody');if(!r||!r.success){tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><p>Error</p></div></td></tr>';return;}if(!r.vars.length){tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">⚙️</div><p>Sin variables. Crea la primera!</p></div></td></tr>';return;}tbody.innerHTML=r.vars.map(function(v){const disp=v.var_value.length>50?v.var_value.substring(0,50)+'...':v.var_value;return'<tr><td class="td-main font-mono">'+esc(v.var_key)+'</td><td class="font-mono text-sm" style="color:var(--green);" title="'+esc(v.var_value)+'">'+esc(disp)+'</td><td class="text-sm text-muted">'+fmtDateShort(v.created_at)+'</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm" onclick="editVar(\''+esc(v.var_key)+'\',\''+esc(v.var_value).replace(/\'/g,'&#39;')+'\')">✏️</button><button class="btn btn-secondary btn-sm" onclick="copyText(\''+esc(v.var_value).replace(/\'/g,'&#39;')+'\',this)">📋</button><button class="btn btn-danger btn-sm" onclick="delVar(\''+v.id+'\',\''+esc(v.var_key)+'\')">🗑️</button></div></td></tr>';}).join('');}
 function openNew(){document.getElementById('var-modal-title').textContent='Nueva Variable';document.getElementById('var-edit-key').value='';document.getElementById('var-key').value='';document.getElementById('var-key').readOnly=false;document.getElementById('var-value').value='';openModal('modal-var');}
