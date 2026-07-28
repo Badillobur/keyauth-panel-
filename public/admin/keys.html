@@ -200,7 +200,7 @@
       injectSidebar('keys');
       await requireAuth();
       
-      const savedApp = localStorage.getItem('selected_app_id');
+      const savedApp = localStorage.getItem('lmax_selected_app') || localStorage.getItem('selected_app_id');
       if (savedApp) {
         currentAppId = savedApp;
         

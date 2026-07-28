@@ -85,23 +85,35 @@
 <script src="/admin/js/icons.js"></script><script src="/admin/js/sidebar.js"></script>
 <script>
 var currentAppId = null, usersData = [];
+
+function getSavedAppId() {
+  return localStorage.getItem('lmax_selected_app') || localStorage.getItem('selected_app_id') || '';
+}
+
 (async function() {
   injectSidebar('users');
   await requireAuth();
-  var savedApp = localStorage.getItem('selected_app_id');
+  var savedApp = getSavedAppId();
   if (savedApp) {
     currentAppId = savedApp;
     document.getElementById('btn-add-user').disabled = false;
 
-    // Load app name from localStorage first
+    // Get app name from API, fallback to localStorage cache
     var appName = 'Aplicación';
-    var savedApps = localStorage.getItem('lmax27_apps');
-    if (savedApps) {
-      try {
-        var apps = JSON.parse(savedApps);
-        var found = apps.find(function(a){ return a.id === savedApp; });
-        if (found) appName = found.name;
-      } catch(e) {}
+    var ar = await apiFetch(API + '/apps');
+    if (ar && ar.success && ar.apps) {
+      localStorage.setItem('lmax27_apps', JSON.stringify(ar.apps));
+      var found = ar.apps.find(function(a){ return a.id === savedApp; });
+      if (found) appName = found.name;
+    } else {
+      var savedApps = localStorage.getItem('lmax27_apps');
+      if (savedApps) {
+        try {
+          var apps = JSON.parse(savedApps);
+          var found = apps.find(function(a){ return a.id === savedApp; });
+          if (found) appName = found.name;
+        } catch(e) {}
+      }
     }
     document.getElementById('topbar-sub').textContent = appName;
     loadUsers(currentAppId);
@@ -109,10 +121,6 @@ var currentAppId = null, usersData = [];
     document.getElementById('users-tbody').innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>Sin app seleccionada. Ve a <a href="/apps" style="color:var(--accent);">Aplicaciones</a> y selecciona una.</p></div></td></tr>';
   }
   filterTable('search-users','users-table');
-
-function getSavedAppId() {
-  return localStorage.getItem('selected_app_id');
-}
 })();
 
 async function loadUsers(appId) {

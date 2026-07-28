@@ -76,7 +76,7 @@ function loadSelFromStorage() {
         } catch(e) {}
       }
     }
-    var savedId = localStorage.getItem('selected_app_id');
+    var savedId = localStorage.getItem('lmax_selected_app') || localStorage.getItem('selected_app_id');
     if (savedId) { sel.value = savedId; onAppChange(); }
   });
 }

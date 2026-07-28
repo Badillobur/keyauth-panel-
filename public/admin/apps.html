@@ -173,11 +173,12 @@ function esc(s) {
 }
 
 function setSavedApp(appId) {
-  localStorage.setItem('selected_app_id', appId);
+  localStorage.setItem('lmax_selected_app', appId);
+  localStorage.setItem('selected_app_id', appId); // backward compat
 }
 
 function getSavedAppId() {
-  return localStorage.getItem('selected_app_id');
+  return localStorage.getItem('lmax_selected_app') || localStorage.getItem('selected_app_id') || '';
 }
 
 (async function() {
