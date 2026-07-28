@@ -204,69 +204,38 @@
       if (savedApp) {
         currentAppId = savedApp;
         
-        // Get app name from localStorage apps
-        const savedApps = localStorage.getItem('lmax27_apps');
-        if (savedApps) {
-          try {
-            const apps = JSON.parse(savedApps);
-            const found = apps.find(function(a) { return a.id === savedApp; });
-            if (found) {
-              document.getElementById('app-name').textContent = found.name;
-              loadLicenses(currentAppId);
-              return;
-            }
-          } catch(e) {
-            console.log('Error parsing saved apps');
-          }
-        }
-        
-        // Fallback: try to get from API
+        // Get app name - try API first, fallback to localStorage cache
+        var appName = 'Licenses';
         const ar = await apiFetch(API + '/apps');
-        if (ar && ar.success) {
+        if (ar && ar.success && ar.apps) {
+          localStorage.setItem('lmax27_apps', JSON.stringify(ar.apps));
           const found = ar.apps.find(function(a) { return a.id === savedApp; });
-          if (found) {
-            document.getElementById('app-name').textContent = found.name;
-            loadLicenses(currentAppId);
-            return;
+          if (found) appName = found.name;
+        } else {
+          const saved = localStorage.getItem('lmax27_apps');
+          if (saved) {
+            try {
+              const apps = JSON.parse(saved);
+              const found = apps.find(function(a) { return a.id === savedApp; });
+              if (found) appName = found.name;
+            } catch(e) {}
           }
         }
+        document.getElementById('app-name').textContent = appName;
+        loadLicenses(currentAppId);
+      } else {
+        document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">No app selected. Go to <a href="/apps" style="color:#eab308;">Applications</a> and select one.</p></div></td></tr>';
       }
-      
-      // No app selected or not found
-      document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">No app selected. Go to <a href="/apps" style="color:#eab308;">Applications</a> and select one.</p></div></td></tr>';
     })();
 
     async function loadLicenses(appId) {
       if (!appId) return;
-      
-      // Load from localStorage first
-      const savedLicenses = localStorage.getItem('lmax27_licenses_' + appId);
-      if (savedLicenses) {
-        try {
-          licensesData = JSON.parse(savedLicenses);
-          renderTable();
-          return;
-        } catch(e) {
-          console.log('Error parsing saved licenses');
-        }
-      }
-      
-      // Try API as fallback
       const r = await apiFetch(API + '/apps/' + appId + '/keys');
-      if (r && r.success && r.keys) {
-        licensesData = r.keys;
-        saveLicensesToStorage(appId);
+      if (r && r.success) {
+        licensesData = r.keys || [];
         renderTable();
       } else {
-        // No licenses found
-        licensesData = [];
-        renderTable();
-      }
-    }
-
-    function saveLicensesToStorage(appId) {
-      if (appId && licensesData) {
-        localStorage.setItem('lmax27_licenses_' + appId, JSON.stringify(licensesData));
+        document.getElementById('licenses-tbody').innerHTML = '<tr><td colspan="10" style="padding:60px;text-align:center;"><div class="empty-state"><p style="color:var(--text3);">Error loading licenses</p></div></td></tr>';
       }
     }
 
@@ -372,47 +341,37 @@
       const unit = document.getElementById('gen-unit').value;
       const duration = parseInt(document.getElementById('gen-duration').value) || 0;
       
-      // Generate licenses locally
-      const newLicenses = [];
-      for (let i = 0; i < amount; i++) {
-        const licenseKey = generateLicenseKey(maskPattern);
-        const newLicense = {
-          id: 'lic_' + Date.now() + '_' + i,
-          key_value: licenseKey,
-          used: 0,
-          used_at: null,
-          used_by: null,
-          created_at: Math.floor(Date.now() / 1000),
-          duration: unit === 'lifetime' ? null : duration,
-          note: note || null
-        };
-        newLicenses.push(newLicense);
+      let durationInDays = 0;
+      if (unit === 'lifetime') {
+        durationInDays = null;
+      } else {
+        const unitToDays = { 'seconds':1/86400,'minutes':1/1440,'hours':1/24,'days':1,'weeks':7,'months':30,'years':365 };
+        durationInDays = Math.floor(duration * (unitToDays[unit] || 1));
       }
       
-      // Add to existing licenses
-      if (!licensesData) licensesData = [];
-      licensesData = licensesData.concat(newLicenses);
+      const body = {
+        amount: amount,
+        prefix: maskPattern,
+        level: subscription === 'Premium' ? 2 : subscription === 'VIP' ? 3 : 1,
+        note: note
+      };
+      if (durationInDays !== null && durationInDays > 0) body.duration = durationInDays;
       
-      // Save to localStorage
-      saveLicensesToStorage(currentAppId);
-      
-      // Update UI
-      renderTable();
-      
-      toast((amount === 1 ? 'License' : amount + ' licenses') + ' created successfully', 'success');
-      closeModal('modal-create');
-      
-      // Show result modal with copy button
-      const licenseKeys = newLicenses.map(function(l) { return l.key_value; });
-      showResultModal(licenseKeys);
-      
-      // Reset form
-      document.getElementById('gen-amount').value = '1';
-      document.getElementById('gen-mask').value = 'LMAx27-*****';
-      document.getElementById('gen-subscription').value = 'default';
-      document.getElementById('gen-note').value = '';
-      document.getElementById('gen-unit').value = 'days';
-      document.getElementById('gen-duration').value = '1';
+      const r = await apiFetch(API + '/apps/' + currentAppId + '/keys', {method:'POST', body:body});
+      if (r && r.success) {
+        toast(r.message || (amount + ' license(s) created'), 'success');
+        closeModal('modal-create');
+        showResultModal(r.keys || []);
+        loadLicenses(currentAppId);
+        document.getElementById('gen-amount').value = '1';
+        document.getElementById('gen-mask').value = 'LMAx27-*****';
+        document.getElementById('gen-subscription').value = 'default';
+        document.getElementById('gen-note').value = '';
+        document.getElementById('gen-unit').value = 'days';
+        document.getElementById('gen-duration').value = '1';
+      } else {
+        toast((r && r.message) || 'Error creating licenses', 'error');
+      }
     }
 
     function refreshLicenses() {
@@ -456,14 +415,14 @@
     async function deleteSelected() {
       if (selectedLicenses.size === 0) return toast('Select licenses first', 'error');
       if (!confirm('Delete ' + selectedLicenses.size + ' selected licenses? This action cannot be undone.')) return;
-      
-      // Delete locally
-      licensesData = licensesData.filter(function(l) { return !selectedLicenses.has(l.id); });
-      saveLicensesToStorage(currentAppId);
+      let deleted = 0;
+      for (const id of selectedLicenses) {
+        const r = await apiFetch(API + '/apps/' + currentAppId + '/keys/' + id, {method:'DELETE'});
+        if (r && r.success) deleted++;
+      }
       selectedLicenses.clear();
-      renderTable();
-      
-      toast('Deleted ' + selectedLicenses.size + ' licenses', 'success');
+      toast('Deleted ' + deleted + ' licenses', 'success');
+      loadLicenses(currentAppId);
     }
 
     function formatDate(timestamp) {

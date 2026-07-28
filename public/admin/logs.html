@@ -54,38 +54,28 @@ function loadSelFromStorage() {
   var sel = document.getElementById('app-selector');
   sel.innerHTML = '<option value="">Seleccionar App...</option>';
 
-  // Load from localStorage first
-  var savedApps = localStorage.getItem('lmax27_apps');
-  if (savedApps) {
-    try {
-      var apps = JSON.parse(savedApps);
-      if (apps && apps.length) {
-        apps.forEach(function(a) {
-          var o = document.createElement('option');
-          o.value = a.id;
-          o.textContent = a.name;
-          sel.appendChild(o);
-        });
-        // Auto-select saved app
-        var savedId = localStorage.getItem('selected_app_id');
-        if (savedId) {
-          sel.value = savedId;
-          onAppChange();
-        }
-        return;
-      }
-    } catch(e) {}
-  }
-
-  // Fallback: API
+  // Try API first to get fresh data
   apiFetch(API+'/apps').then(function(r) {
-    if (!r || !r.success) return;
-    r.apps.forEach(function(a) {
-      var o = document.createElement('option');
-      o.value = a.id;
-      o.textContent = a.name;
-      sel.appendChild(o);
-    });
+    if (r && r.success && r.apps && r.apps.length) {
+      localStorage.setItem('lmax27_apps', JSON.stringify(r.apps));
+      r.apps.forEach(function(a) {
+        var o = document.createElement('option');
+        o.value = a.id; o.textContent = a.name;
+        sel.appendChild(o);
+      });
+    } else {
+      // Fallback localStorage
+      var saved = localStorage.getItem('lmax27_apps');
+      if (saved) {
+        try {
+          JSON.parse(saved).forEach(function(a) {
+            var o = document.createElement('option');
+            o.value = a.id; o.textContent = a.name;
+            sel.appendChild(o);
+          });
+        } catch(e) {}
+      }
+    }
     var savedId = localStorage.getItem('selected_app_id');
     if (savedId) { sel.value = savedId; onAppChange(); }
   });

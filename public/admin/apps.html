@@ -203,22 +203,27 @@ async function loadStats() {
 }
 
 async function loadApps() {
-  // Primero cargar desde localStorage si existe
+  // Try API first (always fresh data)
+  var res = await apiFetch(API + '/apps');
+  if (res && res.success && res.apps && res.apps.length) {
+    appsData = res.apps;
+    // Also cache in localStorage as backup
+    localStorage.setItem('lmax27_apps', JSON.stringify(appsData));
+    updateAppsUI();
+    return;
+  }
+
+  // Fallback: use cached localStorage if API fails
   var savedApps = localStorage.getItem('lmax27_apps');
   if (savedApps) {
     try {
       appsData = JSON.parse(savedApps);
       updateAppsUI();
-      // También intentar cargar desde API en background
-      loadAppsFromAPI();
       return;
-    } catch(e) {
-      console.log('Error parsing saved apps, loading from API...');
-    }
+    } catch(e) {}
   }
-  
-  // Si no hay datos guardados, cargar desde API
-  await loadAppsFromAPI();
+
+  document.getElementById('apps-list').innerHTML = '<div class="empty-state"><p>Sin aplicaciones. Crea la primera.</p></div>';
 }
 
 async function loadAppsFromAPI() {
@@ -454,46 +459,16 @@ async function createApp() {
   var version = document.getElementById('new-app-version').value.trim() || '1.0';
   var description = document.getElementById('new-app-desc').value.trim();
   if (!name) { toast('Nombre requerido', 'error'); return; }
-  
-  // Crear app localmente primero
-  var newApp = {
-    id: generateAppId(),
-    name: name,
-    version: version,
-    description: description,
-    status: true,
-    owner_id: 'lmax27_admin_' + Date.now(),
-    secret: generateAppSecret(),
-    userCount: 0,
-    keyCount: 0,
-    key_limit: 0,
-    created_at: Math.floor(Date.now() / 1000)
-  };
-  
-  // Agregar a la lista local
-  if (!appsData) appsData = [];
-  appsData.push(newApp);
-  
-  // Guardar en localStorage
-  saveAppsToStorage();
-  
-  // Actualizar UI
-  updateAppsUI();
-  
-  toast('App "' + name + '" creada exitosamente', 'success');
-  closeModal('modal-create');
-  
-  // Limpiar formulario
-  document.getElementById('new-app-name').value = '';
-  document.getElementById('new-app-version').value = '1.0';
-  document.getElementById('new-app-desc').value = '';
-  
-  // También intentar enviar al backend (opcional, en background)
-  try {
-    await apiFetch(API + '/apps', { method:'POST', body:{name, version, description} });
-  } catch(e) {
-    console.log('Backend sync failed, pero la app se guardó localmente');
-  }
+  var res = await apiFetch(API + '/apps', { method:'POST', body:{name, version, description} });
+  if (!res) return;
+  if (res.success) {
+    toast('App "'+name+'" creada', 'success');
+    closeModal('modal-create');
+    document.getElementById('new-app-name').value='';
+    document.getElementById('new-app-version').value='1.0';
+    document.getElementById('new-app-desc').value='';
+    loadApps();
+  } else toast(res.message, 'error');
 }
 
 function openRename(id, name, version) {
@@ -506,26 +481,9 @@ async function saveRename() {
   var id = document.getElementById('rename-id').value;
   var name = document.getElementById('rename-name').value.trim();
   var version = document.getElementById('rename-version').value.trim();
-  
-  // Actualizar localmente
-  var appIndex = appsData.findIndex(function(a) { return a.id === id; });
-  if (appIndex !== -1) {
-    appsData[appIndex].name = name;
-    appsData[appIndex].version = version;
-    saveAppsToStorage();
-    updateAppsUI();
-    toast('App renombrada exitosamente', 'success');
-    closeModal('modal-rename');
-    
-    // Intentar sincronizar con backend
-    try {
-      await apiFetch(API + '/apps/' + id, { method:'PUT', body:{name, version} });
-    } catch(e) {
-      console.log('Backend sync failed for rename');
-    }
-  } else {
-    toast('Error: App no encontrada', 'error');
-  }
+  var res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{name, version} });
+  if (res && res.success) { toast('Renombrada', 'success'); closeModal('modal-rename'); loadApps(); }
+  else if (res) toast(res.message, 'error');
 }
 
 function openDesc(id, desc) {
@@ -536,64 +494,24 @@ function openDesc(id, desc) {
 async function saveDesc() {
   var id = document.getElementById('desc-id').value;
   var description = document.getElementById('desc-text').value.trim();
-  
-  // Actualizar localmente
-  var appIndex = appsData.findIndex(function(a) { return a.id === id; });
-  if (appIndex !== -1) {
-    appsData[appIndex].description = description;
-    saveAppsToStorage();
-    updateAppsUI();
-    toast('Descripción actualizada exitosamente', 'success');
-    closeModal('modal-desc');
-    
-    // Intentar sincronizar con backend
-    try {
-      await apiFetch(API + '/apps/' + id, { method:'PUT', body:{description} });
-    } catch(e) {
-      console.log('Backend sync failed for description');
-    }
-  } else {
-    toast('Error: App no encontrada', 'error');
-  }
+  var res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{description} });
+  if (res && res.success) { toast('Descripcion actualizada', 'success'); closeModal('modal-desc'); loadApps(); }
+  else if (res) toast(res.message, 'error');
 }
 
 async function pauseApp(id, name, newStatus) {
   var msg = newStatus === 0 ? 'Pausar "'+name+'"?' : 'Reactivar "'+name+'"?';
   confirmAction(msg, async function() {
-    // Actualizar localmente
-    var appIndex = appsData.findIndex(function(a) { return a.id === id; });
-    if (appIndex !== -1) {
-      appsData[appIndex].status = newStatus === 1;
-      saveAppsToStorage();
-      updateAppsUI();
-      toast(newStatus===0?'App pausada':'App reactivada', 'success');
-      
-      // Intentar sincronizar con backend
-      try {
-        await apiFetch(API + '/apps/' + id, { method:'PUT', body:{status: newStatus} });
-      } catch(e) {
-        console.log('Backend sync failed for pause/resume');
-      }
-    } else {
-      toast('Error: App no encontrada', 'error');
-    }
+    var res = await apiFetch(API + '/apps/' + id, { method:'PUT', body:{status: newStatus} });
+    if (res && res.success) { toast(newStatus===0?'App pausada':'App reactivada', 'success'); loadApps(); }
+    else if (res) toast(res.message, 'error');
   });
 }
 
 async function deleteApp(id, name) {
   confirmAction('Eliminar "'+name+'"? Se borraran todos sus datos.', async function() {
-    // Eliminar localmente
-    appsData = appsData.filter(function(a) { return a.id !== id; });
-    saveAppsToStorage();
-    updateAppsUI();
-    toast('App eliminada exitosamente', 'success');
-    
-    // Intentar sincronizar con backend
-    try {
-      await apiFetch(API + '/apps/' + id, { method:'DELETE' });
-    } catch(e) {
-      console.log('Backend sync failed for delete');
-    }
+    var res = await apiFetch(API + '/apps/' + id, { method:'DELETE' });
+    if (res && res.success) { toast('App eliminada', 'success'); loadApps(); }
   });
 }
 

@@ -214,23 +214,17 @@
 
     // ── Apps ─────────────────────────────────────────────────────────────────
     function loadAppsFromStorage() {
-      // Load from localStorage (same key as apps.html uses)
-      var saved = localStorage.getItem('lmax27_apps');
-      if (saved) {
-        try {
-          apps = JSON.parse(saved);
-          fillSelects();
-          return;
-        } catch(e) {}
-      }
-      // Fallback API
+      // Try API first (fresh data), cache in localStorage
       apiFetch(API + '/apps').then(function(res) {
         if (res && res.success && res.apps && res.apps.length) {
           apps = res.apps;
           localStorage.setItem('lmax27_apps', JSON.stringify(apps));
           fillSelects();
         } else {
-          fillSelects(); // will show empty message
+          // Fallback localStorage
+          var saved = localStorage.getItem('lmax27_apps');
+          if (saved) { try { apps = JSON.parse(saved); } catch(e) { apps = []; } }
+          fillSelects();
         }
       });
     }
