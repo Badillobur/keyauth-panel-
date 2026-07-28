@@ -253,31 +253,34 @@
 
     // ── Load Manager Bots from real API ───────────────────────────────────────
     async function loadManagerBots() {
-      var res = await apiFetch(API + '/discord/bots');
       var el = document.getElementById('manager-bots-list');
+      var usedEl = document.getElementById('manager-used');
 
-      if (!res || !res.success) {
-        // Fallback: intentar con partner-bots
-        res = await apiFetch('/api/admin/discord/partner-bots');
-      }
-
-      var bots = (res && res.bots) || [];
+      // Try /partner-bots endpoint
+      var res = await apiFetch('/api/admin/discord/partner-bots');
+      var bots = (res && res.success && res.bots) ? res.bots : [];
       managerBots = bots;
 
-      // Update limit info
+      // Update limit info safely
       var admin = window._adminInfo;
       var limitEl = document.getElementById('manager-limit-info');
       var isSuperAdmin = !admin || admin.role === 'superadmin' || admin.role === 'admin';
+
       if (limitEl) {
         if (isSuperAdmin) {
-          limitEl.innerHTML = 'Creados: <strong>' + bots.length + '</strong> &nbsp;|&nbsp; 👑 Sin Límite — Admin';
+          limitEl.innerHTML = 'Creados: <strong id="manager-used">' + bots.length + '</strong> &nbsp;|&nbsp; 👑 Sin Límite — Admin';
         } else {
           var maxBots = (admin && admin.max_bots) || 1;
-          limitEl.innerHTML = 'Creados: <strong>' + bots.length + '</strong> / Límite: <strong>' + maxBots + '</strong>';
+          limitEl.innerHTML = 'Creados: <strong id="manager-used">' + bots.length + '</strong> / Límite: <strong>' + maxBots + '</strong>';
         }
       }
 
-      document.getElementById('manager-used').textContent = bots.length;
+      if (!el) return;
+
+      if (!res || !res.success) {
+        el.innerHTML = '<div class="empty-bots"><p style="color:#ef4444;">Error cargando bots: ' + ((res && res.message) || 'Sin conexión') + '</p><button class="btn btn-secondary btn-sm" onclick="loadManagerBots()" style="margin-top:8px;">Reintentar</button></div>';
+        return;
+      }
 
       if (!bots.length) {
         el.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg><p>No hay bots creados</p><small style="font-size:11px;">Crea tu primer bot premium</small></div>';
@@ -324,7 +327,7 @@
 
       var res = await apiFetch('/api/admin/discord/partner-bots', {
         method: 'POST',
-        body: { bot_token: token, app_id: appId, guild_id: guild, log_channel_id: logCh }
+        body: { bot_token: token, bot_name: name, app_id: appId, guild_id: guild, log_channel_id: logCh }
       });
 
       btn.disabled = false;

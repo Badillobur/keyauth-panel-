@@ -966,13 +966,16 @@ router.post('/partner-bots', requireAdmin, async function(req, res) {
 
     const id = uuidv4();
     const cleanToken = bot_token.replace(/[\s\n\r\t\u0000-\u001F\u007F-\u009F]/g, '');
+    const customName = req.body.bot_name || '';
     
-    await db.run('INSERT INTO partner_discord_bots (id,partner_id,app_id,bot_token,guild_id,log_channel_id,chan_online_id,chan_users_id,chan_keys_id) VALUES (?,?,?,?,?,?,?,?,?)',
-      [id, partnerId, app_id, cleanToken, guild_id||'', log_channel_id||'', chan_online_id||'', chan_users_id||'', chan_keys_id||'']);
+    await db.run('INSERT INTO partner_discord_bots (id,partner_id,app_id,bot_name,bot_token,guild_id,log_channel_id,chan_online_id,chan_users_id,chan_keys_id) VALUES (?,?,?,?,?,?,?,?,?,?)',
+      [id, partnerId, app_id, customName, cleanToken, guild_id||'', log_channel_id||'', chan_online_id||'', chan_users_id||'', chan_keys_id||'']);
 
     const r = await startPartnerBot(id, cleanToken, guild_id, app_id, partnerId);
     if (r.ok) {
-      await db.run('UPDATE partner_discord_bots SET bot_name=?,active=1 WHERE id=?', [r.tag, id]);
+      // bot_name: si el usuario puso nombre personalizado, usarlo; si no usar el tag de Discord
+      var finalName = customName || r.tag;
+      await db.run('UPDATE partner_discord_bots SET bot_name=?,active=1 WHERE id=?', [finalName, id]);
       return res.json({ success: true, message: 'Bot conectado: ' + r.tag, bot_id: id });
     } else {
       await db.run('DELETE FROM partner_discord_bots WHERE id=?', [id]);
