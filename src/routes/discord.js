@@ -975,21 +975,10 @@ router.post('/partner-bots', requireAdmin, async function(req, res) {
 
     let partnerId = req.admin.id;
 
-    // Si es super admin, necesitamos crear/obtener un registro de partner para Ã©l
+    // Si es super admin, usar su ID directamente sin crear registro en partners
     if (req.admin.role === 'superadmin' || req.admin.role === 'admin') {
-      // Verificar si ya existe como partner
-      let adminAsPartner = await db.get('SELECT id FROM partners WHERE username=?', [req.admin.username]);
-      if (!adminAsPartner) {
-        // Crear registro de partner para el admin
-        const bcrypt = require('bcryptjs');
-        const adminPartnerId = uuidv4();
-        const hashedPass = await bcrypt.hash('admin_partner', 10);
-        await db.run('INSERT INTO partners (id, username, password, email, role, max_bots, active) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [adminPartnerId, req.admin.username + '_partner', hashedPass, 'admin@local.dev', 'admin_partner', 999, 1]);
-        partnerId = adminPartnerId;
-      } else {
-        partnerId = adminAsPartner.id;
-      }
+      // Admin usa su propio ID — no crear registro falso en partners
+      partnerId = req.admin.id;
     } else if (req.admin.role === 'partner') {
       // Verificar que tiene acceso a esa app
       const pa = await db.get('SELECT * FROM partner_apps WHERE partner_id=? AND app_id=?', [req.admin.id, app_id]);

@@ -227,7 +227,8 @@ function esc(s) {
   if (!admin) return;
   window._adminInfo = admin;
 
-  var isOwner = admin.role === 'partner' && admin.partner_role === 'owner';
+  // Verificar si es owner — tanto por token como por role directo
+  var isOwner = admin.role === 'partner' && (admin.partner_role === 'owner' || admin.partnerRole === 'owner');
   var isSuperAdmin = admin.role === 'superadmin' || admin.role === 'admin';
 
   // Owner cannot create other owners — hide that option

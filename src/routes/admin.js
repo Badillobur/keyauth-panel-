@@ -611,11 +611,17 @@ router.post('/partners/:id/limits/:appId/reset', requireAdmin, async function(re
   } catch(e) { res.json({ success: false, message: e.message }); }
 });
 
-// Listar partners — SOLO ADMIN
+// Listar partners — SOLO ADMIN o OWNER
 router.get('/partners', requireAdmin, async function(req, res) {
   try {
-    const isOwner = req.admin.role === 'partner' && req.admin.partner_role === 'owner';
     const isSuperAdmin = req.admin.role === 'superadmin' || req.admin.role === 'admin';
+
+    // Verificar owner en DB también (por si el token tiene datos viejos)
+    let isOwner = req.admin.role === 'partner' && req.admin.partner_role === 'owner';
+    if (req.admin.role === 'partner' && !isOwner) {
+      const partnerRow = await db.get('SELECT role FROM partners WHERE id=?', [req.admin.id]);
+      if (partnerRow && partnerRow.role === 'owner') isOwner = true;
+    }
 
     let partners;
     if (isOwner) {
@@ -659,8 +665,14 @@ router.post('/partners', requireAdmin, async function(req, res) {
     const { username, password, display_name, email, role, app_ids, permissions, max_bots, max_partners } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
 
-    const isOwner = req.admin.role === 'partner' && req.admin.partner_role === 'owner';
     const isSuperAdmin = req.admin.role === 'superadmin' || req.admin.role === 'admin';
+
+    // Verificar si es owner — revisar tanto el token como la DB (por si el token tiene datos viejos)
+    let isOwner = req.admin.role === 'partner' && req.admin.partner_role === 'owner';
+    if (req.admin.role === 'partner' && !isOwner) {
+      const partnerRow = await db.get('SELECT role FROM partners WHERE id=?', [req.admin.id]);
+      if (partnerRow && partnerRow.role === 'owner') isOwner = true;
+    }
 
     // Solo admin o owner pueden crear partners
     if (!isSuperAdmin && !isOwner) {
@@ -753,6 +765,14 @@ router.delete('/partners/:id', requireAdmin, adminOnly, async function(req, res)
     await db.run('DELETE FROM partners WHERE id=?', [req.params.id]);
     res.json({ success: true, message: 'Partner eliminado' });
   } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// Limpiar partners fantasma creados automaticamente por el sistema (role=admin_partner)
+router.delete('/partners/cleanup/ghost', requireAdmin, adminOnly, async function(req, res) {
+  try {
+    const result = await db.run("DELETE FROM partners WHERE role='admin_partner'");
+    res.json({ success: true, message: 'Partners fantasma eliminados' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
 });
 
 // Apps que puede ver un partner (usado por el middleware de partner)
