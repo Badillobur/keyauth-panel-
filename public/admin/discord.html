@@ -419,10 +419,14 @@
 
     // ── Refresh ───────────────────────────────────────────────────────────────
     function refreshAll() {
-      loadApps();
       loadManagerBots();
-      toast('Actualizado', 'success');
+      toast('Bots actualizados', 'success');
     }
+
+    // Auto-refresh SOLO de bots cada 30 segundos (NO recarga apps)
+    setInterval(function() {
+      loadManagerBots();
+    }, 30000);
   </script>
 </body>
 </html>
