@@ -123,16 +123,23 @@ app.get('/ownerid', async function(req, res) {
 // Render duerme después de 15min de inactividad — ping cada 5min lo previene
 if (process.env.NODE_ENV === 'production') {
   const https = require('https');
-  const http = require('http');
-  setInterval(function() {
+  const http  = require('http');
+
+  function pingServer() {
     const url = process.env.RENDER_EXTERNAL_URL || ('http://localhost:' + PORT);
     const lib = url.startsWith('https') ? https : http;
-    lib.get(url + '/health', function(res) {
-      console.log('[Keep-alive] Ping OK -', res.statusCode);
+    lib.get(url + '/health', function(r) {
+      console.log('[Keep-alive] Ping OK -', r.statusCode, new Date().toISOString());
     }).on('error', function(e) {
       console.log('[Keep-alive] Ping error:', e.message);
     });
-  }, 5 * 60 * 1000); // cada 5 minutos — previene que Render duerma el servidor
+  }
+
+  // Ping cada 4 minutos (Render duerme a los 15min, esto lo previene con margen)
+  setInterval(pingServer, 4 * 60 * 1000);
+
+  // Ping inmediato al arrancar
+  setTimeout(pingServer, 10000);
 }
 
 // Diagnóstico (solo en desarrollo o con clave)
