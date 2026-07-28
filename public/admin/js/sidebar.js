@@ -87,9 +87,22 @@ function injectSidebar(activePage) {
 }
 
 // Llamado desde requireAuth después de conocer el rol
-function updateSidebarRole(role, partnerRole, activePage) {
+function updateSidebarRole(role, partnerRole, activePage, displayName) {
   window._sidebarRole = role;
   window._sidebarPartnerRole = partnerRole;
   var container = document.getElementById('sidebar-container');
   if (container) container.innerHTML = buildSidebar(activePage, role, partnerRole);
+  // Restore the real name after sidebar rebuild
+  var nameEl  = document.getElementById('admin-name');
+  var roleEl  = document.getElementById('admin-role');
+  var avatarEl = document.getElementById('admin-avatar');
+  if (nameEl && displayName) nameEl.textContent = displayName;
+  if (roleEl) {
+    var roleDisplay = role === 'superadmin' ? 'Admin'
+      : partnerRole === 'owner' ? 'Owner'
+      : role === 'partner' ? 'Partner'
+      : 'Admin';
+    roleEl.textContent = roleDisplay;
+  }
+  if (avatarEl && displayName) avatarEl.textContent = displayName.charAt(0).toUpperCase();
 }

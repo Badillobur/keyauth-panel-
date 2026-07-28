@@ -59,7 +59,7 @@
         <div class="topbar-sub">Gestiona partners y vendedores de tu sistema</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-primary" onclick="openModal('modal-create-partner')">
+        <button class="btn btn-primary" id="btn-create-partner" onclick="openModal('modal-create-partner')">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
           Crear Partner
         </button>
@@ -193,6 +193,28 @@ function esc(s) {
   injectSidebar('partners');
   var admin = await requireAuth();
   if (!admin) return;
+  window._adminInfo = admin;
+
+  var isOwner = admin.role === 'partner' && admin.partner_role === 'owner';
+  var isSuperAdmin = admin.role === 'superadmin' || admin.role === 'admin';
+
+  // Owner cannot create other owners — hide that option
+  if (isOwner) {
+    var ownerOpt = document.querySelector('#new-partner-role option[value="owner"]');
+    if (ownerOpt) ownerOpt.remove();
+    // Update button and title
+    var titleEl = document.querySelector('#modal-create-partner .modal-title');
+    if (titleEl) titleEl.textContent = 'Crear Sub-Partner';
+    var topbarBtn = document.getElementById('btn-create-partner');
+    if (topbarBtn) topbarBtn.textContent = '+ Crear Sub-Partner';
+  }
+
+  if (!isSuperAdmin && !isOwner) {
+    // Plain partner — hide create button
+    var btn = document.getElementById('btn-create-partner');
+    if (btn) btn.style.display = 'none';
+  }
+
   // Load apps for assignment dropdowns
   var ar = await apiFetch(API + '/apps');
   if (ar && ar.success) allApps = ar.apps;

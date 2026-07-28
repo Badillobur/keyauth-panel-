@@ -561,9 +561,21 @@ router.post('/partners/:id/limits/:appId/reset', requireAdmin, async function(re
 });
 
 // Listar partners — SOLO ADMIN
-router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
+router.get('/partners', requireAdmin, async function(req, res) {
   try {
-    const partners = await db.all('SELECT * FROM partners ORDER BY created_at DESC');
+    const isOwner = req.admin.role === 'partner' && req.admin.partner_role === 'owner';
+    const isSuperAdmin = req.admin.role === 'superadmin' || req.admin.role === 'admin';
+
+    let partners;
+    if (isOwner) {
+      // Owner sees only their sub-partners
+      partners = await db.all('SELECT * FROM partners WHERE owner_id=? ORDER BY created_at DESC', [req.admin.id]);
+    } else if (isSuperAdmin) {
+      // Admin sees all
+      partners = await db.all('SELECT * FROM partners ORDER BY created_at DESC');
+    } else {
+      return res.json({ success: false, message: 'Sin acceso' });
+    }
     const result = [];
     for (const p of partners) {
       const apps = await db.all(
@@ -590,21 +602,55 @@ router.get('/partners', requireAdmin, adminOnly, async function(req, res) {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// Crear partner — SOLO ADMIN
-router.post('/partners', requireAdmin, adminOnly, async function(req, res) {
+// Crear partner — ADMIN o OWNER (hasta su límite de max_partners)
+router.post('/partners', requireAdmin, async function(req, res) {
   try {
-    const { username, password, display_name, email, role, app_ids, permissions } = req.body;
+    const { username, password, display_name, email, role, app_ids, permissions, max_bots, max_partners } = req.body;
     if (!username || !password) return res.json({ success: false, message: 'Usuario y contrasena requeridos' });
+
+    const isOwner = req.admin.role === 'partner' && req.admin.partner_role === 'owner';
+    const isSuperAdmin = req.admin.role === 'superadmin' || req.admin.role === 'admin';
+
+    // Solo admin o owner pueden crear partners
+    if (!isSuperAdmin && !isOwner) {
+      return res.json({ success: false, message: 'Solo el admin o un owner puede crear partners' });
+    }
+
+    // Si es owner, verificar límite de sub-partners
+    if (isOwner) {
+      const ownerData = await db.get('SELECT max_partners FROM partners WHERE id=?', [req.admin.id]);
+      const maxAllowed = (ownerData && ownerData.max_partners) ? ownerData.max_partners : 0;
+      if (maxAllowed === 0) {
+        return res.json({ success: false, message: 'No tienes permiso para crear sub-partners' });
+      }
+      const currentCount = (await db.get('SELECT COUNT(*) as c FROM partners WHERE owner_id=?', [req.admin.id])) || {c:0};
+      if (currentCount.c >= maxAllowed) {
+        return res.json({ success: false, message: 'Límite de sub-partners alcanzado (' + maxAllowed + ')' });
+      }
+    }
+
     const ex = await db.get('SELECT id FROM partners WHERE username=?', [username]);
     if (ex) return res.json({ success: false, message: 'Username ya existe' });
     const id = uuidv4();
     const hashed = await bcrypt.hash(password, 10);
-    const partnerRole = (role === 'owner') ? 'owner' : 'partner';
-    await db.run('INSERT INTO partners (id,username,password,display_name,email,role) VALUES (?,?,?,?,?,?)',
-      [id, username, hashed, display_name || username, email || '', partnerRole]);
-    // Asociar apps CON permisos y límite de keys
+    // Owners solo pueden crear 'partner', no 'owner'
+    const partnerRole = (!isOwner && role === 'owner') ? 'owner' : 'partner';
+    const ownerId = isOwner ? req.admin.id : null;
+    const botLimit = parseInt(max_bots) || 1;
+    const partnerLimit = parseInt(max_partners) || 0;
+
+    await db.run('INSERT INTO partners (id,username,password,display_name,email,role,owner_id,max_bots,max_partners) VALUES (?,?,?,?,?,?,?,?,?)',
+      [id, username, hashed, display_name || username, email || '', partnerRole, ownerId, botLimit, partnerLimit]);
+
+    // Asociar apps — si es owner, solo puede asignar sus propias apps
     if (app_ids && app_ids.length) {
-      for (const appId of app_ids) {
+      let allowedApps = app_ids;
+      if (isOwner) {
+        const ownerApps = await db.all('SELECT app_id FROM partner_apps WHERE partner_id=?', [req.admin.id]);
+        const ownerAppIds = ownerApps.map(function(a){ return a.app_id; });
+        allowedApps = app_ids.filter(function(aid){ return ownerAppIds.includes(aid); });
+      }
+      for (const appId of allowedApps) {
         const perm = (permissions && permissions[appId]) || {};
         const can_genkeys = perm.can_genkeys !== undefined ? (perm.can_genkeys ? 1 : 0) : 1;
         const can_users   = perm.can_users   !== undefined ? (perm.can_users   ? 1 : 0) : 1;

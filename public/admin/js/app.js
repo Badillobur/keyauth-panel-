@@ -66,7 +66,10 @@ async function requireAuth() {
       : res.admin.role || 'Admin';
     roleEl.textContent = roleDisplay;
   }
-  if (avatarEl) avatarEl.textContent = ((res.admin.display_name || res.admin.username) || 'L').charAt(0).toUpperCase();
+  if (avatarEl) {
+    var displayName = res.admin.display_name || res.admin.username || 'A';
+    avatarEl.textContent = displayName.charAt(0).toUpperCase();
+  }
   // Guardar info del admin para uso en otras páginas
   window._adminInfo = res.admin;
   // Actualizar sidebar con el rol real — esto oculta secciones adminOnly para partners
@@ -75,7 +78,8 @@ async function requireAuth() {
     var page = activePage ? activePage.dataset.page : '';
     var sidebarRole = res.admin.role || 'superadmin';
     var partnerRole = res.admin.partner_role || 'partner';
-    updateSidebarRole(sidebarRole, partnerRole, page);
+    var displayName = res.admin.display_name || res.admin.username || 'Admin';
+    updateSidebarRole(sidebarRole, partnerRole, page, displayName);
   }
   return res.admin;
 }
