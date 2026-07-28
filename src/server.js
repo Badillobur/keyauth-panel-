@@ -120,6 +120,7 @@ app.get('/ownerid', async function(req, res) {
 });
 
 // Auto-ping para mantener el servidor activo en Render plan gratuito
+// Render duerme después de 15min de inactividad — ping cada 5min lo previene
 if (process.env.NODE_ENV === 'production') {
   const https = require('https');
   const http = require('http');
@@ -131,7 +132,7 @@ if (process.env.NODE_ENV === 'production') {
     }).on('error', function(e) {
       console.log('[Keep-alive] Ping error:', e.message);
     });
-  }, 10 * 60 * 1000); // cada 10 minutos
+  }, 5 * 60 * 1000); // cada 5 minutos — previene que Render duerma el servidor
 }
 
 // Diagnóstico (solo en desarrollo o con clave)
