@@ -230,7 +230,8 @@ router.post('/1.2/', async function(req, res) {
           { name: 'App', value: app.name, inline: true },
           { name: 'IP', value: ip, inline: true }
         ],
-        app: app.name
+        app: app.name,
+        appId: app.id
       });
 
       const subs = (await db.all(
@@ -305,7 +306,8 @@ router.post('/1.2/', async function(req, res) {
           { name: 'Key', value: key.substring(0, 10) + '...', inline: true },
           { name: 'IP', value: ip, inline: true }
         ],
-        app: app.name
+        app: app.name,
+        appId: app.id
       });
 
       return ok(res, 'Registro exitoso', {

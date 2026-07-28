@@ -474,33 +474,56 @@ setTimeout(async function() {
 // â”€â”€â”€ Notificacion exportable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function notifyDiscord(type, data) {
   try {
-    if (!botClient || !botReady) {
-      console.log('[Discord] notifyDiscord skipped: bot not ready');
-      return;
+    // 1. Enviar al bot principal (discord_config)
+    if (botClient && botReady) {
+      const config = await getConfig();
+      if (config && config.log_channel_id && config['notify_'+type]) {
+        const colors = {login:0x22C55E, register:0xF5C518, ban:0xEF4444, keygen:0x3B82F6};
+        const titles = {login:'Login Exitoso', register:'Nuevo Registro', ban:'Usuario Baneado', keygen:'Keys Generadas'};
+        const embed = new EmbedBuilder()
+          .setColor(colors[type] || 0xF5C518)
+          .setTitle(titles[type] || data.title || type)
+          .setDescription(data.description || '')
+          .setTimestamp()
+          .setFooter({text: 'LMAx27 - ' + (data.app || '')});
+        if (data.fields) embed.addFields(data.fields);
+        const ch = await botClient.channels.fetch(config.log_channel_id).catch(function(){return null;});
+        if (ch) await ch.send({embeds:[embed]}).catch(function(){});
+      }
     }
-    const config = await getConfig();
-    if (!config) {
-      console.log('[Discord] notifyDiscord skipped: no discord config');
-      return;
-    }
-    if (!config.log_channel_id) {
-      console.log('[Discord] notifyDiscord skipped: no log_channel_id configured');
-      return;
-    }
-    if (!config['notify_'+type]) {
-      console.log('[Discord] notifyDiscord skipped: notify_' + type + ' disabled');
-      return;
-    }
-    const colors={login:0x22C55E,register:0xF5C518,ban:0xEF4444,keygen:0x3B82F6};
-    const icons={login:'ðŸ”“',register:'ðŸ“',ban:'ðŸš«',keygen:'ðŸ”‘'};
-    const embed=new EmbedBuilder().setColor(colors[type]||0xF5C518)
-      .setTitle((icons[type]||'âš¡')+' '+(data.title||type))
-      .setDescription(data.description||'').setTimestamp().setFooter({text:'LMAx27 Â· '+(data.app||'')});
-    if (data.fields) embed.addFields(data.fields);
-    const ch=await botClient.channels.fetch(config.log_channel_id).catch(function(){return null;});
-    if (ch) await ch.send({embeds:[embed]});
-  } catch(_){}
+
+    // 2. Enviar a bots de partner activos para la misma app
+    try {
+      const allPartnerBots = await db.all(
+        'SELECT * FROM partner_discord_bots WHERE log_channel_id != "" AND active=1'
+      );
+      for (const pb of allPartnerBots) {
+        try {
+          const pBot = partnerBots[pb.id];
+          if (!pBot || !pBot.ready || !pBot.client) continue;
+
+          // Filtrar por app si se especifica
+          if (data.appId && pb.app_id !== data.appId) continue;
+
+          const logCh = await pBot.client.channels.fetch(pb.log_channel_id).catch(function(){return null;});
+          if (!logCh) continue;
+
+          const colors = {login:0x22C55E, register:0xF5C518, ban:0xEF4444, keygen:0x3B82F6};
+          const titles = {login:'Login Exitoso', register:'Nuevo Registro', ban:'Usuario Baneado', keygen:'Keys Generadas'};
+          const embed = new EmbedBuilder()
+            .setColor(colors[type] || 0xF5C518)
+            .setTitle(titles[type] || data.title || type)
+            .setDescription(data.description || '')
+            .setTimestamp()
+            .setFooter({text: 'LMAx27 - ' + (data.app || '')});
+          if (data.fields) embed.addFields(data.fields);
+          await logCh.send({embeds:[embed]}).catch(function(){});
+        } catch(_) {}
+      }
+    } catch(_) {}
+  } catch(_) {}
 }
+
 
 // â”€â”€â”€ ROUTES REST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -712,8 +735,16 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
       client.on('interactionCreate', async function(interaction) {
         if (!interaction.isChatInputCommand()) return;
         const cmd = interaction.commandName;
-        if (cmd === 'ping') return interaction.reply({ content: 'Pong! WS: ' + client.ws.ping + 'ms', ephemeral: true });
-        await interaction.deferReply({ ephemeral: true });
+
+        // Ping sin deferReply
+        if (cmd === 'ping') {
+          return interaction.reply({ content: 'Pong! WS: ' + client.ws.ping + 'ms', ephemeral: true }).catch(function(){});
+        }
+
+        // Defer con try/catch — si falla, el bot no se queda pensando
+        try { await interaction.deferReply({ ephemeral: true }); } catch(_) { return; }
+
+        try {
         if (cmd === 'stats') {
           const now = Math.floor(Date.now()/1000);
           const [users, keys, online, banned] = await Promise.all([
@@ -883,6 +914,10 @@ async function startPartnerBot(botId, token, guildId, appId, partnerId) {
           }
 
           return interaction.editReply({ embeds: [goldEmbed('Key Reseteada', '`'+key+'` fue reseteada')] });
+        }
+        } catch(err) {
+          console.log('[PartnerBot] Error en comando /' + cmd + ':', err.message);
+          try { await interaction.editReply({ content: 'Error al ejecutar el comando: ' + err.message }); } catch(_) {}
         }
       });
       resolve({ ok: true, tag: client.user.tag });
