@@ -118,15 +118,19 @@
       <input type="password" id="new-partner-password" class="form-control" placeholder="••••••••" />
     </div>
     <div class="form-group">
-      <label class="form-label">Tipo de Partner</label>
-      <select id="new-partner-role" class="form-control">
+      <label class="form-label">Tipo</label>
+      <select id="new-partner-role" class="form-control" onchange="toggleNewMaxPartners(this.value)">
         <option value="partner">Partner</option>
-        <option value="owner">Owner</option>
+        <option value="owner">Owner (puede crear sub-partners)</option>
       </select>
     </div>
+    <div class="form-group" id="new-max-partners-group" style="display:none;">
+      <label class="form-label">Max Sub-Partners que puede crear</label>
+      <input type="number" id="new-partner-max-partners" class="form-control" placeholder="5" min="0" max="100" value="5" />
+    </div>
     <div class="form-group">
-      <label class="form-label">Comisión (%)</label>
-      <input type="number" id="new-partner-commission" class="form-control" placeholder="15" min="0" max="100" />
+      <label class="form-label">Max Bots permitidos</label>
+      <input type="number" id="new-partner-commission" class="form-control" placeholder="1" min="1" max="100" value="1" />
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-create-partner')">Cancelar</button>
@@ -153,10 +157,14 @@
     </div>
     <div class="form-group">
       <label class="form-label">Tipo de Partner</label>
-      <select id="edit-partner-role" class="form-control">
+      <select id="edit-partner-role" class="form-control" onchange="toggleEditMaxPartners(this.value)">
         <option value="partner">Partner</option>
-        <option value="owner">Owner</option>
+        <option value="owner">Owner (puede crear sub-partners)</option>
       </select>
+    </div>
+    <div class="form-group" id="edit-max-partners-group" style="display:none;">
+      <label class="form-label">Max Sub-Partners que puede crear</label>
+      <input type="number" id="edit-partner-max-partners" class="form-control" min="0" max="100" value="0" />
     </div>
     <div class="form-group">
       <label class="form-label">Max Bots permitidos</label>
@@ -237,6 +245,7 @@ function renderPartners(partners) {
         '<div class="partner-stat"><div class="partner-stat-label">Username</div><div class="partner-stat-value" style="font-family:monospace;">' + esc(p.username) + '</div></div>' +
         '<div class="partner-stat"><div class="partner-stat-label">Email</div><div class="partner-stat-value">' + esc(p.email || '—') + '</div></div>' +
         '<div class="partner-stat"><div class="partner-stat-label">Max Bots</div><div class="partner-stat-value">' + (p.max_bots || 1) + '</div></div>' +
+        (p.role === 'owner' ? '<div class="partner-stat"><div class="partner-stat-label">Max Sub-Partners</div><div class="partner-stat-value">' + (p.max_partners || 0) + '</div></div>' : '') +
         '<div class="partner-stat"><div class="partner-stat-label">Último Login</div><div class="partner-stat-value">' + lastLogin + '</div></div>' +
       '</div>' +
       (appsList ? '<div class="partner-apps"><div class="partner-apps-title">Apps Asignadas</div><div class="partner-apps-list">' + appsList + '</div></div>' : '') +
@@ -263,33 +272,49 @@ function filterPartners(query) {
 }
 
 async function createPartner() {
-  var username   = document.getElementById('new-partner-username').value.trim();
-  var email      = document.getElementById('new-partner-email').value.trim();
-  var password   = document.getElementById('new-partner-password').value;
-  var role       = document.getElementById('new-partner-role').value;
+  var username     = document.getElementById('new-partner-username').value.trim();
+  var email        = document.getElementById('new-partner-email').value.trim();
+  var password     = document.getElementById('new-partner-password').value;
+  var role         = document.getElementById('new-partner-role').value;
+  var max_bots     = parseInt(document.getElementById('new-partner-commission').value) || 1;
+  var max_partners = role === 'owner' ? (parseInt(document.getElementById('new-partner-max-partners').value) || 5) : 0;
   if (!username || !password) { toast('Username y contraseña son requeridos', 'error'); return; }
 
-  var res = await apiFetch(API + '/partners', { method:'POST', body:{ username, email, password, role } });
+  var res = await apiFetch(API + '/partners', { method:'POST', body:{ username, email, password, role, max_bots, max_partners } });
   if (res && res.success) {
     toast('Partner "' + username + '" creado exitosamente', 'success');
     closeModal('modal-create-partner');
     document.getElementById('new-partner-username').value = '';
     document.getElementById('new-partner-email').value = '';
     document.getElementById('new-partner-password').value = '';
+    document.getElementById('new-partner-commission').value = '1';
+    document.getElementById('new-partner-max-partners').value = '5';
     loadPartners();
   } else if (res) {
     toast(res.message, 'error');
   }
 }
 
+function toggleNewMaxPartners(role) {
+  var group = document.getElementById('new-max-partners-group');
+  if (group) group.style.display = role === 'owner' ? '' : 'none';
+}
+
+function toggleEditMaxPartners(role) {
+  var group = document.getElementById('edit-max-partners-group');
+  if (group) group.style.display = role === 'owner' ? '' : 'none';
+}
+
 function editPartner(id) {
   var partner = partnersData.find(function(p){ return p.id === id; });
   if (!partner) return;
-  document.getElementById('edit-partner-id').value         = partner.id;
-  document.getElementById('edit-partner-username').value   = partner.display_name || partner.username;
-  document.getElementById('edit-partner-email').value      = partner.email || '';
-  document.getElementById('edit-partner-role').value       = partner.role || 'partner';
-  document.getElementById('edit-partner-commission').value = partner.max_bots || 1;
+  document.getElementById('edit-partner-id').value           = partner.id;
+  document.getElementById('edit-partner-username').value     = partner.display_name || partner.username;
+  document.getElementById('edit-partner-email').value        = partner.email || '';
+  document.getElementById('edit-partner-role').value         = partner.role || 'partner';
+  document.getElementById('edit-partner-commission').value   = partner.max_bots || 1;
+  document.getElementById('edit-partner-max-partners').value = partner.max_partners || 0;
+  toggleEditMaxPartners(partner.role || 'partner');
   openModal('modal-edit-partner');
 }
 
@@ -299,8 +324,9 @@ async function savePartnerEdit() {
   var email        = document.getElementById('edit-partner-email').value.trim();
   var role         = document.getElementById('edit-partner-role').value;
   var max_bots     = parseInt(document.getElementById('edit-partner-commission').value) || 1;
+  var max_partners = role === 'owner' ? (parseInt(document.getElementById('edit-partner-max-partners').value) || 0) : 0;
   if (!display_name) { toast('El nombre es requerido', 'error'); return; }
-  var res = await apiFetch(API + '/partners/' + id, { method:'PUT', body:{ display_name, email, role, max_bots } });
+  var res = await apiFetch(API + '/partners/' + id, { method:'PUT', body:{ display_name, email, role, max_bots, max_partners } });
   if (res && res.success) {
     toast('Partner actualizado', 'success');
     closeModal('modal-edit-partner');

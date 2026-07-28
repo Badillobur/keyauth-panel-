@@ -58,7 +58,7 @@ async function requireAuth() {
   var nameEl = document.getElementById('admin-name');
   var roleEl = document.getElementById('admin-role');
   var avatarEl = document.getElementById('admin-avatar');
-  if (nameEl) nameEl.textContent = res.admin.username || 'Admin';
+  if (nameEl) nameEl.textContent = res.admin.display_name || res.admin.username || 'Admin';
   if (roleEl) {
     var roleDisplay = res.admin.role === 'superadmin' ? 'Admin'
       : res.admin.partner_role === 'owner' ? 'Owner'
@@ -66,7 +66,9 @@ async function requireAuth() {
       : res.admin.role || 'Admin';
     roleEl.textContent = roleDisplay;
   }
-  if (avatarEl) avatarEl.textContent = (res.admin.username || 'L').charAt(0).toUpperCase();
+  if (avatarEl) avatarEl.textContent = ((res.admin.display_name || res.admin.username) || 'L').charAt(0).toUpperCase();
+  // Guardar info del admin para uso en otras páginas
+  window._adminInfo = res.admin;
   // Actualizar sidebar con el rol real — esto oculta secciones adminOnly para partners
   if (typeof updateSidebarRole === 'function') {
     var activePage = document.querySelector('.nav-item.active');
