@@ -7,44 +7,26 @@
   <title>LMAx27 — Bot Control</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    /* Tab system */
-    .bot-tabs { display:flex; gap:0; margin-bottom:24px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .bot-tabs { display:flex; margin-bottom:24px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
     .bot-tab { flex:1; padding:16px 24px; background:var(--bg3); color:var(--text2); cursor:pointer; transition:all .2s; border:none; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; }
     .bot-tab.active { background:var(--accent); color:#000; font-weight:800; }
     .bot-tab:not(.active):hover { background:var(--bg4); color:var(--text); }
-    
-    /* Content areas */
     .bot-content { display:none; }
     .bot-content.active { display:block; }
-    
-    /* Two column layout */
     .bot-columns { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-    
-    /* Shared styles */
     .bot-column { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; }
     .bot-column h3 { margin:0 0 16px 0; font-size:16px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
     .bot-limit-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); }
     .bot-limit-info span { font-size:12px; color:var(--text3); }
-    
     .bot-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .bot-info-box { padding:12px; border-radius:var(--radius); margin-top:12px; }
-    .bot-info-title { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-    .bot-info-title span { font-size:12px; font-weight:600; }
-    .bot-info-text { font-size:12px; }
-    
-    /* Manager specific */
     .manager-info-box { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); }
-    .manager-info-box .bot-info-title span { color:#8b5cf6; }
-    .manager-info-box .bot-info-text { color:#8b5cf6; }
-    
-    /* Free specific */
+    .manager-info-box span { color:#8b5cf6 !important; }
     .free-info-box { background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); }
-    .free-info-box .bot-info-title span { color:var(--accent); }
-    .free-info-box .bot-info-text { color:var(--accent); }
-    
+    .free-info-box span { color:var(--accent) !important; }
+    .free-info-box .bot-info-text { color:var(--accent); font-size:12px; }
     .empty-bots { text-align:center; padding:40px 20px; color:var(--text3); }
     .empty-bots svg { margin-bottom:12px; opacity:0.5; }
-    
     @media(max-width:900px){ .bot-columns{grid-template-columns:1fr;} .bot-grid{grid-template-columns:1fr;} }
   </style>
 </head>
@@ -53,37 +35,35 @@
   <div class="layout">
     <div id="sidebar-container"></div>
     <main class="main">
-      <!-- Header -->
       <div class="topbar">
         <div>
           <div class="topbar-title">Bot Control</div>
           <div class="topbar-sub">Administra tus bots premium y tus bots de modo gratis desde una sola sección</div>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-secondary btn-sm" onclick="refreshBots()">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 2v3h-3M2 10V7h3M10.5 5.5A4.5 4.5 0 014 1.5 4.5 4.5 0 011.5 6.5M1.5 6.5A4.5 4.5 0 018 11a4.5 4.5 0 014.5-4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <button class="btn btn-secondary btn-sm" onclick="refreshPage()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 2v3h-3M2 10V7h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
             Refresh
           </button>
         </div>
       </div>
 
       <div class="content">
-        <!-- Bot Tabs -->
+        <!-- Tabs -->
         <div class="bot-tabs">
           <button class="bot-tab active" onclick="switchTab('manager')" id="tab-manager">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             Bot Manager
           </button>
           <button class="bot-tab" onclick="switchTab('free')" id="tab-free">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Bot Mode Free
           </button>
         </div>
 
-        <!-- Bot Manager Content -->
+        <!-- Bot Manager -->
         <div class="bot-content active" id="content-manager">
           <div class="bot-columns">
-            <!-- Create Premium Bot -->
             <div class="bot-column">
               <h3>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -91,126 +71,105 @@
               </h3>
               <div class="bot-limit-info">
                 <span>Creados: <strong id="manager-used">0</strong></span>
-                <span>Acceso Ilimitado - Admin</span>
+                <span>👑 Acceso Ilimitado - Admin</span>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Nombre del bot</label>
                 <input type="text" id="manager-bot-name" class="form-control" placeholder="Mi Bot Premium" />
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Aplicación</label>
                 <select id="manager-app-select" class="form-control">
-                  <option value="">Seleccionar aplicación</option>
+                  <option value="">Cargando aplicaciones...</option>
                 </select>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Guild ID / Servidor</label>
                 <input type="text" id="manager-guild-id" class="form-control" placeholder="ID del servidor Discord" />
               </div>
-              
               <div class="bot-grid">
                 <div class="form-group">
                   <label class="form-label">Canal de comandos</label>
-                  <input type="text" id="manager-command-channel" class="form-control" placeholder="ID del canal" />
+                  <input type="text" id="manager-cmd-channel" class="form-control" placeholder="ID del canal" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Canal de logs</label>
-                  <input type="text" id="manager-log-channel" class="form-control" placeholder="ID del canal de logs" />
+                  <input type="text" id="manager-log-channel" class="form-control" placeholder="ID canal de logs" />
                 </div>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Bot Token</label>
                 <input type="password" id="manager-bot-token" class="form-control" placeholder="Token del bot Discord" />
               </div>
-              
               <button class="btn btn-primary" style="width:100%;background:var(--accent);border:none;padding:12px;color:#000;font-weight:800;" onclick="createManagerBot()">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
-                Crear Bot Premium
+                + Crear Bot Premium
               </button>
-              
-              <div class="bot-info-box manager-info-box">
-                <div class="bot-info-title">
-                  <span>👑</span>
-                  <span>Acceso Administrativo</span>
+              <div class="bot-info-box manager-info-box" style="margin-top:12px;">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                  <span style="font-size:12px;font-weight:600;">👑 Acceso Administrativo</span>
                 </div>
-                <div class="bot-info-text">Tienes acceso ilimitado para crear bots. Puedes configurar límites para owners y partners desde el panel de administración.</div>
+                <div style="font-size:12px;color:#8b5cf6;">Tienes acceso ilimitado. Contacto: WhatsApp +51 928140884</div>
               </div>
             </div>
-            
-            <!-- Premium Bots List -->
             <div class="bot-column">
               <h3>Bots Premium Activos</h3>
               <div id="manager-bots-list">
                 <div class="empty-bots">
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg>
-                  <p>No hay bots premium creados</p>
+                  <p>No hay bots creados</p>
+                  <small style="font-size:11px;">Acceso ilimitado - Crea los que necesites</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Bot Mode Free Content -->
+        <!-- Bot Mode Free -->
         <div class="bot-content" id="content-free">
           <div class="bot-columns">
-            <!-- Configure Free Bot -->
             <div class="bot-column">
               <h3>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                 Configurar Bot Gratuito
               </h3>
               <div class="bot-limit-info">
-                <span>Estado: <strong id="free-status">Inactivo</strong></span>
-                <span>Bot Modo Gratuito</span>
+                <span>Estado: <strong id="free-status" style="color:#ef4444;">Inactivo</strong></span>
+                <span>Licencias 1 Día Gratis</span>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Aplicación</label>
                 <select id="free-app-select" class="form-control">
-                  <option value="">Seleccionar aplicación</option>
+                  <option value="">Cargando aplicaciones...</option>
                 </select>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Guild ID / Servidor</label>
                 <input type="text" id="free-guild-id" class="form-control" placeholder="ID del servidor Discord" />
               </div>
-              
               <div class="bot-grid">
                 <div class="form-group">
                   <label class="form-label">Canal de comandos</label>
-                  <input type="text" id="free-command-channel" class="form-control" placeholder="ID del canal" />
+                  <input type="text" id="free-cmd-channel" class="form-control" placeholder="ID del canal" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Canal de logs</label>
-                  <input type="text" id="free-log-channel" class="form-control" placeholder="ID del canal de logs" />
+                  <input type="text" id="free-log-channel" class="form-control" placeholder="ID canal de logs" />
                 </div>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Bot Token</label>
                 <input type="password" id="free-bot-token" class="form-control" placeholder="Token del bot Discord" />
               </div>
-              
               <button class="btn btn-primary" style="width:100%;background:var(--accent);border:none;padding:12px;color:#000;font-weight:800;" onclick="toggleFreeBot()">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2L2 7l4 3 6-6" stroke="black" stroke-width="1.5"/></svg>
                 <span id="free-btn-text">Activar Bot Gratuito</span>
               </button>
-              
-              <div class="bot-info-box free-info-box">
-                <div class="bot-info-title">
-                  <span>🎁</span>
-                  <span>Modo Gratuito</span>
+              <div class="bot-info-box free-info-box" style="margin-top:12px;">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                  <span style="font-size:12px;font-weight:600;color:var(--accent);">🎁 Modo Gratuito</span>
                 </div>
-                <div class="bot-info-text">Los usuarios podrán obtener licencias gratuitas de 1 día usando comandos del bot</div>
+                <div class="bot-info-text">Los usuarios obtienen licencias de 1 día gratis usando comandos del bot</div>
               </div>
             </div>
-            
-            <!-- Free Bot Stats -->
             <div class="bot-column">
               <h3>Estado Modo Gratuito</h3>
               <div id="free-bot-stats">
@@ -233,206 +192,186 @@
     var managerBots = [];
     var freeBotActive = false;
     var apps = [];
-    var currentTab = 'manager';
 
-    function esc(s) { 
-      if (!s) return ''; 
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); 
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
     }
 
     (async function() {
       injectSidebar('discord');
       await requireAuth();
-      loadApps();
-      loadBots();
+      loadAppsFromStorage();
+      loadBotsFromStorage();
     })();
 
     function switchTab(tab) {
-      currentTab = tab;
-      
-      // Update tab buttons
-      document.querySelectorAll('.bot-tab').forEach(function(el) {
-        el.classList.remove('active');
-      });
+      document.querySelectorAll('.bot-tab').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.bot-content').forEach(function(el) { el.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
-      
-      // Update content
-      document.querySelectorAll('.bot-content').forEach(function(el) {
-        el.classList.remove('active');
-      });
       document.getElementById('content-' + tab).classList.add('active');
     }
 
-    async function loadApps() {
-      var res = await apiFetch(API + '/apps');
-      if (res && res.success && res.apps) {
-        apps = res.apps;
-        var managerSelect = document.getElementById('manager-app-select');
-        var freeSelect = document.getElementById('free-app-select');
-        
-        var options = apps.map(function(app) {
-          return '<option value="' + app.id + '">' + esc(app.name) + '</option>';
-        }).join('');
-        
-        if (managerSelect) managerSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
-        if (freeSelect) freeSelect.innerHTML = '<option value="">Seleccionar aplicación</option>' + options;
+    // ── Apps ─────────────────────────────────────────────────────────────────
+    function loadAppsFromStorage() {
+      // Load from localStorage (same key as apps.html uses)
+      var saved = localStorage.getItem('lmax27_apps');
+      if (saved) {
+        try {
+          apps = JSON.parse(saved);
+          fillSelects();
+          return;
+        } catch(e) {}
       }
+      // Fallback API
+      apiFetch(API + '/apps').then(function(res) {
+        if (res && res.success && res.apps && res.apps.length) {
+          apps = res.apps;
+          localStorage.setItem('lmax27_apps', JSON.stringify(apps));
+          fillSelects();
+        } else {
+          fillSelects(); // will show empty message
+        }
+      });
     }
 
-    function loadBots() {
-      // Load from localStorage if available
-      var savedManagerBots = localStorage.getItem('manager_bots');
-      var savedFreeBotState = localStorage.getItem('free_bot_active');
-      
-      if (savedManagerBots) {
-        try {
-          managerBots = JSON.parse(savedManagerBots);
-        } catch(e) {
-          managerBots = [];
-        }
+    function fillSelects() {
+      var mSel = document.getElementById('manager-app-select');
+      var fSel = document.getElementById('free-app-select');
+      if (!apps || !apps.length) {
+        var msg = '<option value="">Sin aplicaciones — ve a Apps y crea una</option>';
+        mSel.innerHTML = msg;
+        fSel.innerHTML = msg;
+        return;
       }
-      
-      if (savedFreeBotState) {
-        freeBotActive = savedFreeBotState === 'true';
-      }
-      
+      var opts = '<option value="">Seleccionar aplicación</option>' +
+        apps.map(function(a) {
+          return '<option value="' + a.id + '">' + esc(a.name) + '</option>';
+        }).join('');
+      mSel.innerHTML = opts;
+      fSel.innerHTML = opts;
+    }
+
+    // ── Bots persistence ─────────────────────────────────────────────────────
+    function loadBotsFromStorage() {
+      var saved = localStorage.getItem('lmax27_manager_bots');
+      var savedFree = localStorage.getItem('lmax27_free_bot');
+      if (saved) { try { managerBots = JSON.parse(saved); } catch(e) { managerBots = []; } }
+      if (savedFree) { try { var d = JSON.parse(savedFree); freeBotActive = d.active; } catch(e) {} }
       renderManagerBots();
-      renderFreeBotStats();
+      renderFreeStats();
     }
 
     function saveBots() {
-      localStorage.setItem('manager_bots', JSON.stringify(managerBots));
-      localStorage.setItem('free_bot_active', freeBotActive.toString());
+      localStorage.setItem('lmax27_manager_bots', JSON.stringify(managerBots));
     }
 
+    // ── Render ────────────────────────────────────────────────────────────────
     function renderManagerBots() {
-      var container = document.getElementById('manager-bots-list');
+      var el = document.getElementById('manager-bots-list');
       document.getElementById('manager-used').textContent = managerBots.length;
-      
       if (!managerBots.length) {
-        container.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg><p>No hay bots premium creados</p><small style="color:var(--text3);font-size:11px;">Acceso ilimitado - Crea los bots que necesites</small></div>';
+        el.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="4" stroke="currentColor" stroke-width="2"/><line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" stroke-width="2"/><line x1="24" y1="34" x2="24" y2="40" stroke="currentColor" stroke-width="2"/></svg><p>No hay bots creados</p><small style="font-size:11px;">Acceso ilimitado - Crea los que necesites</small></div>';
         return;
       }
-      
-      // Renderizar bots existentes
-      container.innerHTML = managerBots.map(function(bot) {
+      el.innerHTML = managerBots.map(function(bot) {
         return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-            '<div style="font-size:14px;font-weight:600;color:var(--text);">' + esc(bot.name) + '</div>' +
-            '<div style="padding:4px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);">ONLINE</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+            '<div style="font-weight:700;color:var(--text);">' + esc(bot.name) + '</div>' +
+            '<span style="padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);">ONLINE</span>' +
           '</div>' +
-          '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;">' +
-            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Aplicación</div><div style="font-size:11px;color:var(--text2);">' + esc(bot.app) + '</div></div>' +
-            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Guild</div><div style="font-size:11px;color:var(--text2);">' + esc(bot.guild) + '</div></div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">' +
+            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;">App</div><div style="font-size:12px;color:var(--text2);">' + esc(bot.app) + '</div></div>' +
+            '<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;">Guild ID</div><div style="font-size:12px;color:var(--text2);">' + esc(bot.guild) + '</div></div>' +
           '</div>' +
           '<div style="display:flex;gap:6px;">' +
-            '<button onclick="editBot(\'' + bot.id + '\')" style="padding:6px 12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);border-radius:var(--radius);font-size:11px;cursor:pointer;">Config</button>' +
-            '<button onclick="deleteBot(\'' + bot.id + '\')" style="padding:6px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:var(--radius);font-size:11px;cursor:pointer;">Delete</button>' +
+            '<button onclick="deleteBot(\'' + bot.id + '\')" style="padding:5px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:var(--radius);font-size:11px;cursor:pointer;">Eliminar</button>' +
           '</div>' +
         '</div>';
       }).join('');
     }
 
-    function renderFreeBotStats() {
-      var container = document.getElementById('free-bot-stats');
+    function renderFreeStats() {
+      var el = document.getElementById('free-bot-stats');
       var statusEl = document.getElementById('free-status');
-      var btnTextEl = document.getElementById('free-btn-text');
-      
+      var btnEl = document.getElementById('free-btn-text');
       if (freeBotActive) {
         statusEl.textContent = 'Activo';
         statusEl.style.color = '#22c55e';
-        btnTextEl.textContent = 'Desactivar Bot Gratuito';
-        
-        container.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><h4 style="color:var(--accent);margin:0 0 12px 0;">Bot Gratuito Activo</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Licencias Hoy</div><div style="font-size:18px;font-weight:700;color:var(--accent);">28</div></div><div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Usuarios</div><div style="font-size:18px;font-weight:700;color:var(--accent);">15</div></div></div></div>';
+        btnEl.textContent = 'Desactivar Bot Gratuito';
+        el.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">' +
+          '<div style="color:var(--accent);font-size:14px;font-weight:700;margin-bottom:16px;">✓ Bot Gratuito Activo</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+            '<div style="text-align:center;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px;">Licencias Hoy</div><div style="font-size:24px;font-weight:900;color:var(--accent);">0</div></div>' +
+            '<div style="text-align:center;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px;">Usuarios</div><div style="font-size:24px;font-weight:900;color:var(--accent);">0</div></div>' +
+          '</div>' +
+        '</div>';
       } else {
         statusEl.textContent = 'Inactivo';
         statusEl.style.color = '#ef4444';
-        btnTextEl.textContent = 'Activar Bot Gratuito';
-        
-        container.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L4 14l20 10 20-10-20-10z" stroke="currentColor" stroke-width="2"/><path d="M4 34l20 10 20-10" stroke="currentColor" stroke-width="2"/><path d="M4 24l20 10 20-10" stroke="currentColor" stroke-width="2"/></svg><p>Bot gratuito no configurado</p></div>';
+        btnEl.textContent = 'Activar Bot Gratuito';
+        el.innerHTML = '<div class="empty-bots"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L4 14l20 10 20-10-20-10z" stroke="currentColor" stroke-width="2"/><path d="M4 34l20 10 20-10" stroke="currentColor" stroke-width="2"/><path d="M4 24l20 10 20-10" stroke="currentColor" stroke-width="2"/></svg><p>Bot gratuito no configurado</p></div>';
       }
     }
 
-    async function createManagerBot() {
+    // ── Actions ───────────────────────────────────────────────────────────────
+    function createManagerBot() {
       var name = document.getElementById('manager-bot-name').value.trim();
       var appId = document.getElementById('manager-app-select').value;
-      var guildId = document.getElementById('manager-guild-id').value.trim();
-      var commandChannel = document.getElementById('manager-command-channel').value.trim();
-      var logChannel = document.getElementById('manager-log-channel').value.trim();
+      var guild = document.getElementById('manager-guild-id').value.trim();
       var token = document.getElementById('manager-bot-token').value.trim();
-      
-      if (!name || !appId || !guildId || !token) {
-        toast('Todos los campos son requeridos', 'error');
-        return;
-      }
-      
-      // No hay límites para admin - acceso ilimitado
-      var app = apps.find(function(a) { return a.id === appId; });
-      var newBot = {
-        id: 'bot' + Date.now(),
+      var cmdCh = document.getElementById('manager-cmd-channel').value.trim();
+      var logCh = document.getElementById('manager-log-channel').value.trim();
+      if (!name || !appId || !guild || !token) { toast('Nombre, App, Guild ID y Token son requeridos', 'error'); return; }
+      var appObj = apps.find(function(a) { return a.id === appId; });
+      managerBots.push({
+        id: 'bot_' + Date.now(),
         name: name,
-        app: app ? app.name : 'Unknown',
+        app: appObj ? appObj.name : appId,
         appId: appId,
-        status: 'online',
-        guild: guildId,
-        commandChannel: commandChannel,
-        logChannel: logChannel,
+        guild: guild,
+        cmdChannel: cmdCh,
+        logChannel: logCh,
         createdAt: new Date().toISOString().split('T')[0]
-      };
-      
-      managerBots.push(newBot);
-      saveBots(); // Guardar en localStorage
+      });
+      saveBots();
       renderManagerBots();
-      
-      toast('Bot premium creado exitosamente', 'success');
-      
-      // Limpiar formulario
+      toast('Bot "' + name + '" creado exitosamente', 'success');
       document.getElementById('manager-bot-name').value = '';
       document.getElementById('manager-app-select').value = '';
       document.getElementById('manager-guild-id').value = '';
-      document.getElementById('manager-command-channel').value = '';
+      document.getElementById('manager-cmd-channel').value = '';
       document.getElementById('manager-log-channel').value = '';
       document.getElementById('manager-bot-token').value = '';
     }
 
+    function deleteBot(id) {
+      confirmAction('¿Eliminar este bot?', function() {
+        managerBots = managerBots.filter(function(b) { return b.id !== id; });
+        saveBots();
+        renderManagerBots();
+        toast('Bot eliminado', 'success');
+      });
+    }
+
     function toggleFreeBot() {
       var appId = document.getElementById('free-app-select').value;
-      var guildId = document.getElementById('free-guild-id').value.trim();
+      var guild = document.getElementById('free-guild-id').value.trim();
       var token = document.getElementById('free-bot-token').value.trim();
-      
-      if (!freeBotActive) {
-        if (!appId || !guildId || !token) {
-          toast('Aplicación, Guild ID y Token son requeridos', 'error');
-          return;
-        }
-        freeBotActive = true;
-        toast('Bot gratuito activado exitosamente', 'success');
-      } else {
-        freeBotActive = false;
-        toast('Bot gratuito desactivado', 'info');
+      if (!freeBotActive && (!appId || !guild || !token)) {
+        toast('App, Guild ID y Token son requeridos', 'error');
+        return;
       }
-      
-      renderFreeBotStats();
+      freeBotActive = !freeBotActive;
+      localStorage.setItem('lmax27_free_bot', JSON.stringify({ active: freeBotActive }));
+      renderFreeStats();
+      toast(freeBotActive ? 'Bot gratuito activado' : 'Bot gratuito desactivado', freeBotActive ? 'success' : 'info');
     }
 
-    function refreshBots() {
-      toast('Actualizando estado de bots...', 'info');
-      loadBots();
-      setTimeout(function() {
-        toast('Estados actualizados', 'success');
-      }, 1500);
-    }
-
-    function editBot(id) {
-      toast('Función de configuración próximamente disponible', 'info');
-    }
-
-    function deleteBot(id) {
-      if (!confirm('¿Eliminar este bot premium?')) return;
-      
-      managerBots = managerBots.filter(function(bot) { return bot.id !== id; });
-      renderManagerBots();
-      toast('Bot eliminado correctamente', 'success');
+    function refreshPage() {
+      loadAppsFromStorage();
+      loadBotsFromStorage();
+      toast('Actualizado', 'success');
     }
   </script>
 </body>
