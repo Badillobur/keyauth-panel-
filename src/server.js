@@ -112,23 +112,39 @@ app.get('/health', function(req, res) {
 });
 
 // ─── Descargas publicas /d/:code ─────────────────────────────────────────────
-// Cualquiera puede usar el link, no requiere login
 app.get('/d/:code', async function(req, res) {
   try {
     const db = require('./db/database');
     const file = await db.get('SELECT * FROM download_files WHERE code=? AND active=1', [req.params.code]);
     if (!file) {
-      return res.status(404).send(`
-        <!DOCTYPE html><html><head><title>LMAx27 - Archivo no encontrado</title>
+      return res.status(404).send(`<!DOCTYPE html><html><head><title>LMAx27 - No encontrado</title>
         <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;}
         h1{font-size:24px;}p{color:#666;}</style></head>
-        <body><h1>LMAx27</h1><p>Archivo no encontrado o desactivado.</p></body></html>
-      `);
+        <body><h1>LMAx27</h1><p>Archivo no encontrado o desactivado.</p></body></html>`);
     }
-    // Incrementar contador de descargas
+    // Incrementar contador
     await db.run('UPDATE download_files SET downloads=downloads+1 WHERE id=?', [file.id]);
-    // Redirigir al enlace real
-    res.redirect(302, file.url);
+
+    // Convertir links de Google Drive a descarga directa
+    let downloadUrl = file.url;
+    const driveMatch = downloadUrl.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?.*id=)([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      downloadUrl = 'https://drive.google.com/uc?export=download&confirm=t&id=' + driveMatch[1];
+    }
+
+    // Para otros links — mandar página HTML que descarga automáticamente
+    res.send(`<!DOCTYPE html><html><head><title>LMAx27 - Descargando...</title>
+      <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:12px;}
+      .spinner{width:40px;height:40px;border:3px solid #222;border-top-color:#eab308;border-radius:50%;animation:spin 1s linear infinite;}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      h2{margin:0;font-size:18px;}p{color:#666;font-size:13px;margin:0;}</style>
+      <script>window.onload = function(){ window.location.href = '${downloadUrl.replace(/'/g,"\\'")}'; };</script>
+      </head><body>
+      <div class="spinner"></div>
+      <h2>LMAx27</h2>
+      <p>Descargando ${file.name}...</p>
+      <p style="font-size:11px;color:#444;">Si no inicia, <a href="${downloadUrl.replace(/'/g,"\\'")}}" style="color:#eab308;">haz click aqui</a></p>
+      </body></html>`);
   } catch(e) {
     res.status(500).send('Error interno');
   }
