@@ -102,12 +102,36 @@ app.get('/users',     function(req, res) { res.sendFile(require('path').join(__d
 app.get('/logs',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/logs.html')); });
 app.get('/vars',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/vars.html')); });
 app.get('/partners',  function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/partners.html')); });
+app.get('/files',     function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/files.html')); });
 app.get('/discord',   function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/discord.html')); });
 app.get('/docs',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/api-docs.html')); });
 
 // Ruta de salud
 app.get('/health', function(req, res) {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ─── Descargas publicas /d/:code ─────────────────────────────────────────────
+// Cualquiera puede usar el link, no requiere login
+app.get('/d/:code', async function(req, res) {
+  try {
+    const db = require('./db/database');
+    const file = await db.get('SELECT * FROM download_files WHERE code=? AND active=1', [req.params.code]);
+    if (!file) {
+      return res.status(404).send(`
+        <!DOCTYPE html><html><head><title>LMAx27 - Archivo no encontrado</title>
+        <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;}
+        h1{font-size:24px;}p{color:#666;}</style></head>
+        <body><h1>LMAx27</h1><p>Archivo no encontrado o desactivado.</p></body></html>
+      `);
+    }
+    // Incrementar contador de descargas
+    await db.run('UPDATE download_files SET downloads=downloads+1 WHERE id=?', [file.id]);
+    // Redirigir al enlace real
+    res.redirect(302, file.url);
+  } catch(e) {
+    res.status(500).send('Error interno');
+  }
 });
 
 // Ver owner_id del admin actual (util para configurar el C++)

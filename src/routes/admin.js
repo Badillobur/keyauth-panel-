@@ -560,6 +560,20 @@ router.delete('/apps/:appId/vars/:varId', requireAdmin, async function(req, res)
   try { await db.run('ALTER TABLE partners ADD COLUMN max_bots INTEGER DEFAULT 1'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN max_partners INTEGER DEFAULT 0'); } catch(_) {}
   try { await db.run('ALTER TABLE partners ADD COLUMN owner_id TEXT DEFAULT NULL'); } catch(_) {}
+
+  // Tabla de archivos/descargas
+  await db.run(`CREATE TABLE IF NOT EXISTS download_files (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    code        TEXT NOT NULL UNIQUE,
+    url         TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    version     TEXT DEFAULT '',
+    active      INTEGER DEFAULT 1,
+    downloads   INTEGER DEFAULT 0,
+    created_at  INTEGER DEFAULT (strftime('%s','now'))
+  )`);
+  try { await db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_files_code ON download_files(code)'); } catch(_) {}
   try { await db.run("ALTER TABLE apps ADD COLUMN description TEXT DEFAULT ''"); } catch(_) {}
   // Tabla bots por partner
   await db.run(`CREATE TABLE IF NOT EXISTS partner_discord_bots (
@@ -894,6 +908,58 @@ router.get('/owner/me', requireAdmin, async function(req, res) {
     const botCount = await db.get('SELECT COUNT(*) as c FROM partner_discord_bots WHERE partner_id=? AND active=1', [me.id]);
     res.json({ success: true, me: Object.assign({}, me, { apps, bot_count: (botCount && botCount.c) || 0 }) });
   } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// ─── ARCHIVOS / DESCARGAS ─────────────────────────────────────────────────────
+
+function generateCode(name) {
+  var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 20);
+  var rand = Math.random().toString(36).substr(2, 6);
+  return slug + '-' + rand;
+}
+
+router.get('/files', requireAdmin, async function(req, res) {
+  try {
+    const files = await db.all('SELECT * FROM download_files ORDER BY created_at DESC');
+    res.json({ success: true, files });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+router.post('/files', requireAdmin, async function(req, res) {
+  try {
+    const { name, url, description, version, code } = req.body;
+    if (!name || !url) return res.json({ success: false, message: 'Nombre y URL requeridos' });
+    const finalCode = code ? code.toLowerCase().replace(/[^a-z0-9-]/g,'') : generateCode(name);
+    const existing = await db.get('SELECT id FROM download_files WHERE code=?', [finalCode]);
+    if (existing) return res.json({ success: false, message: 'El código ya existe, usa otro' });
+    const id = uuidv4();
+    await db.run('INSERT INTO download_files (id,name,code,url,description,version) VALUES (?,?,?,?,?,?)',
+      [id, name, finalCode, url, description||'', version||'']);
+    const file = await db.get('SELECT * FROM download_files WHERE id=?', [id]);
+    res.json({ success: true, message: 'Archivo creado', file });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+router.put('/files/:id', requireAdmin, async function(req, res) {
+  try {
+    const f = await db.get('SELECT * FROM download_files WHERE id=?', [req.params.id]);
+    if (!f) return res.json({ success: false, message: 'Archivo no encontrado' });
+    const name        = req.body.name        !== undefined ? req.body.name        : f.name;
+    const url         = req.body.url         !== undefined ? req.body.url         : f.url;
+    const description = req.body.description !== undefined ? req.body.description : f.description;
+    const version     = req.body.version     !== undefined ? req.body.version     : f.version;
+    const active      = req.body.active      !== undefined ? req.body.active      : f.active;
+    await db.run('UPDATE download_files SET name=?,url=?,description=?,version=?,active=? WHERE id=?',
+      [name, url, description, version, active, f.id]);
+    res.json({ success: true, message: 'Archivo actualizado' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
+});
+
+router.delete('/files/:id', requireAdmin, async function(req, res) {
+  try {
+    await db.run('DELETE FROM download_files WHERE id=?', [req.params.id]);
+    res.json({ success: true, message: 'Archivo eliminado' });
+  } catch(e) { res.json({ success: false, message: e.message }); }
 });
 
 module.exports = router;
