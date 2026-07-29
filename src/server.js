@@ -215,17 +215,72 @@ async function handleDownload(code, res, next) {
     const safeName = (file.name || 'archivo').replace(/'/g, "\\'");
     const safeUrl  = downloadUrl.replace(/'/g, "\\'").replace(/}/g, '');
     res.send(`<!DOCTYPE html><html><head><title>LMAx27 - Descargando ${safeName}...</title>
-      <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:12px;}
-      .spinner{width:40px;height:40px;border:3px solid #222;border-top-color:#eab308;border-radius:50%;animation:spin 1s linear infinite;}
-      @keyframes spin{to{transform:rotate(360deg)}}
-      h2{margin:0;font-size:18px;}p{color:#666;font-size:13px;margin:0;}a{color:#eab308;}</style>
-      <script>window.onload=function(){window.location.href='${safeUrl}';};</script>
-      </head><body>
-      <div class="spinner"></div>
-      <h2>LMAx27</h2>
-      <p>Descargando <strong style="color:#eab308;">${safeName}</strong>...</p>
-      <p style="font-size:11px;color:#444;margin-top:8px;">Si no inicia, <a href="${safeUrl}">haz click aqui</a></p>
-      </body></html>`);
+      <meta charset="UTF-8"/>
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#0a0a0a;color:#eab308;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+          display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;}
+        .logo{font-size:28px;font-weight:900;letter-spacing:2px;}
+        .sub{color:#555;font-size:13px;}
+        .card{background:#111;border:1px solid #222;border-radius:12px;padding:28px 36px;text-align:center;min-width:320px;}
+        .filename{font-size:15px;font-weight:600;color:#fff;margin:8px 0 20px 0;word-break:break-all;}
+        .bar-wrap{background:#1a1a1a;border-radius:8px;height:8px;overflow:hidden;margin-bottom:8px;}
+        .bar{background:linear-gradient(90deg,#eab308,#f59e0b);height:8px;border-radius:8px;width:0%;transition:width .4s ease;}
+        .pct{font-size:12px;color:#555;}
+        .status{font-size:12px;color:#eab308;margin-top:8px;}
+        .fallback{margin-top:16px;font-size:11px;color:#333;}
+        .fallback a{color:#eab308;text-decoration:none;}
+        .fallback a:hover{text-decoration:underline;}
+      </style>
+    </head><body>
+      <div class="card">
+        <div class="logo">LMAx27</div>
+        <div class="filename">${safeName}</div>
+        <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+        <div class="pct" id="pct">Iniciando descarga...</div>
+        <div class="status" id="status">Conectando al servidor...</div>
+        <div class="fallback">Si no inicia, <a href="${safeUrl}">haz click aqui</a></div>
+      </div>
+      <script>
+        var url = '${safeUrl}';
+        var bar = document.getElementById('bar');
+        var pct = document.getElementById('pct');
+        var status = document.getElementById('status');
+        var progress = 0;
+
+        // Simular progreso visual mientras descarga
+        function simulate() {
+          if (progress < 90) {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            bar.style.width = progress + '%';
+            pct.textContent = Math.floor(progress) + '%';
+          }
+        }
+        var interval = setInterval(simulate, 300);
+
+        // Iniciar descarga real
+        setTimeout(function() {
+          status.textContent = 'Descargando...';
+          // Crear link oculto para forzar descarga
+          var a = document.createElement('a');
+          a.href = url;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+
+          // Completar barra después de un momento
+          setTimeout(function() {
+            clearInterval(interval);
+            progress = 100;
+            bar.style.width = '100%';
+            pct.textContent = '100%';
+            status.textContent = 'Descarga iniciada correctamente';
+            status.style.color = '#22c55e';
+          }, 2000);
+        }, 800);
+      </script>
+    </body></html>`);
   } catch(e) {
     if (next) return next();
     res.status(500).send('Error interno');
