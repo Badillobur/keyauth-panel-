@@ -12,14 +12,19 @@ async function apiFetch(url, options) {
   options.headers = options.headers || {};
   var token = getToken();
   if (token) options.headers['Authorization'] = 'Bearer ' + token;
-  options.credentials = 'include';
   if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
     options.headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(options.body);
   }
+  options.credentials = 'same-origin';
   try {
     var res = await fetch(url, options);
-    var data = await res.json();
+    var data = null;
+    try {
+      data = await res.json();
+    } catch (parseError) {
+      data = null;
+    }
     // Solo 401 (token inválido/expirado) redirige al login
     // 403 (sin permiso para esa acción) solo muestra toast, NO cierra sesión
     if (res.status === 401) {
@@ -90,6 +95,17 @@ function logout() {
   window.location.href = '/login';
 }
 
+// HTML escape helper
+function escapeHtml(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Toast
 function toast(msg, type) {
   type = type || 'info';
@@ -98,8 +114,17 @@ function toast(msg, type) {
   var icons = { success: '✓', error: '✕', info: '★', warning: '⚠' };
   var el = document.createElement('div');
   el.className = 'toast ' + type;
-  el.innerHTML = '<span>' + (icons[type]||'•') + '</span><span>' + msg + '</span>';
+
+  var iconEl = document.createElement('span');
+  iconEl.textContent = icons[type] || '•';
+
+  var textEl = document.createElement('span');
+  textEl.textContent = msg;
+
+  el.appendChild(iconEl);
+  el.appendChild(textEl);
   c.appendChild(el);
+
   setTimeout(function() {
     el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = '0.3s';
     setTimeout(function() { if (el.parentNode) el.remove(); }, 300);
