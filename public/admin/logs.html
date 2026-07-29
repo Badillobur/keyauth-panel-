@@ -14,8 +14,8 @@
     <div class="topbar">
       <div><div class="topbar-title">📋 Logs de Actividad</div><div class="topbar-sub" id="topbar-sub">Monitorea lo que pasa en tus apps</div></div>
       <div class="topbar-actions">
-        <select id="app-selector" class="form-control" style="min-width:160px;" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
-        <select id="limit-sel" class="form-control" style="width:110px;" onchange="reload()"><option value="50">50 logs</option><option value="100" selected>100 logs</option><option value="250">250 logs</option><option value="500">500 logs</option></select>
+        <select id="app-selector" class="form-control" onchange="onAppChange()"><option value="">Seleccionar App...</option></select>
+        <select id="limit-sel" class="form-control" onchange="reload()"><option value="50">50 logs</option><option value="100" selected>100 logs</option><option value="250">250 logs</option><option value="500">500 logs</option></select>
         <button class="btn btn-secondary btn-sm" id="btn-refresh" disabled onclick="reload()">🔄</button>
         <button class="btn btn-danger btn-sm" id="btn-clear" disabled onclick="clearLogs()">🗑️ Limpiar</button>
       </div>

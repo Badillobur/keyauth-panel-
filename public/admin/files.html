@@ -52,9 +52,11 @@
 
         <!-- Izquierda: subir -->
         <div>
-          <div class="card" style="padding:20px;">
-            <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px;">Subir Archivo</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:16px;">Sube directamente tu archivo y genera un enlace personalizado</div>
+          <div class="card">
+            <div class="section-header">
+              <div class="section-title">Subir Archivo</div>
+            </div>
+            <div class="section-note">Sube directamente tu archivo y genera un enlace personalizado</div>
 
             <!-- Drop zone -->
             <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
@@ -74,7 +76,7 @@
               <input type="text" id="add-code" class="form-control" placeholder="" />
               <div style="font-size:10px;color:var(--text3);margin-top:4px;">Link: <span style="color:var(--accent);" id="link-preview">lmax27.shop/</span></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Versión</label>
                 <input type="text" id="add-version" class="form-control" placeholder="" />
@@ -110,10 +112,9 @@
 
         <!-- Derecha: lista -->
         <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <div style="font-size:14px;font-weight:700;color:var(--text);">Archivos (<span id="files-count">0</span>)</div>
-            <input type="text" placeholder="Buscar..." oninput="filterFiles(this.value)"
-              style="width:180px;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:12px;outline:none;" />
+          <div class="section-header">
+            <div class="section-title">Archivos (<span id="files-count">0</span>)</div>
+            <input type="text" class="form-control" placeholder="Buscar..." oninput="filterFiles(this.value)" />
           </div>
           <div id="files-list"><div class="empty-state"><div class="loader"></div></div></div>
         </div>
