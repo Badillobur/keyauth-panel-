@@ -7,17 +7,18 @@
   <title>LMAx27 — Archivos</title>
   <link rel="stylesheet" href="/admin/css/style.css" />
   <style>
-    .files-grid { display:grid; grid-template-columns:420px 1fr; gap:20px; align-items:start; }
+    .files-grid { display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:20px; align-items:start; }
     @media(max-width:900px){ .files-grid{grid-template-columns:1fr;} }
-    .file-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:12px; transition:border-color .2s; }
+    .files-grid > div { width:100%; }
+    .file-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:12px; transition:border-color .2s; word-break: break-word; }
     .file-card:hover { border-color:rgba(234,179,8,.3); }
-    .file-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .file-name { font-size:14px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
+    .file-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap; }
+    .file-name { font-size:14px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; flex:1 1 auto; min-width:0; }
     .file-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
     .file-meta .label { font-size:9px; color:var(--text3); text-transform:uppercase; }
     .file-meta .value { font-size:12px; color:var(--text2); font-family:monospace; }
-    .file-link-box { display:flex; align-items:center; gap:8px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:10px; }
-    .file-link-box span { flex:1; font-family:monospace; font-size:11px; color:var(--accent); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .file-link-box { display:flex; align-items:center; gap:8px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:10px; flex-wrap:wrap; }
+    .file-link-box span { flex:1 1 auto; min-width:0; font-family:monospace; font-size:11px; color:var(--accent); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .file-actions { display:flex; gap:6px; flex-wrap:wrap; }
     .fbtn { padding:5px 12px; border:1px solid var(--border); background:var(--bg3); color:var(--text2); border-radius:var(--radius); font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; text-decoration:none; display:inline-flex; align-items:center; gap:4px; }
     .fbtn:hover { border-color:var(--accent); color:var(--text); }
@@ -29,9 +30,10 @@
     .drop-zone:hover, .drop-zone.dragover { border-color:var(--accent); background:rgba(234,179,8,.05); }
     .drop-zone svg { margin-bottom:8px; opacity:.5; }
     .drop-zone p { margin:0; font-size:13px; color:var(--text3); }
-    .drop-zone .filename { color:var(--accent); font-weight:600; font-size:13px; margin-top:4px; }
-    #prog-wrap { display:none; margin-bottom:12px; }
+    .drop-zone .filename { color:var(--accent); font-weight:600; font-size:13px; margin-top:4px; word-break: break-word; }
+    #prog-wrap { display:none; margin-bottom:12px; width:100%; }
     #prog-bar  { background:var(--accent); height:6px; border-radius:4px; width:0%; transition:width .3s; }
+    #prog-pct { font-size:11px; color:var(--text3); margin-top:4px; }
   </style>
 </head>
 <body>
@@ -217,6 +219,9 @@ async function uploadFile() {
   xhr.onload = function() {
     document.getElementById('btn-upload').disabled = false;
     document.getElementById('btn-upload').innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 9V1M3 4l3.5-3 3.5 3M1 11h11" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg> Subir y Generar Enlace';
+    document.getElementById('prog-bar').style.width = '100%';
+    document.getElementById('prog-pct').textContent = '100%';
+    document.getElementById('prog-label').textContent = 'Procesando...';
     try {
       var res = JSON.parse(xhr.responseText);
       if (res.success) {
