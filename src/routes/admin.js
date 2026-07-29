@@ -929,7 +929,7 @@ router.post('/files', requireAdmin, async function(req, res) {
   try {
     const { name, url, description, version, code } = req.body;
     if (!name || !url) return res.json({ success: false, message: 'Nombre y URL requeridos' });
-    const finalCode = code ? code.toLowerCase().replace(/[^a-z0-9-]/g,'') : generateCode(name);
+    const finalCode = code ? code.toLowerCase().replace(/[^a-z0-9-]/g,'') : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 40);
     const existing = await db.get('SELECT id FROM download_files WHERE code=?', [finalCode]);
     if (existing) return res.json({ success: false, message: 'El código ya existe, usa otro' });
     const id = uuidv4();

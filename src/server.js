@@ -106,49 +106,131 @@ app.get('/files',     function(req, res) { res.sendFile(require('path').join(__d
 app.get('/discord',   function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/discord.html')); });
 app.get('/docs',      function(req, res) { res.sendFile(require('path').join(__dirname, '../public/admin/api-docs.html')); });
 
-// Ruta de salud
+// ─── Upload de archivos con multer ───────────────────────────────────────────
+const multer  = require('multer');
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    // Usar /tmp que siempre existe en Render
+    const dir = require('os').tmpdir() + '/lmax27-uploads';
+    require('fs').mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function(req, file, cb) {
+    // Mantener nombre original con timestamp para evitar colisiones
+    const ext  = require('path').extname(file.originalname);
+    const base = require('path').basename(file.originalname, ext)
+                   .replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40);
+    cb(null, base + '_' + Date.now() + ext);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } }); // 500MB max
+
+// POST /api/admin/files/upload — subir archivo real
+app.post('/api/admin/files/upload', async function(req, res) {
+  // Verificar token admin primero
+  const jwt = require('jsonwebtoken');
+  const { SECRET } = require('./middleware/auth');
+  const token = (req.cookies && req.cookies.admin_token) ||
+    (req.headers.authorization && req.headers.authorization.replace('Bearer ',''));
+  if (!token) return res.json({ success: false, message: 'No autorizado' });
+  try { jwt.verify(token, SECRET); } catch(_) { return res.json({ success: false, message: 'Token invalido' }); }
+
+  upload.single('file')(req, res, async function(err) {
+    if (err) return res.json({ success: false, message: 'Error al subir: ' + err.message });
+    if (!req.file) return res.json({ success: false, message: 'No se recibio ningun archivo' });
+
+    const db = require('./db/database');
+    const { v4: uuidv4 } = require('uuid');
+    const name    = req.body.name || req.file.originalname;
+    const rawCode = req.body.code || name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,40);
+    const code    = rawCode.replace(/[^a-z0-9-]/g,'');
+    const version = req.body.version || '';
+    const desc    = req.body.description || '';
+
+    // Verificar código único
+    const existing = await db.get('SELECT id FROM download_files WHERE code=?', [code]);
+    if (existing) {
+      require('fs').unlinkSync(req.file.path);
+      return res.json({ success: false, message: 'El codigo ya existe, usa otro nombre' });
+    }
+
+    const id = uuidv4();
+    // Guardar ruta del archivo en lugar de URL externa
+    await db.run('INSERT INTO download_files (id,name,code,url,description,version,active) VALUES (?,?,?,?,?,?,1)',
+      [id, name, code, '__LOCAL__:' + req.file.path, desc, version]);
+
+    const file = await db.get('SELECT * FROM download_files WHERE id=?', [id]);
+    res.json({ success: true, message: 'Archivo subido', file });
+  });
+});
 app.get('/health', function(req, res) {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── Descargas publicas /d/:code ─────────────────────────────────────────────
-app.get('/d/:code', async function(req, res) {
+// ─── Descargas publicas /:code (URL limpia: lmax27.shop/nombre-archivo) ───────
+app.get('/d/:code', async function(req, res) { handleDownload(req.params.code, res); });
+app.get('/:code([a-z0-9][a-z0-9-]{2,39})', async function(req, res, next) {
+  // Solo interceptar si parece un código de archivo (no rutas del sistema)
+  const reserved = ['login','panel','apps','keys','users','logs','vars','partners','files','discord','docs','health','ownerid','debug-env','api','admin','sdk'];
+  if (reserved.includes(req.params.code)) return next();
+  handleDownload(req.params.code, res, next);
+});
+
+async function handleDownload(code, res, next) {
   try {
     const db = require('./db/database');
-    const file = await db.get('SELECT * FROM download_files WHERE code=? AND active=1', [req.params.code]);
+    const file = await db.get('SELECT * FROM download_files WHERE code=? AND active=1', [code]);
     if (!file) {
+      if (next) return next();
       return res.status(404).send(`<!DOCTYPE html><html><head><title>LMAx27 - No encontrado</title>
         <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;}
-        h1{font-size:24px;}p{color:#666;}</style></head>
-        <body><h1>LMAx27</h1><p>Archivo no encontrado o desactivado.</p></body></html>`);
+        h2{margin:0;}p{color:#666;font-size:13px;}</style></head>
+        <body><h2>LMAx27</h2><p>Archivo no encontrado o desactivado.</p></body></html>`);
     }
-    // Incrementar contador
     await db.run('UPDATE download_files SET downloads=downloads+1 WHERE id=?', [file.id]);
 
-    // Convertir links de Google Drive a descarga directa
+    // ── Archivo local subido directamente ─────────────────────────────────
+    if (file.url && file.url.startsWith('__LOCAL__:')) {
+      const filePath = file.url.replace('__LOCAL__:', '');
+      const fs = require('fs');
+      if (!fs.existsSync(filePath)) {
+        return res.status(410).send(`<!DOCTYPE html><html><head><title>LMAx27</title>
+          <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;}
+          h2{margin:0;}p{color:#666;font-size:13px;}</style></head>
+          <body><h2>LMAx27</h2><p>El archivo ya no esta disponible. Contacta al administrador.</p></body></html>`);
+      }
+      const origName = require('path').basename(filePath).replace(/_\d+(\.[^.]+)$/, '$1');
+      res.setHeader('Content-Disposition', 'attachment; filename="' + origName + '"');
+      res.setHeader('Content-Type', 'application/octet-stream');
+      return res.sendFile(filePath);
+    }
+
+    // ── Enlace externo (Google Drive, etc.) ───────────────────────────────
     let downloadUrl = file.url;
     const driveMatch = downloadUrl.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?.*id=)([a-zA-Z0-9_-]+)/);
     if (driveMatch) {
       downloadUrl = 'https://drive.google.com/uc?export=download&confirm=t&id=' + driveMatch[1];
     }
 
-    // Para otros links — mandar página HTML que descarga automáticamente
-    res.send(`<!DOCTYPE html><html><head><title>LMAx27 - Descargando...</title>
+    const safeName = (file.name || 'archivo').replace(/'/g, "\\'");
+    const safeUrl  = downloadUrl.replace(/'/g, "\\'").replace(/}/g, '');
+    res.send(`<!DOCTYPE html><html><head><title>LMAx27 - Descargando ${safeName}...</title>
       <style>body{background:#0a0a0a;color:#eab308;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:12px;}
       .spinner{width:40px;height:40px;border:3px solid #222;border-top-color:#eab308;border-radius:50%;animation:spin 1s linear infinite;}
       @keyframes spin{to{transform:rotate(360deg)}}
-      h2{margin:0;font-size:18px;}p{color:#666;font-size:13px;margin:0;}</style>
-      <script>window.onload = function(){ window.location.href = '${downloadUrl.replace(/'/g,"\\'")}'; };</script>
+      h2{margin:0;font-size:18px;}p{color:#666;font-size:13px;margin:0;}a{color:#eab308;}</style>
+      <script>window.onload=function(){window.location.href='${safeUrl}';};</script>
       </head><body>
       <div class="spinner"></div>
       <h2>LMAx27</h2>
-      <p>Descargando ${file.name}...</p>
-      <p style="font-size:11px;color:#444;">Si no inicia, <a href="${downloadUrl.replace(/'/g,"\\'")}}" style="color:#eab308;">haz click aqui</a></p>
+      <p>Descargando <strong style="color:#eab308;">${safeName}</strong>...</p>
+      <p style="font-size:11px;color:#444;margin-top:8px;">Si no inicia, <a href="${safeUrl}">haz click aqui</a></p>
       </body></html>`);
   } catch(e) {
+    if (next) return next();
     res.status(500).send('Error interno');
   }
-});
+}
 
 // Ver owner_id del admin actual (util para configurar el C++)
 app.get('/ownerid', async function(req, res) {
