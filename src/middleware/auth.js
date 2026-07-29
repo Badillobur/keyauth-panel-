@@ -37,9 +37,14 @@ function requireAdmin(req, res, next) {
         req.admin = {
           id: partner.id,
           username: partner.username,
+          display_name: partner.display_name || partner.username,
           role: 'partner',
+          partner_role: partner.role || 'partner',  // 'owner' o 'partner'
           partner_id: partner.id,
-          active: partner.active
+          active: partner.active,
+          max_bots: partner.max_bots || 1,
+          max_partners: partner.max_partners || 0,
+          owner_id: partner.owner_id || null
         };
         next();
       })
