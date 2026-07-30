@@ -156,7 +156,7 @@ router.post('/1.2/', async function(req, res) {
       }
 
       const sessionKey = genSession();
-      const expiresAt  = now + 1800;
+      const expiresAt  = now + 86400; // 24 horas
       await db.run(
         'INSERT INTO sessions (id,app_id,session_key,ip,initialized,expires_at) VALUES (?,?,?,?,1,?)',
         [uuidv4(), app.id, sessionKey, ip, expiresAt]
